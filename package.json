@@ -1,0 +1,17 @@
+{
+  "name": "graceful-boundaries",
+  "version": "0.1.0",
+  "description": "A specification for how services communicate their operational limits to humans and autonomous agents.",
+  "license": "CC-BY-4.0",
+  "scripts": {
+    "test": "node evals/test-refusal.js && node evals/test-response-classes.js && node evals/test-security.js",
+    "test:refusal": "node evals/test-refusal.js",
+    "test:classes": "node evals/test-response-classes.js",
+    "test:security": "node evals/test-security.js",
+    "check": "node evals/check.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/snapsynapse/graceful-boundaries"
+  }
+}
