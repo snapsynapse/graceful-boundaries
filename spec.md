@@ -478,6 +478,65 @@ Rather than refusing with a 429, Siteline returns the cached result with a flag.
 
 **Source code:** The implementation is not open source, but the API is publicly accessible for conformance verification. The Graceful Boundaries eval suite can be run against it at any time.
 
+## Security Considerations
+
+Graceful Boundaries is designed around transparency. Transparency and security are in tension. This section defines constraints that prevent the specification from weakening the services that implement it.
+
+**The core principle: be transparent about rules, not mechanisms.**
+
+- "10 requests per hour" is a rule. Safe to disclose.
+- "We use Redis with a sliding window" is an implementation. Not safe.
+- "Blocks requests to non-public addresses" is a category. Safe to disclose.
+- "Validates against RFC 1918 ranges plus a cloud metadata IP list" is a mechanism. Not safe.
+
+### SC-1: Published Limits vs. Enforced Limits
+
+The discovery endpoint describes the **policy**. Services MAY enforce stricter internal limits than published. This prevents callers from calibrating requests to stay exactly at the boundary.
+
+A service that publishes "10 per hour" MAY internally enforce at 8 per hour. The published value is the contract ceiling, not the enforcement floor.
+
+### SC-2: `why` Must Not Reveal Mechanisms
+
+The `why` field MUST describe the **category** of protection, not the **implementation**.
+
+- Good: "Blocks requests to non-public addresses."
+- Bad: "Validates URLs against RFC 1918 ranges and cloud metadata endpoint IPs."
+
+The `why` field exists to help callers understand the security model at a policy level, not to provide a roadmap for bypassing controls.
+
+### SC-3: `expected` Must Use Positive Descriptions
+
+The `expected` field in Input class responses MUST describe what valid input looks like in positive terms. It MUST NOT enumerate rejected patterns, as this reveals the filter logic.
+
+- Good: "A public URL."
+- Bad: "Not a private IP, not localhost, not port 8080."
+
+### SC-4: Discovery Must Not List Non-Public Endpoints
+
+The limits discovery endpoint MUST NOT include endpoints that are not intended for public use. Internal, admin, debug, or undocumented endpoints MUST be excluded.
+
+### SC-5: Resource Existence Sensitivity
+
+When resource existence is sensitive, services SHOULD return identical responses for never-existed and expired resources. The distinction between "never existed" and "expired" in the Not Found class is OPTIONAL and SHOULD only be used when existence is not sensitive.
+
+For public resources (e.g., scan results on a public scanner), the distinction is acceptable and useful. For private resources (e.g., user profiles, private documents), use a uniform 404 with no existence signal.
+
+### SC-6: Constructive Guidance URL Origin Restrictions
+
+Constructive guidance URLs (`alternativeEndpoint`, `scanUrl`, `cachedResultUrl`) MUST be relative paths or same-origin absolute URLs. Cross-origin URLs MUST NOT appear in machine-actionable fields.
+
+Cross-origin links are permitted only in `humanUrl` and `upgradeUrl`, which are intended for browser navigation, not automated following. This prevents response manipulation attacks where an intermediary modifies guidance URLs to redirect callers to attacker-controlled endpoints.
+
+### SC-7: Proactive Header Jitter
+
+Services MAY add small random jitter to `reset` values in proactive RateLimit headers to prevent callers from synchronizing with window boundaries. This mitigates burst attacks timed to window resets.
+
+### SC-8: `scanUrl` Is Not a Trust Bypass
+
+The `scanUrl` field in Not Found responses is a convenience URL. It does not bypass the scan endpoint's own input validation, SSRF protection, or rate limiting. The scan endpoint's security controls apply to all requests regardless of how the caller discovered the URL.
+
+Services that include `scanUrl` MUST ensure the referenced endpoint has adequate input validation. Autonomous agents following `scanUrl` from untrusted contexts (e.g., a URL found in a web page) SHOULD treat it as untrusted input.
+
 ## FAQ
 
 **Q: Should I use RFC 9457 (Problem Details for HTTP APIs) as the envelope format?**
