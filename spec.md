@@ -16,27 +16,29 @@ The specification is transport-agnostic but provides concrete conventions for HT
 
 ## Motivation
 
-Rate limiting is a solved mechanical problem. The unsolved problem is communication.
+Every unclear response generates follow-up traffic. A vague `429` causes blind retries. A vague `403` causes re-attempts with different credentials. A vague `404` causes the caller to probe neighboring paths. A generic `500` causes the caller to retry indefinitely.
 
-Most services return `429 Too Many Requests` with a `Retry-After` header and a generic body like `{"error": "rate limit exceeded"}`. This is sufficient for a retry loop. It is not sufficient for:
+This is wasteful for the service and frustrating for the caller. When autonomous agents are the caller, the waste compounds — agents retry faster, probe more systematically, and lack the human judgment to know when to stop.
 
-- An autonomous agent deciding whether to retry, use a cached result, try a different endpoint, or inform the human
-- A human understanding whether they did something wrong, whether the limit is temporary, or whether they need to upgrade
-- A developer building a client that respects limits proactively instead of discovering them through failures
+Graceful Boundaries exists to **reduce unnecessary traffic** by making every non-success response self-explanatory. The specification has two practical goals:
 
-The gap is not in enforcement. The gap is in the quality of the conversation between service and caller.
+1. **Eliminate discovery-through-failure.** If a caller can learn the rules before breaking them, they will generate less traffic. A proactive discovery endpoint prevents the first round of 429s entirely.
+
+2. **Expose security intent.** The `why` field is not a courtesy — it is a security signal. When a service says "this limit prevents the scan engine from being used as a proxy to attack other sites," the caller (human or agent) understands the defensive posture and adjusts behavior accordingly. When a service says "rate limit exceeded," the caller learns nothing and retries.
+
+The specification applies not just to rate limits but to every class of HTTP response where the caller needs to decide what to do next.
 
 ## Principles
 
-1. **Limits are not secrets.** A service that enforces limits should publish them in a machine-readable format before callers hit them.
+1. **Clarity reduces traffic.** A response that explains the constraint, the reason, and the next step generates zero follow-up requests. A response that says only "no" generates retries, probes, and support tickets.
 
-2. **Refusal is communication, not punishment.** A 429 response is an opportunity to explain the constraint, not just enforce it.
+2. **Limits are not secrets.** A service that enforces limits should publish them before callers hit them. Proactive disclosure prevents the first failure entirely.
 
-3. **Every refusal should include a next step.** "Try again in 30 seconds" is a next step. "Use the cached result instead" is a better one. "Here's the endpoint that does what you actually need" is best.
+3. **The reason is a security signal.** `why` exposes the defensive intent behind a constraint. "This limit prevents abuse of the email system" tells the caller the security model. "Too many requests" tells them nothing. An agent that understands the security model makes better decisions than one that doesn't.
 
-4. **Agents and humans need different things from the same response.** Machine-parseable fields (`retryAfterSeconds`, `limit`) serve agents. Human-readable fields (`detail`, `why`) serve people. Both should be present in every refusal.
+4. **Every non-success response should include a next step.** "Try again in 30 seconds" is a next step. "Use the cached result instead" is a better one. "Here's the endpoint that does what you actually need" is best. "No" with no alternative is the worst — it forces the caller to guess.
 
-5. **The reason matters.** "Too many requests" says what happened. "This limit prevents the scan engine from being used as a proxy to attack other sites" says why. The why helps callers decide how to respond.
+5. **Agents and humans need different things from the same response.** Machine-parseable fields (`retryAfterSeconds`, `limit`) serve agents. Human-readable fields (`detail`, `why`) serve people. Both MUST be present. A response that serves only one audience forces the other to parse or guess.
 
 ## Specification
 
@@ -161,6 +163,141 @@ The response SHOULD:
 - Include a human-readable explanation (e.g., "This domain was already scanned today")
 
 This is the strongest form of constructive guidance: the caller gets what they need without waiting.
+
+### 6. Response Classes
+
+Graceful Boundaries applies to all HTTP responses, not just rate limits. Each response class has a base set of fields that make it self-explanatory.
+
+**Core fields for all non-success responses:**
+
+```json
+{
+  "error": "string — stable, machine-parseable error category",
+  "detail": "string — human-readable explanation",
+  "why": "string — the reason this response exists (security, policy, or operational)"
+}
+```
+
+#### Class: Limit (429)
+
+The caller exceeded a rate limit or cooldown.
+
+| Field | Required | Purpose |
+|---|---|---|
+| `error` | Yes | `"rate_limit_exceeded"`, `"cooldown_active"`, `"resource_dedup"` |
+| `detail` | Yes | Include specific wait time in human-readable form |
+| `limit` | Yes | The exact limit (e.g., "10 scans per IP per hour") |
+| `retryAfterSeconds` | Yes | Machine-parseable retry time |
+| `why` | Yes | Security or operational reason for the limit |
+| `alternativeEndpoint` | If applicable | A different endpoint that may serve the need |
+| `cachedResultUrl` | If applicable | URL to a cached result for the same resource |
+| `humanUrl` | Recommended | Browser-friendly fallback URL |
+
+#### Class: Input (400, 405, 422)
+
+The request was malformed, used the wrong method, or failed validation.
+
+| Field | Required | Purpose |
+|---|---|---|
+| `error` | Yes | `"invalid_input"`, `"method_not_allowed"`, `"validation_failed"` |
+| `detail` | Yes | What was wrong and how to fix it |
+| `why` | Recommended | Why this validation exists (e.g., SSRF protection) |
+| `field` | If applicable | Which input field failed |
+| `expected` | If applicable | What valid input looks like |
+| `allowedMethods` | For 405 | Which HTTP methods are accepted |
+
+```json
+{
+  "error": "invalid_input",
+  "detail": "This URL points to a private or reserved address and cannot be scanned.",
+  "why": "Siteline blocks private IPs, loopback, and cloud metadata endpoints to prevent server-side request forgery.",
+  "field": "url",
+  "expected": "A public URL with a resolvable hostname on port 80 or 443."
+}
+```
+
+#### Class: Access (401, 403)
+
+The caller lacks permission or credentials.
+
+| Field | Required | Purpose |
+|---|---|---|
+| `error` | Yes | `"authentication_required"`, `"forbidden"`, `"blocked"` |
+| `detail` | Yes | What credential or permission is needed |
+| `why` | Yes | The security policy behind the restriction |
+| `authUrl` | If applicable | Where to obtain credentials |
+| `upgradeUrl` | If applicable | Where to get higher access |
+| `humanUrl` | Recommended | Browser-friendly contact or signup page |
+
+```json
+{
+  "error": "forbidden",
+  "detail": "API key required for batch operations. Free scans are available at the public endpoint.",
+  "why": "Batch access requires authentication to prevent abuse and track usage.",
+  "authUrl": "https://example.com/api/keys",
+  "alternativeEndpoint": "/api/scan"
+}
+```
+
+#### Class: Not Found (404, 410)
+
+The requested resource doesn't exist or has been removed.
+
+| Field | Required | Purpose |
+|---|---|---|
+| `error` | Yes | `"not_found"`, `"gone"`, `"result_not_found"` |
+| `detail` | Yes | Whether the resource never existed, expired, or moved |
+| `why` | Recommended | Why it might be missing (e.g., TTL expiration) |
+| `scanAvailable` | If applicable | Whether the caller can create the resource |
+| `scanUrl` | If applicable | Endpoint to create/scan the resource |
+| `humanUrl` | Recommended | Browser-friendly page to take action |
+
+```json
+{
+  "error": "result_not_found",
+  "detail": "No scan result exists for example.com. This domain has not been scanned yet.",
+  "why": "Results are kept for 30 days after scanning. This domain may not have been scanned, or the result may have expired.",
+  "scanAvailable": true,
+  "scanUrl": "/api/scan?url=https://example.com",
+  "humanUrl": "https://siteline.snapsynapse.com/?url=example.com"
+}
+```
+
+#### Class: Availability (500, 502, 503, 504)
+
+The service is experiencing an error or is temporarily unavailable.
+
+| Field | Required | Purpose |
+|---|---|---|
+| `error` | Yes | `"internal_error"`, `"service_unavailable"`, `"upstream_error"`, `"timeout"` |
+| `detail` | Yes | Whether this is transient and whether retrying is appropriate |
+| `why` | Recommended | What subsystem is affected |
+| `retryAfterSeconds` | If applicable | When the service expects to recover |
+| `statusUrl` | If applicable | Status page or health check endpoint |
+| `humanUrl` | Recommended | Where to report the issue or get help |
+
+```json
+{
+  "error": "service_unavailable",
+  "detail": "Result storage is temporarily unavailable. Scans still work but results are not persisted.",
+  "why": "The storage backend (Supabase) is unreachable. This is usually transient.",
+  "retryAfterSeconds": 60,
+  "humanUrl": "https://siteline.snapsynapse.com/"
+}
+```
+
+#### Class: Success (200, 201, 204)
+
+Successful responses carry proactive information to prevent future errors.
+
+| Header | When | Purpose |
+|---|---|---|
+| `RateLimit` | Always | Remaining budget: `limit=N, remaining=N, reset=N` |
+| `RateLimit-Policy` | Always | Policy description: `N;w=N` |
+| `X-Result-Id` | When applicable | Stable ID for the resource, for later retrieval |
+| `X-Cache-Status` | When applicable | Whether the response was cached |
+
+The proactive headers are the highest-leverage traffic reduction mechanism. A caller that sees `remaining=1` will self-throttle before the next request. A caller that sees `remaining=9` knows it has budget and won't add artificial delays.
 
 ## Conformance Levels
 
