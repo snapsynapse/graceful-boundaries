@@ -277,6 +277,70 @@ Content-Type: application/json
 
 Graceful Boundaries is complementary to these standards, not a replacement. A conforming service can (and should) also implement IETF RateLimit headers and use RFC 9457 Problem Details as the envelope format.
 
+## Reference Implementation
+
+[Siteline](https://siteline.snapsynapse.com/) is a Level 3+ conformant implementation of Graceful Boundaries. It is an AI agent readiness scanner with five API endpoints, each demonstrating different aspects of the specification.
+
+**Verify conformance:**
+
+```bash
+node evals/check.js https://siteline.snapsynapse.com
+```
+
+**Discovery endpoint:** [`/api/limits`](https://siteline.snapsynapse.com/api/limits) — returns all rate limits, SSRF protection policy, response headers, and endpoint links.
+
+**Proactive headers on successful responses:**
+
+```
+GET /api/scan?url=example.com
+
+200 OK
+RateLimit: limit=10, remaining=9, reset=3540
+RateLimit-Policy: 10;w=3600
+```
+
+**Structured refusal with constructive guidance:**
+
+```
+GET /api/scan?url=example.com
+
+429 Too Many Requests
+Retry-After: 2400
+RateLimit: limit=10, remaining=0, reset=2400
+RateLimit-Policy: 10;w=3600
+
+{
+  "error": "rate_limit_exceeded",
+  "detail": "You can run up to 10 scans per hour. Try again in 2400 seconds.",
+  "limit": "10 scans per IP per hour",
+  "retryAfterSeconds": 2400,
+  "why": "Siteline is a free service. Rate limits keep it available for everyone and prevent abuse.",
+  "alternativeEndpoint": "/api/result?id=example.com"
+}
+```
+
+The `alternativeEndpoint` field directs the caller to the result lookup API, which may already have a cached result for the domain — the strongest form of constructive guidance.
+
+**Resource deduplication (one scan per domain per day):**
+
+```
+GET /api/scan?url=example.com
+
+200 OK
+
+{
+  "grade": "B",
+  "score": 82,
+  ...full result...,
+  "_rescanBlocked": true,
+  "_cacheStatus": "KV_HIT"
+}
+```
+
+Rather than refusing with a 429, Siteline returns the cached result with a flag. The caller gets what they need without waiting.
+
+**Source code:** The implementation is not open source, but the API is publicly accessible for conformance verification. The Graceful Boundaries eval suite can be run against it at any time.
+
 ## FAQ
 
 **Q: Should I use RFC 9457 (Problem Details for HTTP APIs) as the envelope format?**
