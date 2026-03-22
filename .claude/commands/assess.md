@@ -13,6 +13,18 @@ description: >
   agent-readiness-audit skill, which assesses overall AI discoverability
   -- this skill specifically evaluates rate limit communication quality
   per the Graceful Boundaries specification.
+metadata:
+  skill_bundle: graceful-boundaries-audit
+  file_role: skill
+  version: 1
+  version_date: 2026-03-22
+  previous_version: null
+  change_summary: >
+    Initial release. Six-phase conformance audit process covering
+    automated checking, manual verification, level assessment, gap
+    analysis, implementation guidance, and structured output document.
+  author: Snap Synapse (snapsynapse.com)
+  source: https://github.com/snapsynapse/graceful-boundaries
 ---
 
 # Graceful Boundaries Conformance Audit

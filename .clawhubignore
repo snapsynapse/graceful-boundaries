@@ -1,0 +1,16 @@
+.git/
+.github/
+.claude/
+.perplexity-research/
+.gitignore
+.gitattributes
+.clawhubignore
+node_modules/
+*.log
+.DS_Store
+LICENSE
+CLAUDE.md
+CONTRIBUTING.md
+SECURITY-AUDIT.md
+package.json
+docs/social-description.md
