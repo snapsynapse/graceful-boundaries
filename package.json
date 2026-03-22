@@ -13,8 +13,25 @@
     "test:headers": "node evals/test-proactive-headers.js",
     "check": "node evals/check.js"
   },
+  "type": "commonjs",
+  "author": "Snap Synapse <https://snapsynapse.com/>",
+  "homepage": "https://github.com/snapsynapse/graceful-boundaries",
+  "bugs": {
+    "url": "https://github.com/snapsynapse/graceful-boundaries/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/snapsynapse/graceful-boundaries"
-  }
+  },
+  "keywords": [
+    "graceful-boundaries",
+    "rate-limiting",
+    "api",
+    "specification",
+    "conformance",
+    "autonomous-agents",
+    "429",
+    "structured-refusal",
+    "limits-discovery"
+  ]
 }
