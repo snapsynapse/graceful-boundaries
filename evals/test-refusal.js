@@ -162,6 +162,28 @@ test("Level 3: no constructive fields when absent", () => {
 
 // ─── Level Assessment ────────────────────────────────────────────
 
+test("Assessment: N/A when declared with empty limits", () => {
+  const level = assessLevel(
+    [{ found: true, wellFormed: true, conformance: "not-applicable", limitCount: 0 }],
+    null
+  );
+  assert(level === "not-applicable", `expected "not-applicable", got ${level}`);
+});
+
+test("Assessment: N/A declaration ignored when limits exist", () => {
+  const level = assessLevel(
+    [{ found: true, wellFormed: true, conformance: "not-applicable", limitCount: 2 }],
+    checkRefusalBody({
+      error: "rate_limit_exceeded",
+      detail: "Try again in 42 seconds.",
+      limit: "10 per hour",
+      retryAfterSeconds: 42,
+      why: "Keeps things running.",
+    })
+  );
+  assert(level !== "not-applicable", `should not be N/A when limits exist, got ${level}`);
+});
+
 test("Assessment: Level 0 when nothing passes", () => {
   const level = assessLevel(
     [{ found: false }],

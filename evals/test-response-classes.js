@@ -10,9 +10,13 @@
  *   - Not Found (404, 410)
  *   - Availability (500, 502, 503, 504)
  *   - Success (200) — proactive headers
+ *   - Resource Deduplication (200 with _rescanBlocked)
+ *   - Error field stability
  *
  * Usage: node evals/test-response-classes.js
  */
+
+const { checkDedupResponse, isStableErrorValue } = require("./check.js");
 
 let passed = 0;
 let failed = 0;
@@ -282,6 +286,84 @@ test("Quality: good why fields explain the purpose", () => {
   examples.forEach((ex) => {
     assert(whyExplainsNotRestates(ex), `why for ${ex.error} should explain purpose`);
   });
+});
+
+// ─── Resource Deduplication (spec section 5) ─────────────────────
+
+test("Dedup: conforming response includes flag and result data", () => {
+  const result = checkDedupResponse({
+    grade: "B",
+    score: 82,
+    _rescanBlocked: true,
+    _cacheStatus: "KV_HIT",
+  });
+  assert(result.isDedup, "should be identified as dedup");
+  assert(result.hasRescanBlocked, "should have _rescanBlocked");
+  assert(result.hasCacheStatus, "should have _cacheStatus");
+  assert(result.hasResultData, "should have result data");
+  assert(result.errors.length === 0, "should have no errors");
+});
+
+test("Dedup: missing _rescanBlocked flag fails", () => {
+  const result = checkDedupResponse({
+    grade: "B",
+    score: 82,
+  });
+  assert(!result.isDedup, "should not be identified as dedup");
+  assert(result.errors.some((e) => e.includes("_rescanBlocked")), "should report missing flag");
+});
+
+test("Dedup: _rescanBlocked=false is not a dedup response", () => {
+  const result = checkDedupResponse({
+    grade: "B",
+    _rescanBlocked: false,
+  });
+  assert(!result.isDedup, "false flag should not count as dedup");
+});
+
+test("Dedup: flag without result data warns", () => {
+  const result = checkDedupResponse({
+    _rescanBlocked: true,
+  });
+  assert(result.isDedup, "should be identified as dedup");
+  assert(!result.hasResultData, "should flag missing result data");
+});
+
+// ─── Error field stability ───────────────────────────────────────
+
+test("Stable error: snake_case values pass", () => {
+  assert(isStableErrorValue("rate_limit_exceeded"), "rate_limit_exceeded should pass");
+  assert(isStableErrorValue("not_found"), "not_found should pass");
+  assert(isStableErrorValue("invalid_input"), "invalid_input should pass");
+  assert(isStableErrorValue("cooldown_active"), "cooldown_active should pass");
+  assert(isStableErrorValue("resource_dedup"), "resource_dedup should pass");
+});
+
+test("Stable error: kebab-case values pass", () => {
+  assert(isStableErrorValue("rate-limit-exceeded"), "kebab-case should pass");
+  assert(isStableErrorValue("not-found"), "kebab-case should pass");
+});
+
+test("Stable error: single word passes", () => {
+  assert(isStableErrorValue("forbidden"), "single word should pass");
+  assert(isStableErrorValue("timeout"), "single word should pass");
+});
+
+test("Stable error: human-readable strings fail", () => {
+  assert(!isStableErrorValue("Rate limit exceeded"), "spaces should fail");
+  assert(!isStableErrorValue("Too many requests"), "spaces should fail");
+  assert(!isStableErrorValue("Not Found"), "uppercase should fail");
+});
+
+test("Stable error: punctuation fails", () => {
+  assert(!isStableErrorValue("rate_limit_exceeded."), "trailing period should fail");
+  assert(!isStableErrorValue("error!"), "exclamation should fail");
+});
+
+test("Stable error: empty or non-string fails", () => {
+  assert(!isStableErrorValue(""), "empty string should fail");
+  assert(!isStableErrorValue(null), "null should fail");
+  assert(!isStableErrorValue(429), "number should fail");
 });
 
 // ─── Summary ─────────────────────────────────────────────────────

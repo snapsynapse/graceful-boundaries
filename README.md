@@ -18,10 +18,14 @@ Graceful Boundaries addresses three gaps that existing standards cover separatel
 
 | Level | What it requires |
 |---|---|
+| **N/A: Not Applicable** | No API endpoints, rate limits, or agentic interaction surface. |
+| **Level 0: Non-Conformant** | Limits exist but are not described per this specification. |
 | **Level 1: Structured Refusal** | All 429 responses include `error`, `detail`, `limit`, `retryAfterSeconds`, and `why`. |
 | **Level 2: Discoverable** | Level 1 + a limits discovery endpoint. |
 | **Level 3: Constructive** | Level 2 + refusal responses include constructive guidance when applicable. |
-| **Level 3+: Proactive** | Level 3 + successful responses include proactive limit headers. |
+| **Level 4: Proactive** | Level 3 + successful responses include proactive limit headers. |
+
+Services can declare their own conformance level by including a `conformance` field in their limits discovery endpoint. This declaration is a self-assertion — external agents and the eval suite validate it against actual behavior.
 
 ## Evaluate conformance
 
@@ -29,7 +33,11 @@ Graceful Boundaries addresses three gaps that existing standards cover separatel
 node evals/check.js https://your-service.com
 ```
 
-The eval suite tests all three levels against a live service.
+The eval suite validates conformance against a live service. Unit tests cover all levels including N/A, Level 0, and Level 4 proactive header validation:
+
+```bash
+npm test
+```
 
 ## Relationship to existing standards
 

@@ -54,6 +54,7 @@ A conforming service MUST provide a limits discovery endpoint that returns all e
 {
   "service": "string — service name",
   "description": "string — what the service does",
+  "conformance": "string (optional) — self-declared conformance level (see Conformance Levels)",
   "limits": {
     "<endpoint-key>": {
       "endpoint": "string — path pattern",
@@ -87,6 +88,43 @@ A conforming service MUST provide a limits discovery endpoint that returns all e
 Services MAY define additional types. Unknown types SHOULD be treated as opaque constraints by clients.
 
 The limits endpoint SHOULD be cacheable. A `Cache-Control` header with `s-maxage` of at least 300 seconds is RECOMMENDED.
+
+**Conformance declaration:**
+
+The `conformance` field allows a service to declare its own conformance level. Valid values:
+
+| Value | Meaning |
+|---|---|
+| `"not-applicable"` | The site has no agentic interaction surface |
+| `"none"` | The service enforces limits but has not adopted this specification |
+| `"level-1"` | Claims Level 1 conformance |
+| `"level-2"` | Claims Level 2 conformance |
+| `"level-3"` | Claims Level 3 conformance |
+| `"level-4"` | Claims Level 4 conformance |
+
+A site declaring `not-applicable` SHOULD still provide a limits discovery endpoint with an empty `limits` object. This distinguishes "we have nothing to disclose" from "we haven't heard of this spec" (no endpoint at all).
+
+```json
+{
+  "service": "Example Blog",
+  "description": "Personal blog. No API or agentic services.",
+  "conformance": "not-applicable",
+  "limits": {}
+}
+```
+
+A service declaring `none` acknowledges the specification but has not implemented it. This is more informative than a missing endpoint because it signals awareness:
+
+```json
+{
+  "service": "Example API",
+  "description": "REST API with rate limiting.",
+  "conformance": "none",
+  "limits": {}
+}
+```
+
+The `conformance` field is a self-assertion. External agents validate it against actual behavior (see Conformance Levels).
 
 ### 2. Structured Refusal Response
 
@@ -280,7 +318,7 @@ The service is experiencing an error or is temporarily unavailable.
 {
   "error": "service_unavailable",
   "detail": "Result storage is temporarily unavailable. Scans still work but results are not persisted.",
-  "why": "The storage backend (Supabase) is unreachable. This is usually transient.",
+  "why": "The storage backend is unreachable. This is usually transient.",
   "retryAfterSeconds": 60,
   "humanUrl": "https://siteline.snapsynapse.com/"
 }
@@ -303,12 +341,22 @@ The proactive headers are the highest-leverage traffic reduction mechanism. A ca
 
 | Level | Requirements |
 |---|---|
+| **N/A: Not Applicable** | The site has no API endpoints, rate limits, or agentic interaction surface. There are no operational limits to communicate. |
+| **Level 0: Non-Conformant** | The service enforces limits but does not describe them per this specification. Agents encounter bare `429`s, generic errors, or silent blocks with no structured explanation. |
 | **Level 1: Structured Refusal** | All 429 responses include `error`, `detail`, `limit`, `retryAfterSeconds`, and `why`. |
 | **Level 2: Discoverable** | Level 1 + a limits discovery endpoint exists and is accurate. |
 | **Level 3: Constructive** | Level 2 + refusal responses include at least one constructive guidance field when applicable. |
-| **Level 3+: Proactive** | Level 3 + successful responses include proactive limit headers (RateLimit or equivalent). |
+| **Level 4: Proactive** | Level 3 + successful responses include proactive limit headers (RateLimit or equivalent). |
 
-A service MAY claim conformance at any level. Services SHOULD target Level 3 for agent-facing APIs.
+N/A and Level 0 are the default states for sites that have not adopted Graceful Boundaries. The difference between them is diagnostic: **N/A means there is nothing to conform to** (a static blog, a brochure site); **Level 0 means there is something to conform to but the service hasn't done it** (an API that returns bare `429`s). N/A is a classification. Level 0 is a gap.
+
+### Self-Assertion and External Validation
+
+A service MAY declare its own conformance level by including a `conformance` field in the limits discovery response (see section 1). This declaration is an **assertion**, not a guarantee. External agents, auditors, and conformance checkers validate the assertion against the service's actual behavior.
+
+A service that declares Level 3 but returns bare `429`s is non-conformant regardless of its declaration. A site that declares N/A but enforces rate limits on API endpoints is misclassified. The declared level is the service's claim; the validated level is what an external evaluation confirms.
+
+Services SHOULD target Level 3 or higher for agent-facing APIs.
 
 ## Examples
 
@@ -416,7 +464,7 @@ Graceful Boundaries is complementary to these standards, not a replacement. A co
 
 ## Reference Implementation
 
-[Siteline](https://siteline.snapsynapse.com/) is a Level 3+ conformant implementation of Graceful Boundaries. It is an AI agent readiness scanner with five API endpoints, each demonstrating different aspects of the specification.
+[Siteline](https://siteline.snapsynapse.com/) is a Level 4 conformant implementation of Graceful Boundaries. It is an AI agent readiness scanner with five API endpoints, each demonstrating different aspects of the specification.
 
 **Verify conformance:**
 
@@ -547,6 +595,15 @@ A: That's fine. `retryAfterSeconds` is itself a next step. Level 1 conformance o
 
 **Q: Should the limits discovery endpoint require authentication?**
 A: No. Limits are not secrets (Principle 1). The discovery endpoint SHOULD be publicly accessible so agents can plan before authenticating.
+
+**Q: What if my site has no API?**
+A: Declare `not-applicable`. A static site, personal blog, or brochure page has no operational limits to communicate. Providing a limits discovery endpoint with `"conformance": "not-applicable"` and an empty `limits` object signals this to agents. Without the endpoint, agents cannot distinguish "no limits to communicate" from "hasn't heard of this spec."
+
+**Q: What's the difference between Level 0 and N/A?**
+A: N/A means the site has no agentic interaction surface — there are no limits to describe. Level 0 means the service enforces limits but doesn't describe them per this specification. N/A is a classification; Level 0 is a gap. A static blog is N/A. An API that returns bare `429`s is Level 0.
+
+**Q: Can a service declare a higher level than it actually meets?**
+A: It can declare any level, but the declaration is a self-assertion. External agents and conformance checkers validate the claim against actual behavior. A service declaring Level 3 but returning bare `429`s will be evaluated as Level 0 regardless of its declaration.
 
 **Q: How does this apply to non-HTTP services?**
 A: The principles and field names apply to any request-response protocol. The HTTP conventions (status codes, headers, endpoint paths) are transport-specific implementations of the general pattern.
