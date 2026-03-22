@@ -16,13 +16,14 @@ description: >
 metadata:
   skill_bundle: graceful-boundaries-audit
   file_role: skill
-  version: 1
+  version: 2
   version_date: 2026-03-22
-  previous_version: null
+  previous_version: 1
   change_summary: >
-    Initial release. Six-phase conformance audit process covering
-    automated checking, manual verification, level assessment, gap
-    analysis, implementation guidance, and structured output document.
+    Restructured to remove Node.js runtime dependency. Phase 1 now uses
+    direct HTTP fetching as the primary method. Node checker is an optional
+    accelerator, not a requirement. Resolves OpenClaw security scan
+    inconsistency between runtime instructions and declared binaries.
   author: Snap Synapse (snapsynapse.com)
   source: https://github.com/snapsynapse/graceful-boundaries
 ---
@@ -31,10 +32,11 @@ metadata:
 
 ## What This Skill Does
 
-Assesses a URL's Graceful Boundaries conformance level using the eval
-suite and direct inspection, then provides a concrete implementation
-plan for reaching the next level. The output is an actionable document
-with code examples the user can implement immediately.
+Assesses a URL's Graceful Boundaries conformance level through direct
+HTTP inspection, then provides a concrete implementation plan for
+reaching the next level. The output is an actionable document with
+code examples the user can implement immediately. No special tooling
+or dependencies required — the skill works with any HTTP client.
 
 ## When To Use This Skill
 
@@ -49,44 +51,52 @@ with code examples the user can implement immediately.
 
 Follow these phases in order. Each phase builds on the previous one.
 
-### Phase 1: Run the Conformance Checker
+### Phase 1: Discovery Fetch
 
-Execute the automated checker against the target URL:
+Fetch the limits discovery endpoint directly. Try both standard paths:
+
+```
+GET <url>/api/limits
+GET <url>/.well-known/limits
+```
+
+Use curl, fetch, or any HTTP client available in the current environment.
+No special tooling is required.
+
+If either path returns a JSON response, record:
+- Whether the response contains a `service` field
+- Whether the response contains a `limits` object
+- Whether limit entries are well-formed (each has `type`, `maxRequests`,
+  `windowSeconds`, `description`)
+- Whether a `conformance` field is present (self-declared level)
+- Whether the response includes a `Cache-Control` header with `s-maxage`
+
+If neither path returns a valid response, the service has no discovery
+endpoint and cannot be Level 2 or above.
+
+**Optional accelerator:** If the graceful-boundaries repo is cloned
+locally, the automated checker provides a structured report:
 
 ```bash
 node evals/check.js <url> --json
 ```
 
-Parse the JSON output. Note:
-- `conformanceLevel`: the validated level (0, 1, 2, 3, or "not-applicable")
-- `limitsDiscovery`: which paths were checked, whether a limits endpoint was found
-- `notes`: any warnings or findings
+This is a convenience, not a requirement. The skill works entirely
+through direct HTTP inspection.
 
-The checker cannot assess Level 1 or Level 3 without triggering a real
-429, so it may report Level 2 as the highest confirmed level even if the
-service is Level 3 or 4. Phases 2-3 fill in the gaps.
+### Phase 2: Proactive Header Check
 
-### Phase 2: Manual Verification
-
-Supplement the checker with direct inspection:
-
-**Limits discovery endpoint:**
-Fetch the limits endpoint found by the checker (or try both `/api/limits`
-and `/.well-known/limits`). Examine the response for:
-- `service` and `description` fields (recommended)
-- `conformance` field (optional self-declaration)
-- `limits` object with well-formed entries
-- Each limit entry has: `type`, `maxRequests`, `windowSeconds`, `description`
-- `Cache-Control` header with `s-maxage` (recommended)
-
-**Proactive headers on success:**
-If the limits endpoint documents specific endpoints, fetch one and check
-for `RateLimit` and `RateLimit-Policy` headers on the success response:
+If the limits endpoint documents specific API endpoints, fetch one of
+them and check for proactive headers on the success response:
 - `RateLimit: limit=N, remaining=N, reset=N`
 - `RateLimit-Policy: N;w=N`
 
+These headers indicate Level 4 conformance.
+
 **Do NOT attempt to trigger 429s.** That would require hammering the
-service and is not appropriate for an audit.
+service and is not appropriate for an audit. Level 1 and Level 3
+conformance cannot be verified without observing an actual refusal
+response — note these as unverifiable and explain why.
 
 ### Phase 3: Level Assessment
 
