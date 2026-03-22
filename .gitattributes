@@ -1,0 +1,3 @@
+# Classify eval suite as tooling so GitHub language stats reflect
+# that this is a specification project, not a JavaScript library
+evals/*.js linguist-generated

@@ -1,7 +1,7 @@
 # Graceful Boundaries
 
-**Version:** 0.1.0
-**Status:** Draft
+**Version:** 1.0.0
+**Status:** Released
 **License:** CC-BY-4.0
 
 ## Abstract

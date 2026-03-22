@@ -3,9 +3,8 @@
 A specification for how services communicate their operational limits to humans and autonomous agents.
 
 [![License: CC-BY-4.0](https://img.shields.io/badge/License-CC--BY--4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](spec.md)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](spec.md)
 [![Tests](https://img.shields.io/badge/tests-104%20passing-brightgreen.svg)](#evaluate-conformance)
-[![Status](https://img.shields.io/badge/status-Draft-orange.svg)](spec.md)
 
 ## The problem
 
@@ -71,7 +70,8 @@ The caller knows the limit, when to retry, *why* the limit exists, and where to 
 **Proactive headers on successful responses:**
 
 ```bash
-curl -s 'https://siteline.snapsynapse.com/api/result?id=example.com' -D - -o /dev/null 2>&1 | grep ratelimit
+curl -s 'https://siteline.snapsynapse.com/api/result?id=example.com' \
+  -D - -o /dev/null 2>&1 | grep ratelimit
 ```
 
 ```
