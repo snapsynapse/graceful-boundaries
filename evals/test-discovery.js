@@ -263,6 +263,111 @@ test("Multiple errors reported across entries", () => {
   assert(result.entryErrors.length >= 2, `expected >=2 errors, got ${result.entryErrors.length}`);
 });
 
+// ─── Changelog and feed discovery (v1.1) ─────────────────────────
+
+test("v1.1: changelog URL passes", () => {
+  const result = checkLimitsBody({
+    service: "Siteline",
+    description: "Scanner.",
+    changelog: "https://siteline.snapsynapse.com/api/v1/changelog.json",
+    limits: {},
+  });
+  assert(result.isValid, "should be valid");
+  assert(result.hasChangelog, "should detect changelog");
+  assert(result.warnings.every((w) => !w.includes("changelog")), "no changelog warnings");
+});
+
+test("v1.1: feed URL passes", () => {
+  const result = checkLimitsBody({
+    service: "Siteline",
+    description: "Scanner.",
+    feed: "https://siteline.snapsynapse.com/feed.json",
+    limits: {},
+  });
+  assert(result.isValid, "should be valid");
+  assert(result.hasFeed, "should detect feed");
+  assert(result.warnings.every((w) => !w.includes("feed")), "no feed warnings");
+});
+
+test("v1.1: empty changelog warns", () => {
+  const result = checkLimitsBody({
+    service: "Test",
+    limits: {},
+    changelog: "",
+  });
+  assert(result.isValid, "still valid — changelog is optional");
+  assert(result.warnings.some((w) => w.includes("changelog")), "should warn about empty changelog");
+});
+
+test("v1.1: non-string changelog warns", () => {
+  const result = checkLimitsBody({
+    service: "Test",
+    limits: {},
+    changelog: 123,
+  });
+  assert(result.isValid, "still valid");
+  assert(result.warnings.some((w) => w.includes("changelog")), "should warn about non-string changelog");
+});
+
+test("v1.1: body without changelog/feed has no false positives", () => {
+  const result = checkLimitsBody({
+    service: "Test",
+    limits: {},
+  });
+  assert(!result.hasChangelog, "should not detect changelog");
+  assert(!result.hasFeed, "should not detect feed");
+});
+
+// ─── returnsCached flag (v1.1) ───────────────────────────────────
+
+test("v1.1: resource-dedup with returnsCached: true passes", () => {
+  const result = checkLimitsBody({
+    service: "Test",
+    limits: {
+      scan: {
+        endpoint: "/api/scan",
+        limits: [
+          { type: "resource-dedup", maxRequests: 1, windowSeconds: 86400, description: "One per day.", returnsCached: true },
+        ],
+      },
+    },
+  });
+  assert(result.isValid, "should be valid");
+  assert(result.warnings.every((w) => !w.includes("returnsCached")), "no returnsCached warnings");
+});
+
+test("v1.1: returnsCached with non-boolean warns", () => {
+  const result = checkLimitsBody({
+    service: "Test",
+    limits: {
+      scan: {
+        endpoint: "/api/scan",
+        limits: [
+          { type: "resource-dedup", maxRequests: 1, windowSeconds: 86400, description: "One per day.", returnsCached: "yes" },
+        ],
+      },
+    },
+  });
+  assert(result.isValid, "still valid — returnsCached is optional");
+  assert(result.warnings.some((w) => w.includes("returnsCached") && w.includes("boolean")), "should warn about type");
+});
+
+test("v1.1: returnsCached on non-dedup limit warns", () => {
+  const result = checkLimitsBody({
+    service: "Test",
+    limits: {
+      scan: {
+        endpoint: "/api/scan",
+        limits: [
+          { type: "ip-rate", maxRequests: 10, windowSeconds: 3600, description: "10 per hour.", returnsCached: true },
+        ],
+      },
+    },
+  });
+  assert(result.isValid, "still valid");
+  assert(result.warnings.some((w) => w.includes("returnsCached") && w.includes("resource-dedup")), "should warn about misplaced flag");
+});
+
 // ─── Summary ─────────────────────────────────────────────────────
 
 console.log("");

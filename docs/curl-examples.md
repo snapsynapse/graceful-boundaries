@@ -16,7 +16,7 @@ Check the standard well-known path:
 curl -s https://your-service.com/.well-known/limits | jq .
 ```
 
-A conforming discovery response includes `service`, `limits`, and optionally `conformance`:
+A conforming discovery response includes `service`, `limits`, and optionally `conformance`, `changelog`, and `feed`:
 
 ```json
 {
@@ -88,7 +88,58 @@ Guidance categories (in recommended priority order):
 - `upgradeUrl` -- paid or authenticated access has higher limits
 - `humanUrl` -- a browser-friendly URL for human follow-up
 
-## 4. Inspect proactive headers
+## 4. Non-429 response classes
+
+Graceful Boundaries applies to all non-success responses, not just rate limits. Every error MUST include `error`, `detail`, and `why`.
+
+**Input validation (400):**
+
+```json
+{
+  "error": "invalid_input",
+  "detail": "This URL points to a private or reserved address and cannot be scanned.",
+  "why": "Siteline blocks private IPs, loopback, and cloud metadata endpoints to prevent server-side request forgery.",
+  "field": "url",
+  "expected": "A public URL with a resolvable hostname on port 80 or 443."
+}
+```
+
+**Not Found with creation path (404):**
+
+```json
+{
+  "error": "result_not_found",
+  "detail": "No scan result exists for example.com. This domain has not been scanned yet.",
+  "why": "Results are kept for 30 days after scanning. This domain may not have been scanned, or the result may have expired.",
+  "scanAvailable": true,
+  "scanUrl": "/api/scan?url=https://example.com",
+  "humanUrl": "https://siteline.snapsynapse.com/?url=example.com"
+}
+```
+
+**Service unavailable (503):**
+
+```json
+{
+  "error": "service_unavailable",
+  "detail": "Result storage is temporarily unavailable. Scans still work but results are not persisted.",
+  "why": "The storage backend is unreachable. This is usually transient.",
+  "retryAfterSeconds": 60
+}
+```
+
+## 5. HTML 429 machine-accessibility
+
+HTML pages that return 429 should include machine-readable hints so agents don't have to parse prose:
+
+```html
+<meta name="retry-after" content="42" />
+<link rel="alternate" type="application/json" href="/api/scan?format=json" />
+```
+
+The `<meta>` tag provides the retry time. The `<link>` tag points to the JSON-structured refusal. Either alone is sufficient for agent consumption.
+
+## 6. Inspect proactive headers
 
 Check for `RateLimit` headers on a successful response:
 
@@ -107,7 +158,7 @@ The three components of the `RateLimit` header:
 - `remaining` -- requests left before the limit is hit
 - `reset` -- seconds until the window resets
 
-## 5. Run the conformance checker
+## 7. Run the conformance checker
 
 The eval suite includes a live checker that tests a service against all conformance levels:
 
@@ -122,7 +173,7 @@ node evals/check.js https://siteline.snapsynapse.com --json
 node evals/check.js https://your-service.com --limits-path /.well-known/limits
 ```
 
-## 6. Agent integration pattern
+## 8. Agent integration pattern
 
 An autonomous agent interacting with a Graceful Boundaries-conformant service should follow this sequence:
 

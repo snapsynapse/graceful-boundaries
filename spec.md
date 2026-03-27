@@ -1,6 +1,6 @@
 # Graceful Boundaries
 
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Status:** Released
 **License:** CC-BY-4.0
 
@@ -55,6 +55,8 @@ A conforming service MUST provide a limits discovery endpoint that returns all e
   "service": "string — service name",
   "description": "string — what the service does",
   "conformance": "string (optional) — self-declared conformance level (see Conformance Levels)",
+  "changelog": "string (optional) — URL to a changelog resource for limit changes",
+  "feed": "string (optional) — URL to a feed (JSON Feed, Atom, RSS) for change notifications",
   "limits": {
     "<endpoint-key>": {
       "endpoint": "string — path pattern",
@@ -88,6 +90,10 @@ A conforming service MUST provide a limits discovery endpoint that returns all e
 Services MAY define additional types. Unknown types SHOULD be treated as opaque constraints by clients.
 
 The limits endpoint SHOULD be cacheable. A `Cache-Control` header with `s-maxage` of at least 300 seconds is RECOMMENDED.
+
+**Change discovery:**
+
+The `changelog` and `feed` fields allow agents to detect when limits have changed without re-fetching the full discovery endpoint. The `changelog` URL SHOULD point to a structured resource (JSON) listing dated changes. The `feed` URL SHOULD point to a standard feed format (JSON Feed, Atom, or RSS) that agents can poll or subscribe to. Both fields are OPTIONAL.
 
 **Conformance declaration:**
 
@@ -152,6 +158,8 @@ When a limit is exceeded, the response MUST include the following fields:
 
 **Convention for HTTP:** Return status `429 Too Many Requests` with a `Retry-After` header (seconds) and the structured JSON body. The `Content-Type` MUST be `application/json` for API endpoints. HTML endpoints MAY return `text/html` but MUST include the same information in human-readable form.
 
+**HTML 429 responses:** HTML endpoints that return 429 SHOULD include a `<meta name="retry-after" content="N">` tag (seconds) and a `<link rel="alternate" type="application/json" href="...">` pointing to the JSON equivalent of the same response. This allows agents that follow HTML links to discover the structured refusal without parsing prose. Alternatively, the `Retry-After` header alone is sufficient for agents that check headers before parsing the body. The requirement is that the retry information is machine-accessible, not that it is in JSON specifically.
+
 ### 3. Constructive Guidance
 
 A conforming refusal response SHOULD include at least one field that helps the caller take a useful action beyond waiting:
@@ -202,11 +210,25 @@ The response SHOULD:
 
 This is the strongest form of constructive guidance: the caller gets what they need without waiting.
 
+**Discovery signal:** When a `resource-dedup` limit entry in the discovery endpoint returns the cached result instead of a 429 refusal, the entry SHOULD include `"returnsCached": true`. This tells agents they will receive a valid response (not a refusal) and can skip retry logic entirely.
+
+```json
+{
+  "type": "resource-dedup",
+  "maxRequests": 1,
+  "windowSeconds": 86400,
+  "returnsCached": true,
+  "description": "One scan per domain per calendar day. Repeat requests return the cached result."
+}
+```
+
 ### 6. Response Classes
 
 Graceful Boundaries applies to all HTTP responses, not just rate limits. Each response class has a base set of fields that make it self-explanatory.
 
 **Core fields for all non-success responses:**
+
+All non-success responses MUST include `error`, `detail`, and `why`. The `why` field explains the defensive, operational, or policy reason behind the response. Omitting `why` degrades the response to the same quality as a bare status code.
 
 ```json
 {
@@ -239,7 +261,7 @@ The request was malformed, used the wrong method, or failed validation.
 |---|---|---|
 | `error` | Yes | `"invalid_input"`, `"method_not_allowed"`, `"validation_failed"` |
 | `detail` | Yes | What was wrong and how to fix it |
-| `why` | Recommended | Why this validation exists (e.g., SSRF protection) |
+| `why` | Yes | Why this validation exists (e.g., SSRF protection) |
 | `field` | If applicable | Which input field failed |
 | `expected` | If applicable | What valid input looks like |
 | `allowedMethods` | For 405 | Which HTTP methods are accepted |
@@ -285,7 +307,7 @@ The requested resource doesn't exist or has been removed.
 |---|---|---|
 | `error` | Yes | `"not_found"`, `"gone"`, `"result_not_found"` |
 | `detail` | Yes | Whether the resource never existed, expired, or moved |
-| `why` | Recommended | Why it might be missing (e.g., TTL expiration) |
+| `why` | Yes | Why it might be missing (e.g., TTL expiration) |
 | `scanAvailable` | If applicable | Whether the caller can create the resource |
 | `scanUrl` | If applicable | Endpoint to create/scan the resource |
 | `humanUrl` | Recommended | Browser-friendly page to take action |
@@ -309,7 +331,7 @@ The service is experiencing an error or is temporarily unavailable.
 |---|---|---|
 | `error` | Yes | `"internal_error"`, `"service_unavailable"`, `"upstream_error"`, `"timeout"` |
 | `detail` | Yes | Whether this is transient and whether retrying is appropriate |
-| `why` | Recommended | What subsystem is affected |
+| `why` | Yes | What subsystem is affected |
 | `retryAfterSeconds` | If applicable | When the service expects to recover |
 | `statusUrl` | If applicable | Status page or health check endpoint |
 | `humanUrl` | Recommended | Where to report the issue or get help |
@@ -607,3 +629,28 @@ A: It can declare any level, but the declaration is a self-assertion. External a
 
 **Q: How does this apply to non-HTTP services?**
 A: The principles and field names apply to any request-response protocol. The HTTP conventions (status codes, headers, endpoint paths) are transport-specific implementations of the general pattern.
+
+## Appendix A: Implementation Notes
+
+*This section is non-normative.*
+
+### Edge and Worker Runtimes
+
+Services running on edge runtimes (Vercel Edge Functions, Cloudflare Workers, Deno Deploy) construct responses using `new Response(body, { headers })` rather than `res.setHeader()`. Implementors SHOULD create a shared utility that returns rate limit headers as a plain object, usable in both traditional and edge contexts. The header names and values are identical regardless of the response construction API.
+
+```javascript
+// Shared utility — works in both Node.js and edge runtimes
+function rateLimitHeaders(rateCheck) {
+  return {
+    "RateLimit": `limit=${rateCheck.limit}, remaining=${rateCheck.remaining}, reset=${rateCheck.reset}`,
+    "RateLimit-Policy": `${rateCheck.limit};w=${rateCheck.window}`,
+  };
+}
+
+// Traditional: res.setHeader()
+const headers = rateLimitHeaders(rateCheck);
+Object.entries(headers).forEach(([k, v]) => res.setHeader(k, v));
+
+// Edge: new Response()
+return new Response(body, { headers: { ...rateLimitHeaders(rateCheck), "Content-Type": "application/json" } });
+```

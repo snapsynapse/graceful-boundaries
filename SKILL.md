@@ -16,14 +16,14 @@ description: >
 metadata:
   skill_bundle: graceful-boundaries-audit
   file_role: skill
-  version: 2
-  version_date: 2026-03-22
-  previous_version: 1
+  version: 3
+  version_date: 2026-03-26
+  previous_version: 2
   change_summary: >
-    Restructured to remove Node.js runtime dependency. Phase 1 now uses
-    direct HTTP fetching as the primary method. Node checker is an optional
-    accelerator, not a requirement. Resolves OpenClaw security scan
-    inconsistency between runtime instructions and declared binaries.
+    Updated for spec v1.1.0. Gap analysis now checks why on all response
+    classes (not just 429s), changelog/feed discovery fields, returnsCached
+    flag on resource-dedup entries, and HTML 429 machine-accessibility.
+    Discovery skeleton includes changelog and feed fields.
   author: Snap Synapse (snapsynapse.com)
   source: https://github.com/snapsynapse/graceful-boundaries
 ---
@@ -70,6 +70,8 @@ If either path returns a JSON response, record:
   `windowSeconds`, `description`)
 - Whether a `conformance` field is present (self-declared level)
 - Whether the response includes a `Cache-Control` header with `s-maxage`
+- Whether `changelog` or `feed` URLs are present (v1.1 change discovery)
+- Whether `resource-dedup` entries include `returnsCached: true` (v1.1)
 
 If neither path returns a valid response, the service has no discovery
 endpoint and cannot be Level 2 or above.
@@ -124,26 +126,35 @@ Report the assessment as:
 For each level above the current confirmed level, list exactly what is
 missing. Reference specific sections of spec.md:
 
-**To reach Level 1** (spec section 2):
-- Are 429 responses JSON with all 5 required fields?
+**To reach Level 1** (spec sections 2 and 6):
+- Do ALL non-success responses (400, 401, 403, 404, 429, 500, 503) include
+  `error`, `detail`, and `why`? (v1.1: `why` is MUST for all error classes)
+- Are 429 responses JSON with the 5 required fields (`error`, `detail`,
+  `limit`, `retryAfterSeconds`, `why`)?
 - Does `error` use a stable machine-parseable string (snake_case)?
 - Does `detail` include a specific retry time in human-readable form?
 - Does `why` explain the purpose, not restate the error?
 - Is `retryAfterSeconds` a non-negative integer?
 - Does the HTTP response include a `Retry-After` header?
+- For HTML 429 pages: is there a `<meta name="retry-after" content="N">`
+  tag or a `<link rel="alternate" type="application/json" href="...">`? (v1.1)
 
 **To reach Level 2** (spec section 1):
 - Does a limits endpoint exist at `/api/limits` or `/.well-known/limits`?
 - Does it return JSON with a `limits` object?
 - Are limit entries well-formed (type, maxRequests, windowSeconds, description)?
 - Is the endpoint cacheable (Cache-Control header)?
+- Does it include `changelog` or `feed` URLs for change discovery? (v1.1, optional but recommended)
 
-**To reach Level 3** (spec section 3):
+**To reach Level 3** (spec sections 3 and 5):
 - Do refusal responses include constructive guidance fields?
 - Which guidance categories apply? (`cachedResultUrl`, `alternativeEndpoint`,
   `upgradeUrl`, `humanUrl`, `cached`)
 - Does the service prefer guidance in the recommended order:
   use cached > try alternative > upgrade > wait > human handoff?
+- For `resource-dedup` limits: does the service return cached results as a
+  200 instead of a 429? If so, does the discovery endpoint include
+  `returnsCached: true` so agents skip retry logic? (v1.1)
 
 **To reach Level 4** (spec section 4):
 - Are `RateLimit` headers present on success responses?
@@ -162,6 +173,8 @@ actual domain and endpoints in examples.
   "service": "<service name>",
   "description": "<what the service does>",
   "conformance": "level-2",
+  "changelog": "https://<domain>/api/changelog.json",
+  "feed": "https://<domain>/feed.json",
   "limits": {
     "<endpoint-key>": {
       "endpoint": "<path>",
@@ -172,6 +185,13 @@ actual domain and endpoints in examples.
           "maxRequests": 100,
           "windowSeconds": 3600,
           "description": "100 requests per IP per hour."
+        },
+        {
+          "type": "resource-dedup",
+          "maxRequests": 1,
+          "windowSeconds": 86400,
+          "returnsCached": true,
+          "description": "One operation per resource per day. Repeat requests return the cached result."
         }
       ]
     }

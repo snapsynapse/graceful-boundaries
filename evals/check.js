@@ -93,6 +93,69 @@ async function checkLimitsEndpoint(baseUrl, limitsPath) {
   return results;
 }
 
+const REQUIRED_RESPONSE_FIELDS = ["error", "detail", "why"];
+
+function checkResponseBody(body, responseClass) {
+  if (!body || typeof body !== "object") {
+    return {
+      isValid: false,
+      missingFields: REQUIRED_RESPONSE_FIELDS,
+      errors: ["Body is not an object"],
+      warnings: [],
+    };
+  }
+
+  const errors = [];
+  const warnings = [];
+
+  const missing = REQUIRED_RESPONSE_FIELDS.filter((f) => {
+    if (typeof body[f] !== "string") return true;
+    if (body[f].length === 0) return true;
+    return false;
+  });
+
+  if (missing.length > 0) {
+    errors.push(`Missing required fields: ${missing.join(", ")}`);
+  }
+
+  // Quality: why should explain, not restate the error
+  if (body.why && body.error) {
+    const errorWords = body.error.toLowerCase().replace(/_/g, " ");
+    if (body.why.toLowerCase().includes(errorWords)) {
+      warnings.push("'why' restates the error instead of explaining the reason");
+    }
+  }
+
+  // Class-specific checks
+  if (responseClass === "limit") {
+    if (typeof body.limit !== "string" || body.limit.length === 0) {
+      errors.push("Limit class requires 'limit' field");
+    }
+    if (typeof body.retryAfterSeconds !== "number" || body.retryAfterSeconds < 0) {
+      errors.push("Limit class requires 'retryAfterSeconds' (non-negative number)");
+    }
+  }
+
+  if (responseClass === "input" && body.allowedMethods) {
+    if (!Array.isArray(body.allowedMethods)) {
+      warnings.push("'allowedMethods' should be an array");
+    }
+  }
+
+  if (responseClass === "availability" && body.retryAfterSeconds !== undefined) {
+    if (typeof body.retryAfterSeconds !== "number" || body.retryAfterSeconds < 0) {
+      warnings.push("'retryAfterSeconds' should be a non-negative number");
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    missingFields: missing,
+    errors,
+    warnings,
+  };
+}
+
 function checkDedupResponse(body) {
   if (!body || typeof body !== "object") {
     return { isDedup: false, errors: ["Body is not an object"] };
@@ -114,6 +177,62 @@ function checkDedupResponse(body) {
     hasCacheStatus,
     hasResultData,
     errors,
+  };
+}
+
+function checkHtmlRefusal(html) {
+  if (!html || typeof html !== "string") {
+    return {
+      hasRetryMeta: false,
+      retrySeconds: null,
+      hasJsonAlternate: false,
+      jsonAlternateUrl: null,
+      errors: ["Input is not a string"],
+      warnings: [],
+    };
+  }
+
+  const errors = [];
+  const warnings = [];
+
+  // Check for <meta name="retry-after" content="N">
+  const metaMatch = html.match(/<meta\s+name=["']retry-after["']\s+content=["'](\d+)["']\s*\/?>/i);
+  const hasRetryMeta = !!metaMatch;
+  const retrySeconds = metaMatch ? parseInt(metaMatch[1], 10) : null;
+
+  if (hasRetryMeta && isNaN(retrySeconds)) {
+    errors.push("retry-after meta content is not a valid number");
+  }
+
+  // Check for <link rel="alternate" type="application/json" href="...">
+  const linkMatch = html.match(/<link\s+[^>]*rel=["']alternate["'][^>]*>/i);
+  let hasJsonAlternate = false;
+  let jsonAlternateUrl = null;
+
+  if (linkMatch) {
+    const linkTag = linkMatch[0];
+    const typeMatch = linkTag.match(/type=["']([^"']+)["']/i);
+    const hrefMatch = linkTag.match(/href=["']([^"']+)["']/i);
+
+    if (typeMatch && typeMatch[1] === "application/json") {
+      hasJsonAlternate = true;
+      jsonAlternateUrl = hrefMatch ? hrefMatch[1] : null;
+    } else if (typeMatch) {
+      warnings.push(`Alternate link has type "${typeMatch[1]}" instead of "application/json"`);
+    }
+  }
+
+  if (!hasRetryMeta && !hasJsonAlternate) {
+    errors.push("HTML 429 has neither retry-after meta nor JSON alternate link — not machine-accessible");
+  }
+
+  return {
+    hasRetryMeta,
+    retrySeconds,
+    hasJsonAlternate,
+    jsonAlternateUrl,
+    errors,
+    warnings,
   };
 }
 
@@ -223,6 +342,29 @@ function checkLimitsBody(body) {
       if (missing.length > 0) {
         entryErrors.push(`${key}.limits[${i}]: missing ${missing.join(", ")}`);
       }
+      // v1.1: validate returnsCached on resource-dedup entries
+      if ("returnsCached" in limit) {
+        if (typeof limit.returnsCached !== "boolean") {
+          warnings.push(`${key}.limits[${i}]: 'returnsCached' should be a boolean`);
+        }
+        if (limit.type && limit.type !== "resource-dedup") {
+          warnings.push(`${key}.limits[${i}]: 'returnsCached' is only meaningful on resource-dedup limits`);
+        }
+      }
+    }
+  }
+
+  // Validate optional metadata fields (v1.1)
+  const hasChangelog = "changelog" in body;
+  const hasFeed = "feed" in body;
+  if (hasChangelog) {
+    if (typeof body.changelog !== "string" || body.changelog.length === 0) {
+      warnings.push("'changelog' field present but empty or not a string");
+    }
+  }
+  if (hasFeed) {
+    if (typeof body.feed !== "string" || body.feed.length === 0) {
+      warnings.push("'feed' field present but empty or not a string");
     }
   }
 
@@ -242,6 +384,8 @@ function checkLimitsBody(body) {
     hasService,
     hasDescription,
     hasLimits,
+    hasChangelog,
+    hasFeed,
     conformance,
     conformanceValid,
     conformanceConsistent,
@@ -445,12 +589,15 @@ async function main() {
 
 module.exports = {
   checkRefusalBody,
+  checkResponseBody,
   checkLimitsBody,
   checkProactiveHeaders,
+  checkHtmlRefusal,
   checkDedupResponse,
   isStableErrorValue,
   assessLevel,
   REQUIRED_REFUSAL_FIELDS,
+  REQUIRED_RESPONSE_FIELDS,
   CONSTRUCTIVE_FIELDS,
   VALID_CONFORMANCE_VALUES,
   REQUIRED_LIMIT_ENTRY_FIELDS,

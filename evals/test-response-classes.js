@@ -16,7 +16,7 @@
  * Usage: node evals/test-response-classes.js
  */
 
-const { checkDedupResponse, isStableErrorValue } = require("./check.js");
+const { checkDedupResponse, checkResponseBody, isStableErrorValue } = require("./check.js");
 
 let passed = 0;
 let failed = 0;
@@ -264,6 +264,75 @@ test("Success: remaining=0 signals imminent limit", () => {
   // A well-behaved caller seeing remaining=0 should not make another request
 });
 
+// ─── Cross-class: why MUST (v1.1) ────────────────────────────────
+
+test("v1.1: Input (400) missing why fails checkResponseBody", () => {
+  const result = checkResponseBody({
+    error: "invalid_input",
+    detail: "A URL is required.",
+  }, "input");
+  assert(!result.isValid, "should fail without why");
+  assert(result.missingFields.includes("why"), "should list why as missing");
+});
+
+test("v1.1: Input (400) with why passes checkResponseBody", () => {
+  const result = checkResponseBody({
+    error: "invalid_input",
+    detail: "This URL points to a private address and cannot be scanned.",
+    why: "Blocks private IPs to prevent server-side request forgery.",
+  }, "input");
+  assert(result.isValid, "should pass with all required fields");
+  assert(result.missingFields.length === 0, "no missing fields");
+});
+
+test("v1.1: Not Found (404) missing why fails checkResponseBody", () => {
+  const result = checkResponseBody({
+    error: "result_not_found",
+    detail: "No scan result exists for example.com.",
+  }, "not-found");
+  assert(!result.isValid, "should fail without why");
+  assert(result.missingFields.includes("why"), "should list why as missing");
+});
+
+test("v1.1: Availability (500) missing why fails checkResponseBody", () => {
+  const result = checkResponseBody({
+    error: "internal_error",
+    detail: "An unexpected error occurred.",
+  }, "availability");
+  assert(!result.isValid, "should fail without why");
+  assert(result.missingFields.includes("why"), "should list why as missing");
+});
+
+test("v1.1: Access (403) with why passes checkResponseBody", () => {
+  const result = checkResponseBody({
+    error: "forbidden",
+    detail: "API key required for batch operations.",
+    why: "Batch access requires authentication to prevent abuse and track usage.",
+  }, "access");
+  assert(result.isValid, "should pass with all required fields");
+});
+
+test("v1.1: Limit (429) missing limit field fails class-specific check", () => {
+  const result = checkResponseBody({
+    error: "rate_limit_exceeded",
+    detail: "Try again in 42 seconds.",
+    why: "Prevents abuse.",
+    retryAfterSeconds: 42,
+  }, "limit");
+  assert(!result.isValid, "should fail without limit field");
+  assert(result.errors.some((e) => e.includes("limit")), "should report missing limit");
+});
+
+test("v1.1: checkResponseBody warns when why restates error", () => {
+  const result = checkResponseBody({
+    error: "not_found",
+    detail: "The resource was not found.",
+    why: "The resource was not found.",
+  }, "not-found");
+  assert(result.isValid, "still valid — why quality is a warning");
+  assert(result.warnings.some((w) => w.includes("restates")), "should warn about restated why");
+});
+
 // ─── Cross-class: why quality ────────────────────────────────────
 
 test("Quality: why should explain security intent, not restate error", () => {
@@ -319,6 +388,21 @@ test("Dedup: _rescanBlocked=false is not a dedup response", () => {
     _rescanBlocked: false,
   });
   assert(!result.isDedup, "false flag should not count as dedup");
+});
+
+test("v1.1 Dedup: returnsCached in discovery predicts 200 with data", () => {
+  // When discovery says returnsCached: true, agents expect a 200 with cached data
+  // not a 429 refusal. Verify the dedup response matches that expectation.
+  const dedupBody = {
+    grade: "B",
+    score: 82,
+    _rescanBlocked: true,
+    _cacheStatus: "KV_HIT",
+  };
+  const result = checkDedupResponse(dedupBody);
+  assert(result.isDedup, "should be a dedup response");
+  assert(result.hasResultData, "should include result data — consistent with returnsCached: true");
+  assert(result.errors.length === 0, "no errors");
 });
 
 test("Dedup: flag without result data warns", () => {

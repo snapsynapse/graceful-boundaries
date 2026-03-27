@@ -3,8 +3,8 @@
 A specification for how services communicate their operational limits to humans and autonomous agents.
 
 [![License: CC-BY-4.0](https://img.shields.io/badge/License-CC--BY--4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](spec.md)
-[![Tests](https://img.shields.io/badge/tests-104%20passing-brightgreen.svg)](#evaluate-conformance)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](spec.md)
+[![Tests](https://img.shields.io/badge/tests-131%20passing-brightgreen.svg)](#evaluate-conformance)
 
 ## The problem
 
@@ -17,8 +17,10 @@ Most services enforce rate limits but communicate them poorly. A `429 Too Many R
 The specification addresses three gaps that existing standards cover separately but no specification combines:
 
 1. **Proactive discovery** -- limits are machine-readable before they are hit
-2. **Structured refusal** -- when a limit is exceeded, the response explains what happened, which limit applies, when to retry, and why the limit exists
-3. **Constructive guidance** -- the refusal includes a useful next step, not just a block
+2. **Structured refusal** -- every non-success response explains what happened, why, and what to do next
+3. **Constructive guidance** -- refusals include a useful next step, not just a block
+
+This applies to **every HTTP error class**, not just rate limits. A `400` explains the validation rule and its security rationale. A `404` tells you whether the resource never existed or expired, and offers a creation path. A `500` names the affected subsystem and suggests a retry window. Every non-success response MUST include `error`, `detail`, and `why`.
 
 **Read the full specification:** **[spec.md](spec.md)**
 
@@ -52,7 +54,7 @@ curl -s https://siteline.snapsynapse.com/api/limits | jq '{service, limits: .lim
 }
 ```
 
-**Structured refusal with constructive guidance** (when a limit is exceeded):
+**Structured refusal with constructive guidance** (when a rate limit is exceeded):
 
 ```json
 {
@@ -66,6 +68,20 @@ curl -s https://siteline.snapsynapse.com/api/limits | jq '{service, limits: .lim
 ```
 
 The caller knows the limit, when to retry, *why* the limit exists, and where to get the result without waiting.
+
+**Every error class is self-explanatory**, not just 429s:
+
+```json
+{
+  "error": "invalid_input",
+  "detail": "This URL points to a private or reserved address and cannot be scanned.",
+  "why": "Siteline blocks private IPs, loopback, and cloud metadata endpoints to prevent server-side request forgery.",
+  "field": "url",
+  "expected": "A public URL with a resolvable hostname on port 80 or 443."
+}
+```
+
+An agent reading this `400` understands the SSRF protection policy and can fix the input. Without `why`, it would blindly retry with different URLs.
 
 **Proactive headers on successful responses:**
 
@@ -91,7 +107,7 @@ Services self-declare a conformance level. The eval suite validates the claim.
 |---|---|
 | **N/A: Not Applicable** | No API endpoints, rate limits, or agentic interaction surface. |
 | **Level 0: Non-Conformant** | Limits exist but are not described per this specification. |
-| **Level 1: Structured Refusal** | All 429 responses include `error`, `detail`, `limit`, `retryAfterSeconds`, and `why`. |
+| **Level 1: Structured Refusal** | All non-success responses include `error`, `detail`, and `why`. All `429`s add `limit` and `retryAfterSeconds`. |
 | **Level 2: Discoverable** | Level 1 + a limits discovery endpoint. |
 | **Level 3: Constructive** | Level 2 + refusal responses include constructive guidance when applicable. |
 | **Level 4: Proactive** | Level 3 + successful responses include proactive limit headers. |
@@ -105,7 +121,7 @@ node evals/check.js https://your-service.com
 node evals/check.js https://your-service.com --json
 ```
 
-Run the unit test suite (104 tests, no dependencies):
+Run the unit test suite (131 tests, no dependencies):
 
 ```bash
 npm test
@@ -113,13 +129,17 @@ npm test
 
 ## Adopt the spec
 
-**Level 1** -- Add five fields to your 429 responses: `error`, `detail`, `limit`, `retryAfterSeconds`, and `why`. The `why` field must explain the purpose of the limit, not restate the error.
+**Start here** -- Every non-success response (`400`, `401`, `403`, `404`, `429`, `500`, `503`) MUST include three core fields: `error` (stable machine-parseable string), `detail` (human-readable explanation), and `why` (the security, policy, or operational reason). This applies to all error classes, not just rate limits.
 
-**Level 2** -- Add a discovery endpoint at `/api/limits` or `/.well-known/limits` that returns all enforced limits as structured JSON. Agents can plan before they hit anything.
+**Level 1** -- All `429` responses include the three core fields plus `limit` (the exact constraint) and `retryAfterSeconds` (machine-parseable retry time).
 
-**Level 3** -- Add constructive guidance to refusals. When a cached result exists, include `cachedResultUrl`. When a different endpoint can help, include `alternativeEndpoint`. When paid access has higher limits, include `upgradeUrl`.
+**Level 2** -- Add a discovery endpoint at `/api/limits` or `/.well-known/limits` that returns all enforced limits as structured JSON. Agents can plan before they hit anything. Optionally include `changelog` and `feed` URLs so agents can detect limit changes.
+
+**Level 3** -- Add constructive guidance to refusals. When a cached result exists, include `cachedResultUrl`. When a different endpoint can help, include `alternativeEndpoint`. When paid access has higher limits, include `upgradeUrl`. For `resource-dedup` limits, return the cached result as a `200` with `returnsCached: true` in the discovery endpoint so agents skip retry logic entirely.
 
 **Level 4** -- Add `RateLimit` and `RateLimit-Policy` headers to successful responses so callers can self-throttle before hitting limits.
+
+**HTML endpoints** -- HTML pages that return `429` SHOULD include `<meta name="retry-after" content="N">` and/or `<link rel="alternate" type="application/json" href="...">` so agents can discover structured refusals without parsing prose.
 
 See the **[full specification](spec.md)** for field definitions, response classes, and security considerations.
 
