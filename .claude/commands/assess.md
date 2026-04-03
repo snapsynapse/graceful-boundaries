@@ -24,7 +24,7 @@ metadata:
     direct HTTP fetching as the primary method. Node checker is an optional
     accelerator, not a requirement. Resolves OpenClaw security scan
     inconsistency between runtime instructions and declared binaries.
-  author: Snap Synapse (snapsynapse.com)
+  author: PAICE.work PBC (paice.work)
   source: https://github.com/snapsynapse/graceful-boundaries
 ---
 

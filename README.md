@@ -26,12 +26,12 @@ This applies to **every HTTP error class**, not just rate limits. A `400` explai
 
 ## See it in action
 
-These examples use [Siteline](https://siteline.snapsynapse.com/), a Level 4 conformant reference implementation.
+These examples use [Siteline](https://siteline.to/), a Level 4 conformant reference implementation.
 
 **Discover limits before hitting them:**
 
 ```bash
-curl -s https://siteline.snapsynapse.com/api/limits | jq '{service, limits: .limits.scan}'
+curl -s https://siteline.to/api/limits | jq '{service, limits: .limits.scan}'
 ```
 
 ```json
@@ -86,7 +86,7 @@ An agent reading this `400` understands the SSRF protection policy and can fix t
 **Proactive headers on successful responses:**
 
 ```bash
-curl -s 'https://siteline.snapsynapse.com/api/result?id=example.com' \
+curl -s 'https://siteline.to/api/result?id=example.com' \
   -D - -o /dev/null 2>&1 | grep ratelimit
 ```
 
@@ -127,6 +127,16 @@ Run the unit test suite (131 tests, no dependencies):
 npm test
 ```
 
+## Which level should you target?
+
+- **No API or agentic surface?** Declare `not-applicable` — takes 5 minutes.
+- **API with rate limits?** Start at **Level 1** (structured refusals). This is the minimum useful level.
+- **Agents call your API?** Target **Level 2** (add discovery) so agents learn the rules before breaking them.
+- **Want to reduce 429 traffic?** Target **Level 3** (constructive guidance) — offer cached results and alternatives instead of bare refusals.
+- **High-traffic API with agent callers?** Target **Level 4** (proactive headers) — callers self-throttle before hitting limits.
+
+For a step-by-step walkthrough with code samples, see the **[implementation guide](docs/implementation-guide.md)**.
+
 ## Adopt the spec
 
 **Start here** -- Every non-success response (`400`, `401`, `403`, `404`, `429`, `500`, `503`) MUST include three core fields: `error` (stable machine-parseable string), `detail` (human-readable explanation), and `why` (the security, policy, or operational reason). This applies to all error classes, not just rate limits.
@@ -156,20 +166,22 @@ Graceful Boundaries is complementary to these standards, not a replacement.
 
 ## Reference implementation
 
-[Siteline](https://siteline.snapsynapse.com/) is a Level 4 conformant implementation with five API endpoints. Verify it:
+[Siteline](https://siteline.to/) is a Level 4 conformant implementation with five API endpoints. Verify it:
 
 ```bash
-node evals/check.js https://siteline.snapsynapse.com
+node evals/check.js https://siteline.to
 ```
 
 ## Security
 
-The specification includes a [threat model and security audit](SECURITY-AUDIT.md) covering rate limit calibration attacks, security posture disclosure, validation oracles, and seven other considerations (SC-1 through SC-8), all addressed in the spec.
+The specification includes a [threat model and security audit](SECURITY-AUDIT.md) covering rate limit calibration attacks, security posture disclosure, validation oracles, content cloaking via agent-signaling headers, and other considerations (SC-1 through SC-9), all addressed in the spec.
 
 ## License
 
 CC-BY-4.0. Use it, adapt it, build on it. Attribution required.
 
-## Origin
+## About
 
-Created by [Snap Synapse](https://snapsynapse.com/) based on patterns developed for [Siteline](https://siteline.snapsynapse.com/), an AI agent readiness scanner. The pattern emerged from building agent-friendly APIs where the quality of the refusal matters as much as the enforcement.
+Graceful Boundaries is a [PAICE.work](https://paice.work/) project. PAICE.work PBC is a public benefit corporation building infrastructure for productive collaboration between humans and autonomous agents. We believe that clear, honest communication between services and their callers -- human or machine -- is foundational to trustworthy AI infrastructure. This specification is part of that mission.
+
+The patterns in this spec emerged from building [Siteline](https://siteline.to/), an AI agent readiness scanner, where the quality of the refusal matters as much as the enforcement.

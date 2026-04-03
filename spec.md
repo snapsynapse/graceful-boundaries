@@ -93,7 +93,31 @@ The limits endpoint SHOULD be cacheable. A `Cache-Control` header with `s-maxage
 
 **Change discovery:**
 
-The `changelog` and `feed` fields allow agents to detect when limits have changed without re-fetching the full discovery endpoint. The `changelog` URL SHOULD point to a structured resource (JSON) listing dated changes. The `feed` URL SHOULD point to a standard feed format (JSON Feed, Atom, or RSS) that agents can poll or subscribe to. Both fields are OPTIONAL.
+The `changelog` and `feed` fields allow agents to detect when limits have changed without re-fetching the full discovery endpoint. Both fields are OPTIONAL.
+
+The `changelog` URL SHOULD point to a JSON resource listing dated changes, most recent first:
+
+```json
+[
+  {
+    "date": "2026-04-01",
+    "summary": "Reduced scan rate limit from 20/hour to 10/hour",
+    "breaking": true,
+    "affectedEndpoints": ["/api/scan"]
+  },
+  {
+    "date": "2026-03-15",
+    "summary": "Added resource-dedup returnsCached flag to discovery",
+    "breaking": false
+  }
+]
+```
+
+A change is `breaking` if it reduces limits below previous values, removes endpoints, or otherwise affects an agent's ability to operate. Limit increases, new optional fields, and documentation improvements are non-breaking.
+
+The `feed` URL SHOULD point to a standard feed format (JSON Feed, Atom, or RSS) with entries for each limit change. This allows agents to poll or subscribe using existing feed infrastructure.
+
+Agents SHOULD check for changes on startup and every 1–6 hours for long-lived processes. An agent that receives a `429` with an unfamiliar `limit` value SHOULD re-fetch the discovery endpoint, as limits may have changed.
 
 **Conformance declaration:**
 
@@ -153,6 +177,18 @@ When a limit is exceeded, the response MUST include the following fields:
 - `limit` MUST state the limit in concrete terms (e.g., "10 scans per IP per hour").
 - `retryAfterSeconds` MUST be a non-negative integer.
 - `why` MUST explain the purpose of the limit, not just restate it. "Rate limits keep the service available for everyone" is acceptable. "Rate limit exceeded" is not — that restates the error, not the reason.
+
+**Retry behavior guidance:**
+
+The `retryAfterSeconds` field tells agents *when* they can retry. It does not tell them *how* to retry. Different services have different expectations: an anti-abuse rate limit wants a single retry after the window; a congestion-limited service wants exponential backoff to let load dissipate.
+
+Services SHOULD include guidance on retry behavior when the default assumption (wait, then retry once) is not appropriate:
+
+- If the service expects callers to wait the full duration and retry once, no additional guidance is needed — `retryAfterSeconds` is sufficient.
+- If the service expects callers to use exponential backoff (e.g., during congestion or cascading failures), the `why` field SHOULD signal this: "The service is under heavy load. Spread retries over time rather than retrying immediately after the window."
+- If the service will progressively extend the block for callers that retry aggressively, the `detail` field SHOULD warn: "Continued requests during the cooldown period will extend the block."
+
+Agents SHOULD treat `retryAfterSeconds` as a minimum wait time, not an exact retry time. Adding small random jitter (1–5 seconds) prevents synchronized retry storms.
 
 **Additional fields** MAY be included for constructive guidance (see section 3).
 
@@ -319,7 +355,7 @@ The requested resource doesn't exist or has been removed.
   "why": "Results are kept for 30 days after scanning. This domain may not have been scanned, or the result may have expired.",
   "scanAvailable": true,
   "scanUrl": "/api/scan?url=https://example.com",
-  "humanUrl": "https://siteline.snapsynapse.com/?url=example.com"
+  "humanUrl": "https://siteline.to/?url=example.com"
 }
 ```
 
@@ -342,7 +378,7 @@ The service is experiencing an error or is temporarily unavailable.
   "detail": "Result storage is temporarily unavailable. Scans still work but results are not persisted.",
   "why": "The storage backend is unreachable. This is usually transient.",
   "retryAfterSeconds": 60,
-  "humanUrl": "https://siteline.snapsynapse.com/"
+  "humanUrl": "https://siteline.to/"
 }
 ```
 
@@ -486,15 +522,15 @@ Graceful Boundaries is complementary to these standards, not a replacement. A co
 
 ## Reference Implementation
 
-[Siteline](https://siteline.snapsynapse.com/) is a Level 4 conformant implementation of Graceful Boundaries. It is an AI agent readiness scanner with five API endpoints, each demonstrating different aspects of the specification.
+[Siteline](https://siteline.to/) is a Level 4 conformant implementation of Graceful Boundaries. It is an AI agent readiness scanner with five API endpoints, each demonstrating different aspects of the specification.
 
 **Verify conformance:**
 
 ```bash
-node evals/check.js https://siteline.snapsynapse.com
+node evals/check.js https://siteline.to
 ```
 
-**Discovery endpoint:** [`/api/limits`](https://siteline.snapsynapse.com/api/limits) — returns all rate limits, SSRF protection policy, response headers, and endpoint links.
+**Discovery endpoint:** [`/api/limits`](https://siteline.to/api/limits) — returns all rate limits, SSRF protection policy, response headers, and endpoint links.
 
 **Proactive headers on successful responses:**
 
@@ -607,6 +643,18 @@ The `scanUrl` field in Not Found responses is a convenience URL. It does not byp
 
 Services that include `scanUrl` MUST ensure the referenced endpoint has adequate input validation. Autonomous agents following `scanUrl` from untrusted contexts (e.g., a URL found in a web page) SHOULD treat it as untrusted input.
 
+### SC-9: Content Cloaking via Agent-Signaling Headers
+
+An origin detects agent intent (via `Accept: text/markdown`, known agent user-agents, or similar signals) and serves altered content designed to mislead, inject prompts, or misrepresent the site's offerings. CDN-level cache partitioning can prevent human visitors from seeing the divergent content, making the split undetectable through normal browsing.
+
+This is distinct from user-agent blocking (which Graceful Boundaries addresses via structured refusal). Blocking is visible — the agent knows it was refused. Cloaking is invisible — the agent believes it received the real page.
+
+**Mitigation:**
+
+- Services claiming Level 4 conformance SHOULD NOT serve content via agent-signaling headers (e.g., `Accept: text/markdown`) that materially diverges from the HTML representation. Formatting differences are expected — markdown conversion strips boilerplate, and that is fine. Informational differences are not.
+- Agents and scanners SHOULD compare content across request variants (standard HTML vs. `Accept: text/markdown`). The comparison SHOULD use an asymmetric containment metric — what fraction of the HTML's core text appears in the alternate response — rather than symmetric similarity, because legitimate conversions are asymmetric by design.
+- Containment above 60% indicates legitimate conversion. Below 60% indicates the origin served materially different content. Implementations MAY use different thresholds depending on their context.
+
 ## FAQ
 
 **Q: Should I use RFC 9457 (Problem Details for HTTP APIs) as the envelope format?**
@@ -654,3 +702,14 @@ Object.entries(headers).forEach(([k, v]) => res.setHeader(k, v));
 // Edge: new Response()
 return new Response(body, { headers: { ...rateLimitHeaders(rateCheck), "Content-Type": "application/json" } });
 ```
+
+### Agent Behavior When Discovery Fails
+
+If an agent cannot fetch the limits discovery endpoint (network error, timeout, non-200 response), it SHOULD:
+
+1. **Use conservative defaults.** Assume a rate limit of 1 request per second and back off exponentially on any `429` response.
+2. **Respect `Retry-After` headers.** Even without discovery, the `Retry-After` header on `429` responses provides the minimum wait time.
+3. **Retry discovery periodically.** Re-fetch the discovery endpoint every 1–6 hours for long-lived agent processes. The endpoint may have been temporarily unavailable.
+4. **Log the failure.** Discovery endpoint unavailability is operationally significant — it means the agent is operating without a map.
+
+An agent that cannot discover limits is not broken — it just loses the ability to plan ahead. The structured refusal responses (Level 1) still provide per-request guidance. Discovery failure degrades the agent from proactive to reactive, but does not require it to stop.

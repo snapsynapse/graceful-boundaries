@@ -176,7 +176,7 @@ test("Not Found: conforming 404 distinguishes never-existed from expired", () =>
     why: "Results are kept for 30 days. This domain may not have been scanned.",
     scanAvailable: true,
     scanUrl: "/api/scan?url=https://example.com",
-    humanUrl: "https://siteline.snapsynapse.com/?url=example.com",
+    humanUrl: "https://siteline.to/?url=example.com",
   };
   assert(hasCore(body), "missing core fields");
   assert(body.scanAvailable === true, "should indicate scan is available");

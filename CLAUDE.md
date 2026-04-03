@@ -40,8 +40,8 @@ node evals/check.js <url> --limits-path /custom   # custom limits endpoint path
 
 ## Reference implementation
 
-Siteline (https://siteline.snapsynapse.com/) is Level 4 conformant. Use it for live testing:
+Siteline (https://siteline.to/) is Level 4 conformant. Use it for live testing:
 
 ```bash
-node evals/check.js https://siteline.snapsynapse.com
+node evals/check.js https://siteline.to
 ```

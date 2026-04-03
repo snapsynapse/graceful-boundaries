@@ -493,7 +493,7 @@ async function main() {
     console.error("Usage: node evals/check.js <base-url> [--limits-path /path] [--json]");
     console.error("");
     console.error("Examples:");
-    console.error("  node evals/check.js https://siteline.snapsynapse.com");
+    console.error("  node evals/check.js https://siteline.to");
     console.error("  node evals/check.js https://your-api.com --limits-path /.well-known/limits --json");
     process.exit(1);
   }

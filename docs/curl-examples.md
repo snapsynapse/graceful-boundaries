@@ -1,13 +1,13 @@
 # Graceful Boundaries: curl Examples
 
-All examples use [Siteline](https://siteline.snapsynapse.com/), a Level 4 conformant reference implementation. Replace the URLs with your own service to test conformance.
+All examples use [Siteline](https://siteline.to/), a Level 4 conformant reference implementation. Replace the URLs with your own service to test conformance.
 
 ## 1. Discover limits
 
 Fetch all enforced limits before hitting any of them:
 
 ```bash
-curl -s https://siteline.snapsynapse.com/api/limits | jq .
+curl -s https://siteline.to/api/limits | jq .
 ```
 
 Check the standard well-known path:
@@ -113,7 +113,7 @@ Graceful Boundaries applies to all non-success responses, not just rate limits. 
   "why": "Results are kept for 30 days after scanning. This domain may not have been scanned, or the result may have expired.",
   "scanAvailable": true,
   "scanUrl": "/api/scan?url=https://example.com",
-  "humanUrl": "https://siteline.snapsynapse.com/?url=example.com"
+  "humanUrl": "https://siteline.to/?url=example.com"
 }
 ```
 
@@ -144,7 +144,7 @@ The `<meta>` tag provides the retry time. The `<link>` tag points to the JSON-st
 Check for `RateLimit` headers on a successful response:
 
 ```bash
-curl -s 'https://siteline.snapsynapse.com/api/result?id=example.com' \
+curl -s 'https://siteline.to/api/result?id=example.com' \
   -D - -o /dev/null 2>&1 | grep -i ratelimit
 ```
 
@@ -164,10 +164,10 @@ The eval suite includes a live checker that tests a service against all conforma
 
 ```bash
 # Human-readable output
-node evals/check.js https://siteline.snapsynapse.com
+node evals/check.js https://siteline.to
 
 # Machine-readable JSON
-node evals/check.js https://siteline.snapsynapse.com --json
+node evals/check.js https://siteline.to --json
 
 # Custom limits endpoint path
 node evals/check.js https://your-service.com --limits-path /.well-known/limits

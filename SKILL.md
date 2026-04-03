@@ -24,7 +24,7 @@ metadata:
     classes (not just 429s), changelog/feed discovery fields, returnsCached
     flag on resource-dedup entries, and HTML 429 machine-accessibility.
     Discovery skeleton includes changelog and feed fields.
-  author: Snap Synapse (snapsynapse.com)
+  author: PAICE.work PBC (paice.work)
   source: https://github.com/snapsynapse/graceful-boundaries
 ---
 

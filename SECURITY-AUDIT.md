@@ -91,7 +91,20 @@ An attacker reads the Graceful Boundaries spec and uses it to exploit services t
 - The `scanUrl` field SHOULD only contain URLs that the service itself would accept. Since Graceful Boundaries services should already have SSRF protection, the scan endpoint will reject internal URLs.
 - Add to spec: "Services that include `scanUrl` in Not Found responses MUST ensure the referenced scan endpoint has adequate input validation. The `scanUrl` field is a convenience, not a trust bypass — the scan endpoint's own security controls still apply."
 
-### 9. `statusUrl` Infrastructure Disclosure
+### 9. Content Cloaking via Agent-Signaling Headers
+
+**Risk:** An origin detects agent intent (via `Accept: text/markdown`, known agent user-agents, or similar signals) and serves altered content designed to mislead, inject prompts, or misrepresent the site's offerings. CDN-level cache partitioning (e.g., Cloudflare's Markdown for Agents) prevents human visitors from seeing the divergent content, making the split undetectable through normal browsing.
+
+This is distinct from user-agent blocking. Blocking is visible — the agent knows it was refused. Cloaking is invisible — the agent believes it received the real page.
+
+**Severity:** Medium-High. A service can be Level 4 conformant (perfect rate limit communication) while serving poisoned content to agents. This undermines the trust that Graceful Boundaries is designed to build.
+
+**Mitigation:**
+- Services claiming Level 4 conformance SHOULD NOT serve materially divergent content via agent-signaling headers. Formatting differences (boilerplate removal) are expected; informational differences are not.
+- Agents SHOULD compare content across request variants using an asymmetric containment metric: what fraction of the HTML's core text survives into the alternate response. Legitimate CDN conversions produce 60%+ containment. Content cloaking produces sub-60%.
+- Add to spec: "SC-9: Content Cloaking via Agent-Signaling Headers" (added in v1.1).
+
+### 10. `statusUrl` Infrastructure Disclosure
 
 **Risk:** Including a status page URL (e.g., `https://status.example.com`) in availability responses reveals infrastructure monitoring tooling.
 
@@ -111,3 +124,4 @@ An attacker reads the Graceful Boundaries spec and uses it to exploit services t
 | 6 | Alternative endpoint redirect | "Guidance URLs MUST be relative or same-origin. Cross-origin uses `humanUrl`." |
 | 7 | Timing signal | "Services MAY add jitter to `reset` values." |
 | 8 | Agent SSRF via scanUrl | "`scanUrl` is convenience, not trust bypass. Scan endpoint's own controls apply." |
+| 9 | Content cloaking via agent headers | "Level 4 services SHOULD NOT serve materially divergent content via agent-signaling headers." |

@@ -15,7 +15,7 @@
     "check": "node evals/check.js"
   },
   "type": "commonjs",
-  "author": "Snap Synapse <https://snapsynapse.com/>",
+  "author": "PAICE.work PBC <https://paice.work/>",
   "homepage": "https://github.com/snapsynapse/graceful-boundaries",
   "bugs": {
     "url": "https://github.com/snapsynapse/graceful-boundaries/issues"

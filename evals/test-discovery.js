@@ -269,7 +269,7 @@ test("v1.1: changelog URL passes", () => {
   const result = checkLimitsBody({
     service: "Siteline",
     description: "Scanner.",
-    changelog: "https://siteline.snapsynapse.com/api/v1/changelog.json",
+    changelog: "https://siteline.to/api/v1/changelog.json",
     limits: {},
   });
   assert(result.isValid, "should be valid");
@@ -281,7 +281,7 @@ test("v1.1: feed URL passes", () => {
   const result = checkLimitsBody({
     service: "Siteline",
     description: "Scanner.",
-    feed: "https://siteline.snapsynapse.com/feed.json",
+    feed: "https://siteline.to/feed.json",
     limits: {},
   });
   assert(result.isValid, "should be valid");
