@@ -182,6 +182,6 @@ CC-BY-4.0. Use it, adapt it, build on it. Attribution required.
 
 ## About
 
-Graceful Boundaries is a [PAICE.work](https://paice.work/) project. PAICE.work PBC is a public benefit corporation building infrastructure for productive collaboration between humans and autonomous agents. We believe that clear, honest communication between services and their callers -- human or machine -- is foundational to trustworthy AI infrastructure. This specification is part of that mission.
+Graceful Boundaries is a [PAICE.work](https://paice.work/) project. PAICE.work PBC is a public benefit corporation dedicated to enabling safer and more effective People+AI collaboration. We believe that clear, honest communication between services and their callers (human or AI agent) is foundational to trustworthy AI infrastructure. This specification is part of that mission.
 
 The patterns in this spec emerged from building [Siteline](https://siteline.to/), an AI agent readiness scanner, where the quality of the refusal matters as much as the enforcement.
