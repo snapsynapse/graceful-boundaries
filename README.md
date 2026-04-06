@@ -176,6 +176,10 @@ node evals/check.js https://siteline.to
 
 The specification includes a [threat model and security audit](SECURITY-AUDIT.md) covering rate limit calibration attacks, security posture disclosure, validation oracles, content cloaking via agent-signaling headers, and other considerations (SC-1 through SC-9), all addressed in the spec.
 
+## Sponsor
+
+Graceful Boundaries is free and open. If your team relies on this spec, consider [sponsoring its development](https://github.com/sponsors/snapsynapse) to keep it maintained and evolving. See [SPONSORS.md](SPONSORS.md).
+
 ## License
 
 CC-BY-4.0. Use it, adapt it, build on it. Attribution required.
