@@ -2,6 +2,8 @@
 
 A specification for how services communicate their operational limits to humans and autonomous agents.
 
+**[gracefulboundaries.dev](https://gracefulboundaries.dev)**
+
 [![License: CC-BY-4.0](https://img.shields.io/badge/License-CC--BY--4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 [![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-131%20passing-brightgreen.svg)](#evaluate-conformance)
@@ -192,5 +194,7 @@ CC-BY-4.0. Use it, adapt it, build on it. Attribution required.
 Graceful Boundaries is a [PAICE.work](https://paice.work/) project. PAICE.work PBC is a public benefit corporation dedicated to enabling safer and more effective People+AI collaboration. We believe that clear, honest communication between services and their callers (human or AI agent) is foundational to trustworthy AI infrastructure. This specification is part of that mission.
 
 The patterns in this spec emerged from building [Siteline](https://siteline.to/), an AI agent readiness scanner, where the quality of the refusal matters as much as the enforcement.
+
+The conformance audit skill is available on **[ClawHub](https://clawhub.ai/snapsynapse/graceful-boundaries)**.
 
 See also: **[Skill Provenance](https://github.com/snapsynapse/skill-provenance)** -- version identity that travels with agent skill bundles. Also a PAICE.work project.

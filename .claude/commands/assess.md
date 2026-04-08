@@ -25,7 +25,7 @@ metadata:
     accelerator, not a requirement. Resolves OpenClaw security scan
     inconsistency between runtime instructions and declared binaries.
   author: PAICE.work PBC (paice.work)
-  source: https://github.com/snapsynapse/graceful-boundaries
+  source: https://gracefulboundaries.dev
 ---
 
 # Graceful Boundaries Conformance Audit

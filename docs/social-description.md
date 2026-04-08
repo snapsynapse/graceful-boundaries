@@ -11,14 +11,14 @@ A specification for how services communicate operational limits to humans and au
 specification, rate-limiting, api, autonomous-agents, http, 429, conformance, structured-refusal, limits-discovery
 
 **Website:**
-https://github.com/snapsynapse/graceful-boundaries/blob/main/spec.md
+https://gracefulboundaries.dev
 
 ## Twitter / X
 
 **Short (under 280 chars):**
 Graceful Boundaries: a spec for how APIs communicate limits to humans and agents. Discovery before failure. Structured refusal with reasons. Constructive guidance instead of bare 429s. CC-BY-4.0.
 
-https://github.com/snapsynapse/graceful-boundaries
+https://gracefulboundaries.dev
 
 ## LinkedIn
 
@@ -33,7 +33,7 @@ Graceful Boundaries is an open specification (CC-BY-4.0) for how services commun
 
 Four conformance levels from "structured refusal" to "proactive headers on every success response." An eval suite validates any public API. A reference implementation demonstrates all four levels.
 
-https://github.com/snapsynapse/graceful-boundaries
+https://gracefulboundaries.dev
 
 ## Hacker News
 
@@ -41,4 +41,4 @@ https://github.com/snapsynapse/graceful-boundaries
 Graceful Boundaries -- A spec for how APIs communicate limits to humans and agents
 
 **URL:**
-https://github.com/snapsynapse/graceful-boundaries
+https://gracefulboundaries.dev

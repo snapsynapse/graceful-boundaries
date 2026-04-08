@@ -25,7 +25,7 @@ metadata:
     flag on resource-dedup entries, and HTML 429 machine-accessibility.
     Discovery skeleton includes changelog and feed fields.
   author: PAICE.work PBC (paice.work)
-  source: https://github.com/snapsynapse/graceful-boundaries
+  source: https://gracefulboundaries.dev
 ---
 
 # Graceful Boundaries Conformance Audit
