@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Graceful Boundaries &mdash; API Limit Communication Specification</title>
+  <meta name="description" content="A specification for how services communicate operational limits to humans and autonomous agents. Proactive discovery, structured refusal, constructive guidance.">
+  <meta property="og:title" content="Graceful Boundaries">
+  <meta property="og:description" content="A specification for how services communicate operational limits to humans and autonomous agents.">
+  <meta property="og:image" content="https://gracefulboundaries.dev/imgs/og.png">
+  <meta property="og:url" content="https://gracefulboundaries.dev">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Graceful Boundaries">
+  <meta name="twitter:description" content="A specification for how services communicate operational limits to humans and autonomous agents.">
+  <meta name="twitter:image" content="https://gracefulboundaries.dev/imgs/og.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-alt: #f8f9fa;
+      --text: #1a1a2e;
+      --text-muted: #64748b;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --code-bg: #f1f5f9;
+      --code-text: #0f172a;
+      --border: #e2e8f0;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
+      --max-width: 960px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --bg-alt: #1e293b;
+        --text: #e2e8f0;
+        --text-muted: #94a3b8;
+        --accent: #60a5fa;
+        --accent-hover: #93bbfc;
+        --code-bg: #1e293b;
+        --code-text: #e2e8f0;
+        --border: #334155;
+      }
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+    .container { max-width: var(--max-width); margin: 0 auto; padding: 0 1.5rem; }
+
+    /* Nav */
+    nav {
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 10;
+    }
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    nav .logo {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text);
+      text-decoration: none;
+    }
+    nav .links { display: flex; gap: 1.5rem; font-size: 0.9rem; }
+    nav .links a { color: var(--text-muted); }
+    nav .links a:hover { color: var(--text); text-decoration: none; }
+
+    /* Sections */
+    section { padding: 4rem 0; }
+    section.alt { background: var(--bg-alt); }
+
+    h1 { font-size: 2.75rem; line-height: 1.15; letter-spacing: -0.02em; font-weight: 800; }
+    h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem; letter-spacing: -0.01em; }
+    h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+
+    p { margin-bottom: 1rem; }
+    p:last-child { margin-bottom: 0; }
+
+    /* Hero */
+    .hero { padding: 5rem 0 4rem; text-align: center; }
+    .hero h1 { margin-bottom: 1rem; }
+    .hero .subtitle {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      max-width: 640px;
+      margin: 0 auto 1.5rem;
+    }
+    .hero .hook {
+      font-size: 1rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 2.5rem;
+    }
+
+    /* Pillars */
+    .pillars {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+      text-align: left;
+    }
+    .pillar {
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+    }
+    .pillar h3 { color: var(--accent); font-size: 1rem; }
+    .pillar p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0; }
+
+    /* Buttons */
+    .cta-row { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); text-decoration: none; color: #fff; }
+    .btn-secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+    .btn-secondary:hover { background: var(--accent); color: #fff; text-decoration: none; }
+
+    /* Code blocks */
+    .code-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .code-block { text-align: left; }
+    .code-block h3 { font-size: 0.95rem; margin-bottom: 0.75rem; }
+    .code-block .annotation {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.75rem;
+      font-style: italic;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1.25rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      line-height: 1.5;
+      border: 1px solid var(--border);
+    }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    th, td {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    th { font-weight: 600; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    td:first-child { font-weight: 600; white-space: nowrap; }
+
+    /* Steps */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .step {
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+    }
+    .step .level-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      margin-bottom: 0.25rem;
+    }
+    .step .time {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+    .step p { font-size: 0.9rem; margin-bottom: 0; }
+
+    /* Eval section */
+    .eval-block {
+      text-align: center;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .eval-block pre {
+      text-align: left;
+      margin: 1.5rem 0;
+    }
+    .eval-block .ref {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 0;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .footer-grid {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .footer-meta p { margin-bottom: 0.25rem; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      h1 { font-size: 2rem; }
+      .hero { padding: 3rem 0 2.5rem; }
+      .pillars { grid-template-columns: 1fr; }
+      .code-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; }
+      nav .links { display: none; }
+      .footer-grid { flex-direction: column; }
+      pre { font-size: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <a href="/" class="logo">Graceful Boundaries</a>
+    <div class="links">
+      <a href="#examples">Examples</a>
+      <a href="#levels">Levels</a>
+      <a href="#adopt">Adopt</a>
+      <a href="#evaluate">Evaluate</a>
+      <a href="https://github.com/snapsynapse/graceful-boundaries">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <h1>Graceful Boundaries</h1>
+    <p class="subtitle">A specification for how services communicate their operational limits to humans and autonomous agents.</p>
+    <p class="hook">Every unclear error response generates follow-up traffic. A vague 429 causes blind retries. A vague 403 causes credential cycling. When autonomous agents are the caller, the waste compounds. This spec fixes that.</p>
+
+    <div class="pillars">
+      <div class="pillar">
+        <h3>Proactive Discovery</h3>
+        <p>Limits are machine-readable before they are hit. Agents learn the rules before breaking them.</p>
+      </div>
+      <div class="pillar">
+        <h3>Structured Refusal</h3>
+        <p>Every non-success response explains what happened, why, and what to do next.</p>
+      </div>
+      <div class="pillar">
+        <h3>Constructive Guidance</h3>
+        <p>Refusals include a useful next step &mdash; a cached result, an alternative endpoint, or an upgrade path.</p>
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/spec.md" class="btn btn-primary">Read the Specification</a>
+      <a href="#evaluate" class="btn btn-secondary">Evaluate Your API</a>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="examples">
+  <div class="container">
+    <h2>See it in action</h2>
+    <p>These examples are from <a href="https://siteline.to/">Siteline</a>, a Level 4 conformant reference implementation.</p>
+
+    <div class="code-grid">
+      <div class="code-block">
+        <h3>Discovery endpoint</h3>
+<pre>{
+  "service": "Siteline",
+  "limits": {
+    "scan": {
+      "endpoint": "/api/scan",
+      "method": "GET",
+      "limits": [{
+        "type": "ip-rate",
+        "maxRequests": 10,
+        "windowSeconds": 3600,
+        "description": "10 scans per IP per hour."
+      }]
+    }
+  }
+}</pre>
+        <p class="annotation">Agents learn every limit before hitting any of them.</p>
+      </div>
+
+      <div class="code-block">
+        <h3>Structured refusal (429)</h3>
+<pre>{
+  "error": "rate_limit_exceeded",
+  "detail": "You can run up to 10 scans per hour.
+             Try again in 2400 seconds.",
+  "limit": "10 scans per IP per hour",
+  "retryAfterSeconds": 2400,
+  "why": "Rate limits keep the service available
+          for everyone and prevent abuse.",
+  "alternativeEndpoint": "/api/result?id=example.com"
+}</pre>
+        <p class="annotation">The caller knows what, when, why, and where to go instead.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="levels">
+  <div class="container">
+    <h2>Conformance levels</h2>
+    <p>Services self-declare a conformance level. The <a href="#evaluate">eval suite</a> validates the claim.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Level</th>
+          <th>What it requires</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>N/A</td>
+          <td>No API endpoints, rate limits, or agentic interaction surface.</td>
+        </tr>
+        <tr>
+          <td>Level 0</td>
+          <td>Limits exist but are not described per this specification.</td>
+        </tr>
+        <tr>
+          <td>Level 1</td>
+          <td>All non-success responses include <code>error</code>, <code>detail</code>, and <code>why</code>. All 429s add <code>limit</code> and <code>retryAfterSeconds</code>.</td>
+        </tr>
+        <tr>
+          <td>Level 2</td>
+          <td>Level 1 + a limits discovery endpoint.</td>
+        </tr>
+        <tr>
+          <td>Level 3</td>
+          <td>Level 2 + refusal responses include constructive guidance when applicable.</td>
+        </tr>
+        <tr>
+          <td>Level 4</td>
+          <td>Level 3 + successful responses include proactive <code>RateLimit</code> headers.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Which level should you target?</h3>
+    <ul style="margin-top: 0.5rem; padding-left: 1.25rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.8;">
+      <li><strong>No API or agentic surface?</strong> Declare N/A &mdash; takes 5 minutes.</li>
+      <li><strong>API with rate limits?</strong> Start at Level 1. This is the minimum useful level.</li>
+      <li><strong>Agents call your API?</strong> Target Level 2 so agents learn the rules before breaking them.</li>
+      <li><strong>Want to reduce 429 traffic?</strong> Target Level 3 &mdash; offer alternatives instead of bare refusals.</li>
+      <li><strong>High-traffic API?</strong> Target Level 4 &mdash; callers self-throttle before hitting limits.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="alt" id="adopt">
+  <div class="container">
+    <h2>Getting started</h2>
+    <p>Each level builds on the previous one. Start at Level 1 and work up.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="level-label">Level 1 &mdash; Structured Refusal</div>
+        <p>Add <code>error</code>, <code>detail</code>, and <code>why</code> to every non-success response. Add <code>limit</code> and <code>retryAfterSeconds</code> to 429s.</p>
+        <div class="time">1&ndash;2 hours</div>
+      </div>
+      <div class="step">
+        <div class="level-label">Level 2 &mdash; Discoverable</div>
+        <p>Add a <code>/api/limits</code> endpoint that returns all enforced limits as structured JSON.</p>
+        <div class="time">30&ndash;60 minutes</div>
+      </div>
+      <div class="step">
+        <div class="level-label">Level 3 &mdash; Constructive</div>
+        <p>Add guidance fields to refusals: <code>cachedResultUrl</code>, <code>alternativeEndpoint</code>, <code>upgradeUrl</code>.</p>
+        <div class="time">30&ndash;60 minutes</div>
+      </div>
+      <div class="step">
+        <div class="level-label">Level 4 &mdash; Proactive</div>
+        <p>Add <code>RateLimit</code> and <code>RateLimit-Policy</code> headers to successful responses.</p>
+        <div class="time">30&ndash;60 minutes</div>
+      </div>
+    </div>
+
+    <p style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+      For code samples at each level, see the <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/docs/implementation-guide.md">implementation guide</a>.
+    </p>
+  </div>
+</section>
+
+<section id="evaluate">
+  <div class="container">
+    <div class="eval-block">
+      <h2>Evaluate your API</h2>
+      <p>The conformance checker validates any public URL against the spec. No dependencies required.</p>
+<pre>git clone https://github.com/snapsynapse/graceful-boundaries.git
+cd graceful-boundaries
+node evals/check.js https://your-service.com</pre>
+      <p class="ref">
+        Reference implementation: <a href="https://siteline.to/">Siteline</a> (Level 4).
+      </p>
+      <div class="cta-row" style="margin-top: 1.5rem;">
+        <a href="https://github.com/snapsynapse/graceful-boundaries" class="btn btn-primary">View on GitHub</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-meta">
+        <p>Graceful Boundaries v1.1.0 &middot; <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a></p>
+        <p>A <a href="https://paice.work/">PAICE.work</a> project.</p>
+        <p style="margin-top: 0.5rem;">See also: <a href="https://github.com/snapsynapse/skill-provenance">Skill Provenance</a></p>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/snapsynapse/graceful-boundaries">GitHub</a>
+        <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/spec.md">Specification</a>
+        <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/docs/implementation-guide.md">Guide</a>
+        <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/CHANGELOG.md">Changelog</a>
+        <a href="https://github.com/sponsors/snapsynapse">Sponsor</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
