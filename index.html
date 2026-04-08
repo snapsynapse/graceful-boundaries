@@ -14,6 +14,9 @@
   <meta name="twitter:title" content="Graceful Boundaries">
   <meta name="twitter:description" content="A specification for how services communicate operational limits to humans and autonomous agents.">
   <meta name="twitter:image" content="https://gracefulboundaries.dev/imgs/og.png">
+  <link rel="icon" href="/imgs/favicon.ico" sizes="48x48">
+  <link rel="icon" href="/imgs/logo.png" type="image/png" sizes="1000x1000">
+  <link rel="apple-touch-icon" href="/imgs/apple-touch-icon.png">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -81,6 +84,14 @@
       font-size: 1.1rem;
       color: var(--text);
       text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    nav .logo img {
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
     }
     nav .links { display: flex; gap: 1.5rem; font-size: 0.9rem; }
     nav .links a { color: var(--text-muted); }
@@ -264,7 +275,7 @@
 
 <nav>
   <div class="container">
-    <a href="/" class="logo">Graceful Boundaries</a>
+    <a href="/" class="logo"><img src="/imgs/logo.png" alt="Graceful Boundaries logo">Graceful Boundaries</a>
     <div class="links">
       <a href="#examples">Examples</a>
       <a href="#levels">Levels</a>
