@@ -1,6 +1,6 @@
 # Contributing to Graceful Boundaries
 
-Graceful Boundaries is a specification, not a library. Contributions improve the spec text, the eval suite, or the documentation.
+Graceful Boundaries is a specification, not a library. Contributions improve the spec text, the eval suite, or the documentation. If you're an AI agent, see [AGENTS.md](AGENTS.md) for contributor guidelines specific to your workflow.
 
 ## Getting started
 

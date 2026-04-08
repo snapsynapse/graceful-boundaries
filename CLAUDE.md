@@ -7,8 +7,10 @@ A specification for how services communicate their operational limits to humans 
 - `spec.md` — the full specification (conformance levels, response classes, security considerations)
 - `evals/check.js` — live conformance checker and shared validation library
 - `evals/test-*.js` — unit tests (131 tests across 7 files)
-- `SECURITY-AUDIT.md` — threat model and security analysis (SC-1 through SC-8)
+- `SECURITY-AUDIT.md` — threat model and security analysis (SC-1 through SC-9)
 - `SKILL.md` — agentic skill for conformance assessment
+- `SKILL-builder.md` — agentic skill for implementing the spec in code
+- `AGENTS.md` — contributor protocol for AI agents working on this repo
 
 ## Commands
 
