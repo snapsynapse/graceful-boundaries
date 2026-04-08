@@ -1,0 +1,57 @@
+name: Conformance Report
+description: Share results from evaluating an API against the Graceful Boundaries spec.
+title: "Conformance: [service name]"
+labels: ["conformance-report"]
+body:
+  - type: input
+    id: service
+    attributes:
+      label: Service name
+      placeholder: e.g., Acme API
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Service URL
+      placeholder: e.g., https://api.acme.com
+    validations:
+      required: true
+  - type: dropdown
+    id: claimed-level
+    attributes:
+      label: Claimed conformance level
+      options:
+        - Not declared
+        - N/A
+        - Level 0
+        - Level 1
+        - Level 2
+        - Level 3
+        - Level 4
+    validations:
+      required: true
+  - type: dropdown
+    id: confirmed-level
+    attributes:
+      label: Confirmed level (from checker)
+      options:
+        - Not tested
+        - Level 0
+        - Level 1
+        - Level 2
+        - Level 3
+        - Level 4
+    validations:
+      required: true
+  - type: textarea
+    id: checker-output
+    attributes:
+      label: Checker output
+      description: Paste the output of `node evals/check.js <url>` or `--json`.
+      render: shell
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Edge cases found, suggested improvements, or implementation feedback.
