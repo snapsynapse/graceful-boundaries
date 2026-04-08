@@ -172,7 +172,7 @@ When a limit is exceeded, the response MUST include the following fields:
 
 **Requirements:**
 
-- `error` MUST be a stable string suitable for programmatic matching (e.g., `"rate_limit_exceeded"`, `"resource_dedup"`, `"cooldown_active"`).
+- `error` MUST be a stable string suitable for programmatic matching, using `snake_case`: lowercase alphanumeric characters and underscores only (e.g., `"rate_limit_exceeded"`, `"resource_dedup"`, `"cooldown_active"`).
 - `detail` MUST include the specific retry time in human-readable form (e.g., "Try again in 42 seconds").
 - `limit` MUST state the limit in concrete terms (e.g., "10 scans per IP per hour").
 - `retryAfterSeconds` MUST be a non-negative integer.

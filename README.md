@@ -3,7 +3,7 @@
 A specification for how services communicate their operational limits to humans and autonomous agents.
 
 [![License: CC-BY-4.0](https://img.shields.io/badge/License-CC--BY--4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](spec.md)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/tests-131%20passing-brightgreen.svg)](#evaluate-conformance)
 
 ## The problem
@@ -114,10 +114,13 @@ Services self-declare a conformance level. The eval suite validates the claim.
 
 ## Evaluate conformance
 
-Check any public URL:
+Clone the repo and run from the project root:
 
 ```bash
-node evals/check.js https://your-service.com
+git clone https://github.com/snapsynapse/graceful-boundaries.git
+cd graceful-boundaries
+node evals/check.js https://siteline.to          # Level 4 — proactive headers
+node evals/check.js https://google.com           # Level 0 — no conformance
 node evals/check.js https://your-service.com --json
 ```
 
@@ -166,7 +169,7 @@ Graceful Boundaries is complementary to these standards, not a replacement.
 
 ## Reference implementation
 
-[Siteline](https://siteline.to/) is a Level 4 conformant implementation with five API endpoints. Verify it:
+[Siteline](https://siteline.to/) is a Level 4 conformant implementation with five API endpoints. Verify it from the project root:
 
 ```bash
 node evals/check.js https://siteline.to

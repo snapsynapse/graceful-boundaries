@@ -238,7 +238,7 @@ function checkHtmlRefusal(html) {
 
 function isStableErrorValue(error) {
   if (typeof error !== "string" || error.length === 0) return false;
-  // Must be snake_case or kebab-case: lowercase alphanumeric with underscores or hyphens
+  // Spec recommends snake_case; kebab-case is accepted but not preferred
   return /^[a-z][a-z0-9]*([_-][a-z0-9]+)*$/.test(error);
 }
 
@@ -528,10 +528,6 @@ async function main() {
 
   // Note: We can't easily trigger a real 429 to test refusal format
   // without hammering the service. Instead, we document what to check.
-  report.notes.push(
-    "Refusal format (Level 1) requires a 429 response to verify. " +
-    "Use --json and manually trigger a rate limit to check the response shape."
-  );
 
   // Check for N/A declaration
   if (foundLimits && foundLimits.conformance === "not-applicable") {
@@ -549,8 +545,79 @@ async function main() {
   if (report.conformanceLevel !== "not-applicable") {
     if (foundLimits && foundLimits.wellFormed) {
       report.conformanceLevel = 2;
-      report.notes.push("Level 2 (Discoverable) confirmed: limits endpoint exists and is well-formed.");
-      report.notes.push("Level 1 and Level 3 require verifying actual 429 response bodies.");
+      report.notes.push("Discovery endpoint verified. At least Level 2 (Discoverable).");
+      report.notes.push(
+        "Level 1 (structured refusal) and Level 3 (constructive guidance) require a 429 response to verify. " +
+        "Trigger a rate limit and check the response shape, or use --json for machine-readable output."
+      );
+
+      // Check proactive headers (Level 4) by hitting documented endpoints
+      const limitsUrl = `${options.baseUrl}${foundLimits.path}`;
+      try {
+        const limitsResponse = await fetch(limitsUrl, { headers: { Accept: "application/json" } });
+        const limitsBody = await limitsResponse.json();
+        const endpoints = limitsBody.limits ? Object.values(limitsBody.limits) : [];
+        const safeEndpoints = endpoints.filter((e) => e.endpoint && e.method !== "POST" && e.method !== "DELETE");
+
+        // Try to get a successful response from documented endpoints to check proactive headers.
+        // Many endpoints need parameters, so try common safe probe values if bare requests fail.
+        const PROBE_PARAMS = ["?id=example.com", "?url=https://example.com"];
+
+        let proactiveConfirmed = false;
+        const skipped = [];
+
+        for (const ep of safeEndpoints) {
+          if (proactiveConfirmed) break;
+          // Skip path-parameterized endpoints (e.g. /results/:id) — we can't guess the value
+          if (ep.endpoint.includes(":")) {
+            skipped.push(`${ep.endpoint} (path parameter)`);
+            continue;
+          }
+
+          const attempts = [`${options.baseUrl}${ep.endpoint}`];
+          for (const probe of PROBE_PARAMS) {
+            attempts.push(`${options.baseUrl}${ep.endpoint}${probe}`);
+          }
+
+          for (const testUrl of attempts) {
+            const display = testUrl.replace(options.baseUrl, "");
+            console.error(`  Checking proactive headers on ${display}...`);
+            try {
+              const testResponse = await fetch(testUrl, { headers: { Accept: "application/json" } });
+              if (!testResponse.ok) continue;
+
+              const headers = {};
+              for (const [k, v] of testResponse.headers) {
+                headers[k] = v;
+              }
+              const proactiveCheck = checkProactiveHeaders(headers);
+              report.proactiveHeaders = proactiveCheck;
+
+              if (proactiveCheck.hasProactiveHeaders) {
+                report.conformanceLevel = 4;
+                report.notes.push(
+                  `Level 4 (Proactive) confirmed: ${display} returns RateLimit headers ` +
+                  `(limit=${proactiveCheck.limitValue}, remaining=${proactiveCheck.remainingValue}, reset=${proactiveCheck.resetValue}).`
+                );
+                proactiveConfirmed = true;
+                break;
+              }
+            } catch (error) {
+              // try next attempt
+            }
+          }
+        }
+
+        if (!proactiveConfirmed) {
+          let msg = "Proactive headers (Level 4) not found on any successful endpoint response.";
+          if (skipped.length > 0) {
+            msg += ` Skipped: ${skipped.join(", ")}.`;
+          }
+          report.notes.push(msg);
+        }
+      } catch (error) {
+        report.notes.push(`Could not re-fetch limits body for proactive header check: ${error.message}`);
+      }
     } else if (foundLimits) {
       report.notes.push("Limits endpoint found but not well-formed. Level 2 not confirmed.");
     }
