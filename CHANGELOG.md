@@ -4,6 +4,23 @@ All notable changes to the Graceful Boundaries specification.
 
 This project follows [Semantic Versioning](https://semver.org/). The version number reflects the specification, not any implementation.
 
+## [1.2.0] - 2026-04-08
+
+### Added
+- **Appendix B: Guidance for Autonomous Implementers** in spec.md. Imperative-voice guidance for agents building services (B.1) and consuming them (B.2). Non-normative, same as Appendix A.
+- **Builder skill** (`SKILL-builder.md`): fires when agents scaffold APIs or add error handling, injecting Graceful Boundaries patterns into generated code. Distinct from the audit skill which inspects live URLs.
+- **CLAUDE.md snippet** on the landing page: copy-pasteable block for project AI context files that tells coding assistants to apply the spec automatically.
+- **Landing page** at gracefulboundaries.dev with dark mode, mobile support, and OG/Twitter meta tags.
+- **CHANGELOG.md** for version history tracking.
+- **Conformance checker now validates Level 4**: probes documented endpoints for proactive `RateLimit` headers.
+
+### Changed
+- Checker output refined: "At least Level 2" instead of overstating confirmed level; "trigger a 429" note only appears when relevant.
+- Spec explicitly requires `snake_case` for the `error` field.
+- All project URLs updated to reference gracefulboundaries.dev.
+- README includes clone/cd instructions and shows siteline.to (Level 4) vs google.com (Level 0) as examples.
+- Version badge links to CHANGELOG.md.
+
 ## [1.1.0] - 2025-05-15
 
 Based on implementation feedback from Siteline's Level 4 conformance work.
