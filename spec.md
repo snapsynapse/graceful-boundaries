@@ -714,3 +714,35 @@ If an agent cannot fetch the limits discovery endpoint (network error, timeout, 
 4. **Log the failure.** Discovery endpoint unavailability is operationally significant — it means the agent is operating without a map.
 
 An agent that cannot discover limits is not broken — it just loses the ability to plan ahead. The structured refusal responses (Level 1) still provide per-request guidance. Discovery failure degrades the agent from proactive to reactive, but does not require it to stop.
+
+## Appendix B: Guidance for Autonomous Implementers
+
+*This section is non-normative.*
+
+This appendix addresses autonomous agents directly — both agents that build HTTP services and agents that consume them. The guidance below restates requirements from the normative sections in imperative form for ease of integration into agent instruction sets, context files, and system prompts.
+
+### B.1: When You Are Building a Service
+
+When you generate HTTP error responses, include three fields in every non-success response body: `error` (a stable snake_case string for programmatic matching), `detail` (a human-readable explanation), and `why` (the security, policy, or operational reason the limit exists). Do not omit `why` — it is the field that distinguishes an informative refusal from a bare block.
+
+When you generate rate limit responses (429), include two additional fields: `limit` (the constraint in concrete terms, e.g., "10 requests per IP per hour") and `retryAfterSeconds` (a non-negative integer). Set the `Retry-After` HTTP header to match.
+
+When you scaffold a new API or add endpoints to an existing one, add a limits discovery endpoint at `/api/limits` that returns all enforced limits as structured JSON. Include a `service` name, a `description`, a `conformance` level, and a `limits` object keyed by endpoint. Each limit entry needs `type`, `maxRequests`, `windowSeconds`, and `description`. Set `Cache-Control: public, s-maxage=3600` on the response.
+
+When a cached or alternative result exists for a refused request, include `cachedResultUrl` or `alternativeEndpoint` in the refusal response body rather than returning a bare refusal. Prefer returning cached results as a 200 with `_rescanBlocked: true` over returning a 429 for resource deduplication limits.
+
+When you add rate limit middleware, also add `RateLimit` and `RateLimit-Policy` headers to success responses so callers can self-throttle before hitting limits.
+
+Apply the security considerations throughout: `why` describes the category of protection, not the implementation mechanism (SC-2). Guidance URLs use relative paths or same-origin absolute URLs (SC-6). Published limits in the discovery endpoint may be higher than actually enforced limits (SC-1). Do not include internal or admin endpoints in the discovery response (SC-4).
+
+### B.2: When You Are Consuming a Service
+
+Before making requests to a new service, check for a limits discovery endpoint at `/api/limits` or `/.well-known/limits`. If the endpoint exists, read the limits and plan your request patterns to stay within them. Do not discover limits through failure.
+
+When you receive a 429 response, parse the JSON body before retrying. Use `retryAfterSeconds` to determine when to retry. Check for `alternativeEndpoint` or `cachedResultUrl` — these may let you get what you need without waiting. Read `why` to understand whether the limit is permanent policy, temporary congestion, or abuse prevention, and adjust your strategy accordingly.
+
+When success responses include `RateLimit` headers, track the `remaining` value. When `remaining` approaches zero, slow your request rate proactively rather than waiting for a 429.
+
+When a service returns a response with `_rescanBlocked: true`, the response body contains the cached result. Use it directly rather than retrying or waiting.
+
+When discovery fails (network error, timeout, non-200 response), fall back to conservative defaults: assume a rate limit of 1 request per second, respect `Retry-After` headers on any 429, and re-check the discovery endpoint periodically. Discovery failure degrades you from proactive to reactive but does not require you to stop.
