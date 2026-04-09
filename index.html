@@ -5,18 +5,100 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Graceful Boundaries &mdash; API Limit Communication Specification</title>
   <meta name="description" content="A specification for how services communicate operational limits to humans and autonomous agents. Proactive discovery, structured refusal, constructive guidance.">
+  <meta name="keywords" content="graceful boundaries, rate limiting, 429, API errors, structured refusal, agentic APIs, autonomous agents, RateLimit headers, RFC 9457, problem details, API specification">
+  <meta name="author" content="Sam Rogers">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+  <meta name="theme-color" content="#2563eb">
+  <link rel="canonical" href="https://gracefulboundaries.dev/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Graceful Boundaries">
   <meta property="og:title" content="Graceful Boundaries">
   <meta property="og:description" content="A specification for how services communicate operational limits to humans and autonomous agents.">
   <meta property="og:image" content="https://gracefulboundaries.dev/imgs/og.png">
-  <meta property="og:url" content="https://gracefulboundaries.dev">
-  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gracefulboundaries.dev/">
+  <meta property="og:locale" content="en_US">
+  <meta property="article:published_time" content="2026-03-15T00:00:00Z">
+  <meta property="article:modified_time" content="2026-04-09T00:00:00Z">
+  <meta property="article:author" content="Sam Rogers">
+  <meta property="article:publisher" content="https://paice.work/">
+  <meta property="article:section" content="Open Patterns">
+  <meta property="article:tag" content="graceful-boundaries">
+  <meta property="article:tag" content="rate-limiting">
+  <meta property="article:tag" content="api-errors">
+  <meta property="article:tag" content="agentic-apis">
+
+  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Graceful Boundaries">
   <meta name="twitter:description" content="A specification for how services communicate operational limits to humans and autonomous agents.">
   <meta name="twitter:image" content="https://gracefulboundaries.dev/imgs/og.png">
+  <meta name="twitter:creator" content="@snapsynapse">
+
   <link rel="icon" href="imgs/favicon.ico" sizes="48x48">
   <link rel="icon" href="imgs/logo.png" type="image/png" sizes="1000x1000">
   <link rel="apple-touch-icon" href="imgs/apple-touch-icon.png">
+
+  <!-- JSON-LD: TechArticle -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "Graceful Boundaries",
+    "alternativeHeadline": "A specification for how services communicate operational limits to humans and autonomous agents",
+    "description": "Graceful Boundaries defines how APIs communicate rate limits, refusals, and constraints to humans and autonomous agents. Proactive discovery, structured refusal, constructive guidance.",
+    "inLanguage": "en",
+    "url": "https://gracefulboundaries.dev/",
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://gracefulboundaries.dev/" },
+    "datePublished": "2026-03-15",
+    "dateModified": "2026-04-09",
+    "author": {
+      "@type": "Person",
+      "name": "Sam Rogers",
+      "url": "https://paice.work/",
+      "affiliation": { "@type": "Organization", "name": "PAICE.work PBC" }
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "PAICE.work PBC",
+      "url": "https://paice.work/",
+      "logo": { "@type": "ImageObject", "url": "https://paice.work/logo.png" }
+    },
+    "image": "https://gracefulboundaries.dev/imgs/og.png",
+    "keywords": ["graceful boundaries", "rate limiting", "429", "API errors", "structured refusal", "agentic APIs", "RateLimit headers"],
+    "isPartOf": { "@type": "CreativeWork", "name": "PAICE.work Open Patterns" },
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "copyrightHolder": { "@type": "Organization", "name": "PAICE.work PBC" },
+    "copyrightYear": 2026,
+    "citation": [
+      { "@type": "WebPage", "name": "Knowledge as Code", "url": "https://knowledge-as-code.com/" },
+      { "@type": "WebPage", "name": "Skill Provenance", "url": "https://skillprovenance.dev/" },
+      { "@type": "WebPage", "name": "Siteline — reference implementation", "url": "https://siteline.to/" }
+    ]
+  }
+  </script>
+
+  <!-- JSON-LD: DefinedTerm (stake the term) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "DefinedTerm",
+    "name": "Graceful Boundaries",
+    "alternateName": ["graceful-boundaries", "GB spec"],
+    "description": "An open specification that defines how services communicate operational limits to humans and autonomous agents through proactive discovery, structured refusal, and constructive guidance.",
+    "url": "https://gracefulboundaries.dev/",
+    "inDefinedTermSet": {
+      "@type": "DefinedTermSet",
+      "name": "PAICE.work Open Patterns",
+      "url": "https://paice.work/"
+    },
+    "sameAs": [
+      "https://github.com/snapsynapse/graceful-boundaries",
+      "https://clawhub.ai/snapsynapse/graceful-boundaries"
+    ]
+  }
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -62,6 +144,18 @@
     a { color: var(--accent); text-decoration: none; }
     a:hover { color: var(--accent-hover); text-decoration: underline; }
 
+    /* Skip link (a11y) */
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      background: var(--accent);
+      color: #fff;
+      padding: 0.5rem 1rem;
+      z-index: 100;
+    }
+    .skip-link:focus { left: 0; }
+
     .container { max-width: var(--max-width); margin: 0 auto; padding: 0 1.5rem; }
 
     /* Nav */
@@ -93,9 +187,67 @@
       height: 28px;
       border-radius: 4px;
     }
-    nav .links { display: flex; gap: 1.5rem; font-size: 0.9rem; }
+    nav .links { display: flex; align-items: center; gap: 1.5rem; font-size: 0.9rem; }
     nav .links a { color: var(--text-muted); }
     nav .links a:hover { color: var(--text); text-decoration: none; }
+
+    /* GitHub star button */
+    .gh-star {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-alt);
+      color: var(--text) !important;
+      font-weight: 600;
+      font-size: 0.8rem;
+      transition: border-color 0.1s ease, transform 0.05s ease;
+    }
+    .gh-star:hover {
+      border-color: var(--accent);
+      text-decoration: none;
+      transform: translateY(-1px);
+    }
+    .gh-star svg { flex: 0 0 auto; color: #eab308; }
+
+    /* Byline */
+    .byline {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin: 0.75rem 0 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.9rem;
+      align-items: center;
+      justify-content: center;
+    }
+    .byline .sep { color: var(--border); }
+    .byline a { color: var(--text-muted); }
+    .byline a:hover { color: var(--accent); }
+    .byline .version {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      background: var(--bg-alt);
+      color: var(--accent);
+      border: 1px solid var(--border);
+    }
+
+    /* Canonical note */
+    .canonical-note {
+      margin-top: 2.5rem;
+      padding: 1rem 1.25rem;
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .canonical-note strong { color: var(--text); }
 
     /* Sections */
     section { padding: 4rem 0; }
@@ -273,6 +425,8 @@
 </head>
 <body>
 
+<a class="skip-link" href="#main-content">Skip to content</a>
+
 <nav>
   <div class="container">
     <a href="/" class="logo"><img src="imgs/logo-128.png" alt="Graceful Boundaries logo">Graceful Boundaries</a>
@@ -281,15 +435,31 @@
       <a href="#levels">Levels</a>
       <a href="#adopt">Adopt</a>
       <a href="#evaluate">Evaluate</a>
-      <a href="https://github.com/snapsynapse/graceful-boundaries">GitHub</a>
+      <a class="gh-star" href="https://github.com/snapsynapse/graceful-boundaries" target="_blank" rel="noopener" aria-label="Star snapsynapse/graceful-boundaries on GitHub">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/>
+        </svg>
+        <span>Star on GitHub</span>
+      </a>
     </div>
   </div>
 </nav>
 
-<section class="hero">
+<section class="hero" id="main-content">
   <div class="container">
     <h1>Graceful Boundaries</h1>
     <p class="subtitle">A specification for how services communicate their operational limits to humans and autonomous agents.</p>
+    <p class="byline">
+      By <a href="https://paice.work/" rel="author">Sam Rogers</a>, <a href="https://paice.work/">PAICE.work PBC</a>
+      <span class="sep">&middot;</span>
+      Published <time datetime="2026-03-15">March 15, 2026</time>
+      <span class="sep">&middot;</span>
+      Updated <time datetime="2026-04-09">April 9, 2026</time>
+      <span class="sep">&middot;</span>
+      <span class="version">v1.2.0</span>
+      <span class="sep">&middot;</span>
+      <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC&nbsp;BY&nbsp;4.0</a>
+    </p>
     <p class="hook">Every unclear error response generates follow-up traffic. A vague 429 causes blind retries. A vague 403 causes credential cycling. When autonomous agents are the caller, the waste compounds. This spec fixes that.</p>
 
     <div class="pillars">
@@ -308,7 +478,7 @@
     </div>
 
     <div class="cta-row">
-      <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/spec.md" class="btn btn-primary">Read the Specification</a>
+      <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/spec.md" class="btn btn-primary" target="_blank" rel="noopener">Read the Specification</a>
       <a href="#evaluate" class="btn btn-secondary">Evaluate Your API</a>
     </div>
   </div>
@@ -317,7 +487,7 @@
 <section class="alt" id="examples">
   <div class="container">
     <h2>See it in action</h2>
-    <p>These examples are from <a href="https://siteline.to/">Siteline</a>, a Level 4 conformant reference implementation.</p>
+    <p>These examples are from <a href="https://siteline.to/" target="_blank" rel="noopener">Siteline</a>, a Level 4 conformant reference implementation.</p>
 
     <div class="code-grid">
       <div class="code-block">
@@ -438,7 +608,7 @@
     </div>
 
     <p style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
-      For code samples at each level, see the <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/docs/implementation-guide.md">implementation guide</a>.
+      For code samples at each level, see the <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/docs/implementation-guide.md" target="_blank" rel="noopener">implementation guide</a>.
     </p>
 
     <h3 style="margin-top: 2.5rem; margin-bottom: 0.75rem;">Add to your AI coding workflow</h3>
@@ -469,9 +639,19 @@ node evals/check.js https://your-service.com</pre>
         Reference implementation: <a href="https://siteline.to/">Siteline</a> (Level 4).
       </p>
       <div class="cta-row" style="margin-top: 1.5rem;">
-        <a href="https://github.com/snapsynapse/graceful-boundaries" class="btn btn-primary">View on GitHub</a>
+        <a href="https://github.com/snapsynapse/graceful-boundaries" class="btn btn-primary" target="_blank" rel="noopener">View on GitHub</a>
       </div>
     </div>
+
+    <aside class="canonical-note">
+      <strong>Canonical reference.</strong> This page is the authoritative definition of the
+      Graceful Boundaries specification. Any cross-posts on
+      <a href="https://clawhub.ai/snapsynapse/graceful-boundaries" target="_blank" rel="noopener">ClawHub</a>,
+      LinkedIn, or other platforms are derived from this source and should cite
+      <a href="https://gracefulboundaries.dev/">gracefulboundaries.dev</a> as canonical.
+      Last substantive revision: <time datetime="2026-04-09">2026-04-09</time>.
+      <a href="https://github.com/snapsynapse/graceful-boundaries/commits/main/spec.md" target="_blank" rel="noopener">Revision history &rarr;</a>
+    </aside>
   </div>
 </section>
 
@@ -479,17 +659,18 @@ node evals/check.js https://your-service.com</pre>
   <div class="container">
     <div class="footer-grid">
       <div class="footer-meta">
-        <p>Graceful Boundaries v1.2.0 &middot; <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a></p>
-        <p>A <a href="https://paice.work/">PAICE.work</a> project.</p>
-        <p style="margin-top: 0.5rem;">See also: <a href="https://github.com/snapsynapse/skill-provenance">Skill Provenance</a></p>
+        <p>Graceful Boundaries v1.2.0 &middot; <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC-BY-4.0</a></p>
+        <p>A <a href="https://paice.work/" target="_blank" rel="noopener">PAICE.work</a> project.</p>
+        <p style="margin-top: 0.5rem;">See also: <a href="https://knowledge-as-code.com/" target="_blank" rel="noopener">Knowledge as Code</a> &middot; <a href="https://skillprovenance.dev/" target="_blank" rel="noopener">Skill Provenance</a></p>
       </div>
       <div class="footer-links">
-        <a href="https://github.com/snapsynapse/graceful-boundaries">GitHub</a>
-        <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/spec.md">Specification</a>
-        <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/docs/implementation-guide.md">Guide</a>
-        <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/CHANGELOG.md">Changelog</a>
-        <a href="https://clawhub.ai/snapsynapse/graceful-boundaries">ClawHub</a>
-        <a href="https://github.com/sponsors/snapsynapse">Sponsor</a>
+        <a href="https://github.com/snapsynapse/graceful-boundaries" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/spec.md" target="_blank" rel="noopener">Specification</a>
+        <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/docs/implementation-guide.md" target="_blank" rel="noopener">Guide</a>
+        <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
+        <a href="https://github.com/snapsynapse/graceful-boundaries/commits/main/spec.md" target="_blank" rel="noopener">Revisions</a>
+        <a href="https://clawhub.ai/snapsynapse/graceful-boundaries" target="_blank" rel="noopener">ClawHub</a>
+        <a href="https://github.com/sponsors/snapsynapse" target="_blank" rel="noopener">Sponsor</a>
       </div>
     </div>
   </div>
