@@ -1,0 +1,35 @@
+# Graceful Boundaries
+
+> A specification for how services communicate their operational limits to humans and autonomous agents.
+
+Graceful Boundaries defines three requirements that existing standards address separately but no specification combines:
+
+1. Proactive discovery — limits are machine-readable before they are hit
+2. Structured refusal — when a limit is exceeded, the response explains what happened, which limit applies, when to retry, and why the limit exists
+3. Constructive guidance — the refusal includes a useful next step, not just a block
+
+## Conformance levels
+
+- Level N/A: No agentic interaction surface
+- Level 0: Limits exist but not described per spec
+- Level 1: Structured refusal with error, detail, limit, retryAfterSeconds, why
+- Level 2: Level 1 + limits discovery endpoint
+- Level 3: Level 2 + constructive guidance fields (cachedResultUrl, alternativeEndpoint, upgradeUrl)
+- Level 4: Level 3 + proactive RateLimit headers on success responses
+
+## Links
+
+- Specification: https://gracefulboundaries.dev/
+- GitHub: https://github.com/snapsynapse/graceful-boundaries
+- Full spec: https://github.com/snapsynapse/graceful-boundaries/blob/main/spec.md
+- Implementation guide: https://github.com/snapsynapse/graceful-boundaries/blob/main/docs/implementation-guide.md
+- Conformance checker: https://github.com/snapsynapse/graceful-boundaries/blob/main/evals/check.js
+- Reference implementation (Level 4): https://siteline.to/
+
+## Metadata
+
+- Version: 1.2.0
+- License: CC-BY-4.0
+- Author: Sam Rogers, PAICE.work PBC
+- Published: 2026-03-15
+- Updated: 2026-04-09
