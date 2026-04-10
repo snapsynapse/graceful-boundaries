@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   <title>Graceful Boundaries &mdash; API Limit Communication Specification</title>
   <meta name="description" content="A specification for how services communicate operational limits to humans and autonomous agents. Proactive discovery, structured refusal, constructive guidance.">
   <meta name="keywords" content="graceful boundaries, rate limiting, 429, API errors, structured refusal, agentic APIs, autonomous agents, RateLimit headers, RFC 9457, problem details, API specification">
@@ -37,6 +38,8 @@
   <meta name="twitter:creator" content="@snapsynapse">
 
   <link rel="alternate" type="text/plain" href="https://gracefulboundaries.dev/llms.txt" title="LLM-readable summary">
+  <link rel="icon" href="imgs/favicon.svg" type="image/svg+xml">
+  <link rel="mask-icon" href="imgs/favicon.svg" color="#2563eb">
   <link rel="icon" href="imgs/favicon.ico" sizes="48x48">
   <link rel="icon" href="imgs/logo.png" type="image/png" sizes="1000x1000">
   <link rel="apple-touch-icon" href="imgs/apple-touch-icon.png">
@@ -54,18 +57,8 @@
     "mainEntityOfPage": { "@type": "WebPage", "@id": "https://gracefulboundaries.dev/" },
     "datePublished": "2026-03-15",
     "dateModified": "2026-04-09",
-    "author": {
-      "@type": "Person",
-      "name": "Sam Rogers",
-      "url": "https://paice.work/",
-      "affiliation": { "@type": "Organization", "name": "PAICE.work PBC" }
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "PAICE.work PBC",
-      "url": "https://paice.work/",
-      "logo": { "@type": "ImageObject", "url": "https://paice.work/logo.png" }
-    },
+    "author": { "@id": "https://gracefulboundaries.dev/#founder" },
+    "publisher": { "@id": "https://gracefulboundaries.dev/#organization" },
     "image": "https://gracefulboundaries.dev/imgs/og.png",
     "keywords": ["graceful boundaries", "rate limiting", "429", "API errors", "structured refusal", "agentic APIs", "RateLimit headers"],
     "isPartOf": { "@type": "CreativeWork", "name": "PAICE.work Open Patterns" },
@@ -98,6 +91,52 @@
       "https://github.com/snapsynapse/graceful-boundaries",
       "https://clawhub.ai/snapsynapse/graceful-boundaries"
     ]
+  }
+  </script>
+
+  <!-- JSON-LD: Organization (publisher identity) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": "https://gracefulboundaries.dev/#organization",
+    "name": "PAICE.work",
+    "legalName": "PAICE.work PBC",
+    "url": "https://paice.work/",
+    "logo": "https://paice.work/logo.png",
+    "founder": { "@id": "https://gracefulboundaries.dev/#founder" },
+    "sameAs": [
+      "https://github.com/snapsynapse",
+      "https://paice.work/"
+    ]
+  }
+  </script>
+
+  <!-- JSON-LD: Person (author identity) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": "https://gracefulboundaries.dev/#founder",
+    "name": "Sam Rogers",
+    "url": "https://paice.work/",
+    "worksFor": { "@id": "https://gracefulboundaries.dev/#organization" },
+    "sameAs": [
+      "https://github.com/snapsynapse"
+    ]
+  }
+  </script>
+
+  <!-- JSON-LD: WebSite (publisher reference, enables sitelinks search box) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Graceful Boundaries",
+    "alternateName": "GB spec",
+    "url": "https://gracefulboundaries.dev/",
+    "publisher": { "@id": "https://gracefulboundaries.dev/#organization" },
+    "inLanguage": "en-US"
   }
   </script>
   <style>
@@ -144,6 +183,16 @@
 
     a { color: var(--accent); text-decoration: none; }
     a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+    /* Inline links in prose get an underline so they don't rely on color alone */
+    :where(p, aside, .canonical-note) a:not(.btn):not(.gh-star) {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      text-decoration-color: var(--border);
+    }
+    :where(p, aside, .canonical-note) a:not(.btn):not(.gh-star):hover {
+      text-decoration-color: currentColor;
+    }
 
     /* Skip link (a11y) */
     .skip-link {
@@ -291,7 +340,7 @@
       border-radius: 8px;
       background: var(--bg);
     }
-    .pillar h3 { color: var(--accent); font-size: 1rem; }
+    .pillar h2 { color: var(--accent); font-size: 1rem; margin-bottom: 0.5rem; }
     .pillar p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0; }
 
     /* Buttons */
@@ -304,8 +353,8 @@
       font-size: 0.95rem;
       transition: background 0.15s, color 0.15s;
     }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover { background: var(--accent-hover); text-decoration: none; color: #fff; }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { background: var(--accent-hover); text-decoration: none; color: var(--bg); }
     .btn-secondary {
       background: transparent;
       color: var(--accent);
@@ -446,7 +495,8 @@
   </div>
 </nav>
 
-<section class="hero" id="main-content">
+<main id="main-content">
+<section class="hero">
   <div class="container">
     <h1>Graceful Boundaries</h1>
     <p class="subtitle">A specification for how services communicate their operational limits to humans and autonomous agents.</p>
@@ -465,15 +515,15 @@
 
     <div class="pillars">
       <div class="pillar">
-        <h3>Proactive Discovery</h3>
+        <h2>Proactive Discovery</h2>
         <p>Limits are machine-readable before they are hit. Agents learn the rules before breaking them.</p>
       </div>
       <div class="pillar">
-        <h3>Structured Refusal</h3>
+        <h2>Structured Refusal</h2>
         <p>Every non-success response explains what happened, why, and what to do next.</p>
       </div>
       <div class="pillar">
-        <h3>Constructive Guidance</h3>
+        <h2>Constructive Guidance</h2>
         <p>Refusals include a useful next step &mdash; a cached result, an alternative endpoint, or an upgrade path.</p>
       </div>
     </div>
@@ -644,7 +694,7 @@ node evals/check.js https://your-service.com</pre>
       </div>
     </div>
 
-    <aside class="canonical-note">
+    <aside class="canonical-note" role="note">
       <strong>Canonical reference.</strong> This page is the authoritative definition of the
       Graceful Boundaries specification. Any cross-posts on
       <a href="https://clawhub.ai/snapsynapse/graceful-boundaries" target="_blank" rel="noopener">ClawHub</a>,
@@ -655,6 +705,7 @@ node evals/check.js https://your-service.com</pre>
     </aside>
   </div>
 </section>
+</main>
 
 <footer>
   <div class="container">
