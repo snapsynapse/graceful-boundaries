@@ -6,3 +6,15 @@ node_modules/
 *~
 .perplexity-research/
 .claude/launch.json
+
+# --- baseline additions (automated audit 2026-04-21) ---
+.env
+.env.*
+__pycache__/
+*.pyc
+.vscode/
+.idea/
+dist/
+build/
+.venv/
+venv/
