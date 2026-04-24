@@ -16,7 +16,7 @@ Check the standard well-known path:
 curl -s https://your-service.com/.well-known/limits | jq .
 ```
 
-A conforming discovery response includes `service`, `limits`, and optionally `conformance`, `changelog`, and `feed`:
+A conforming discovery response includes `service`, `description`, `limits`, and optionally `conformance`, `changelog`, and `feed`:
 
 ```json
 {

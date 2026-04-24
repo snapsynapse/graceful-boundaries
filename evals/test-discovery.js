@@ -95,22 +95,23 @@ test("Multiple endpoints all valid", () => {
 
 // ─── Missing top-level fields ────────────────────────────────────
 
-test("Missing 'service' field warns", () => {
+test("Missing 'service' field fails", () => {
   const result = checkLimitsBody({
     limits: {},
   });
-  assert(result.isValid, "still valid without service");
+  assert(!result.isValid, "should fail without service");
   assert(!result.hasService, "should flag missing service");
-  assert(result.warnings.some((w) => w.includes("service")), "should warn about service");
+  assert(result.errors.some((e) => e.includes("service")), "should report missing service");
 });
 
-test("Missing 'description' field warns", () => {
+test("Missing 'description' field fails", () => {
   const result = checkLimitsBody({
     service: "Test",
     limits: {},
   });
-  assert(result.isValid, "still valid without description");
+  assert(!result.isValid, "should fail without description");
   assert(!result.hasDescription, "should flag missing description");
+  assert(result.errors.some((e) => e.includes("description")), "should report missing description");
 });
 
 test("Missing 'limits' object fails", () => {
@@ -164,6 +165,23 @@ test("Entry missing 'limits' array fails", () => {
   });
   assert(!result.isValid, "should fail without limits array");
   assert(result.entryErrors.some((e) => e.includes("limits")), "should report missing limits array");
+});
+
+test("Entry missing 'method' fails", () => {
+  const result = checkLimitsBody({
+    service: "Test",
+    description: "Test API.",
+    limits: {
+      scan: {
+        endpoint: "/api/scan",
+        limits: [
+          { type: "ip-rate", maxRequests: 10, windowSeconds: 3600, description: "10 per hour" },
+        ],
+      },
+    },
+  });
+  assert(!result.isValid, "should fail without method");
+  assert(result.entryErrors.some((e) => e.includes("method")), "should report missing method");
 });
 
 test("Limit entry missing 'type' fails", () => {
@@ -292,6 +310,7 @@ test("v1.1: feed URL passes", () => {
 test("v1.1: empty changelog warns", () => {
   const result = checkLimitsBody({
     service: "Test",
+    description: "Test service.",
     limits: {},
     changelog: "",
   });
@@ -302,6 +321,7 @@ test("v1.1: empty changelog warns", () => {
 test("v1.1: non-string changelog warns", () => {
   const result = checkLimitsBody({
     service: "Test",
+    description: "Test service.",
     limits: {},
     changelog: 123,
   });
@@ -312,6 +332,7 @@ test("v1.1: non-string changelog warns", () => {
 test("v1.1: body without changelog/feed has no false positives", () => {
   const result = checkLimitsBody({
     service: "Test",
+    description: "Test service.",
     limits: {},
   });
   assert(!result.hasChangelog, "should not detect changelog");
@@ -323,9 +344,11 @@ test("v1.1: body without changelog/feed has no false positives", () => {
 test("v1.1: resource-dedup with returnsCached: true passes", () => {
   const result = checkLimitsBody({
     service: "Test",
+    description: "Test service.",
     limits: {
       scan: {
         endpoint: "/api/scan",
+        method: "GET",
         limits: [
           { type: "resource-dedup", maxRequests: 1, windowSeconds: 86400, description: "One per day.", returnsCached: true },
         ],
@@ -339,9 +362,11 @@ test("v1.1: resource-dedup with returnsCached: true passes", () => {
 test("v1.1: returnsCached with non-boolean warns", () => {
   const result = checkLimitsBody({
     service: "Test",
+    description: "Test service.",
     limits: {
       scan: {
         endpoint: "/api/scan",
+        method: "GET",
         limits: [
           { type: "resource-dedup", maxRequests: 1, windowSeconds: 86400, description: "One per day.", returnsCached: "yes" },
         ],
@@ -355,9 +380,11 @@ test("v1.1: returnsCached with non-boolean warns", () => {
 test("v1.1: returnsCached on non-dedup limit warns", () => {
   const result = checkLimitsBody({
     service: "Test",
+    description: "Test service.",
     limits: {
       scan: {
         endpoint: "/api/scan",
+        method: "GET",
         limits: [
           { type: "ip-rate", maxRequests: 10, windowSeconds: 3600, description: "10 per hour.", returnsCached: true },
         ],

@@ -4,6 +4,12 @@ All notable changes to the Graceful Boundaries specification.
 
 This project follows [Semantic Versioning](https://semver.org/). The version number reflects the specification, not any implementation.
 
+## Unreleased
+
+### Changed
+- Conformance checker now enforces required refusal field types, snake_case `error` values, integer `retryAfterSeconds`, safe machine-actionable guidance URLs, and the full discovery schema.
+- Unit test suite expanded from 131 to 141 tests.
+
 ## [1.2.0] - 2026-04-08
 
 ### Added

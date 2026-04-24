@@ -323,6 +323,30 @@ test("v1.1: Limit (429) missing limit field fails class-specific check", () => {
   assert(result.errors.some((e) => e.includes("limit")), "should report missing limit");
 });
 
+test("v1.2: checkResponseBody rejects non-snake_case error values", () => {
+  const result = checkResponseBody({
+    error: "rate-limit-exceeded",
+    detail: "Try again in 42 seconds.",
+    limit: "10 per hour",
+    retryAfterSeconds: 42,
+    why: "Prevents abuse.",
+  }, "limit");
+  assert(!result.isValid, "should fail with kebab-case error");
+  assert(result.missingFields.includes("error"), "should report invalid error format");
+});
+
+test("v1.2: checkResponseBody rejects fractional retryAfterSeconds for limits", () => {
+  const result = checkResponseBody({
+    error: "rate_limit_exceeded",
+    detail: "Try again in 1.5 seconds.",
+    limit: "10 per hour",
+    retryAfterSeconds: 1.5,
+    why: "Prevents abuse.",
+  }, "limit");
+  assert(!result.isValid, "should fail with fractional retryAfterSeconds");
+  assert(result.errors.some((e) => e.includes("retryAfterSeconds")), "should report retryAfterSeconds");
+});
+
 test("v1.1: checkResponseBody warns when why restates error", () => {
   const result = checkResponseBody({
     error: "not_found",
@@ -423,9 +447,9 @@ test("Stable error: snake_case values pass", () => {
   assert(isStableErrorValue("resource_dedup"), "resource_dedup should pass");
 });
 
-test("Stable error: kebab-case values pass", () => {
-  assert(isStableErrorValue("rate-limit-exceeded"), "kebab-case should pass");
-  assert(isStableErrorValue("not-found"), "kebab-case should pass");
+test("Stable error: kebab-case values fail", () => {
+  assert(!isStableErrorValue("rate-limit-exceeded"), "kebab-case should fail");
+  assert(!isStableErrorValue("not-found"), "kebab-case should fail");
 });
 
 test("Stable error: single word passes", () => {

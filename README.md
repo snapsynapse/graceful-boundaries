@@ -127,7 +127,7 @@ node evals/check.js https://google.com           # Level 0 — no conformance
 node evals/check.js https://your-service.com --json
 ```
 
-Run the unit test suite (131 tests, no dependencies):
+Run the unit test suite (141 tests, no dependencies):
 
 ```bash
 npm test

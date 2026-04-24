@@ -20,6 +20,7 @@
 const REQUIRED_REFUSAL_FIELDS = ["error", "detail", "limit", "retryAfterSeconds", "why"];
 const CONSTRUCTIVE_FIELDS = ["cached", "cachedResultUrl", "alternativeEndpoint", "upgradeUrl", "humanUrl"];
 const DEFAULT_LIMITS_PATHS = ["/api/limits", "/.well-known/limits"];
+const MACHINE_ACTIONABLE_URL_FIELDS = ["cachedResultUrl", "alternativeEndpoint", "scanUrl"];
 
 function parseArgs(argv) {
   const args = argv.slice(2);
@@ -55,13 +56,20 @@ async function checkLimitsEndpoint(baseUrl, limitsPath) {
       }
 
       const body = await response.json();
-      const hasService = typeof body.service === "string";
-      const hasLimits = body.limits && typeof body.limits === "object";
+      const hasService = typeof body.service === "string" && body.service.length > 0;
+      const hasDescription = typeof body.description === "string" && body.description.length > 0;
+      const hasLimits = body.limits && typeof body.limits === "object" && !Array.isArray(body.limits);
       const conformance = typeof body.conformance === "string" ? body.conformance : null;
       const limitEntries = hasLimits ? Object.values(body.limits) : [];
 
       const wellFormed = limitEntries.every((entry) => {
-        if (!entry.endpoint || !Array.isArray(entry.limits)) return false;
+        if (
+          typeof entry.endpoint !== "string" ||
+          entry.endpoint.length === 0 ||
+          typeof entry.method !== "string" ||
+          entry.method.length === 0 ||
+          !Array.isArray(entry.limits)
+        ) return false;
         return entry.limits.every(
           (l) =>
             typeof l.type === "string" &&
@@ -79,10 +87,11 @@ async function checkLimitsEndpoint(baseUrl, limitsPath) {
         status: response.status,
         found: true,
         hasService,
+        hasDescription,
         hasLimits,
         conformance,
         limitCount: limitEntries.length,
-        wellFormed,
+        wellFormed: hasService && hasDescription && wellFormed,
         isCacheable,
       });
     } catch (error) {
@@ -111,6 +120,7 @@ function checkResponseBody(body, responseClass) {
   const missing = REQUIRED_RESPONSE_FIELDS.filter((f) => {
     if (typeof body[f] !== "string") return true;
     if (body[f].length === 0) return true;
+    if (f === "error" && !isStableErrorValue(body[f])) return true;
     return false;
   });
 
@@ -131,8 +141,8 @@ function checkResponseBody(body, responseClass) {
     if (typeof body.limit !== "string" || body.limit.length === 0) {
       errors.push("Limit class requires 'limit' field");
     }
-    if (typeof body.retryAfterSeconds !== "number" || body.retryAfterSeconds < 0) {
-      errors.push("Limit class requires 'retryAfterSeconds' (non-negative number)");
+    if (!Number.isInteger(body.retryAfterSeconds) || body.retryAfterSeconds < 0) {
+      errors.push("Limit class requires 'retryAfterSeconds' (non-negative integer)");
     }
   }
 
@@ -143,8 +153,8 @@ function checkResponseBody(body, responseClass) {
   }
 
   if (responseClass === "availability" && body.retryAfterSeconds !== undefined) {
-    if (typeof body.retryAfterSeconds !== "number" || body.retryAfterSeconds < 0) {
-      warnings.push("'retryAfterSeconds' should be a non-negative number");
+    if (!Number.isInteger(body.retryAfterSeconds) || body.retryAfterSeconds < 0) {
+      warnings.push("'retryAfterSeconds' should be a non-negative integer");
     }
   }
 
@@ -238,12 +248,21 @@ function checkHtmlRefusal(html) {
 
 function isStableErrorValue(error) {
   if (typeof error !== "string" || error.length === 0) return false;
-  // Spec recommends snake_case; kebab-case is accepted but not preferred
-  return /^[a-z][a-z0-9]*([_-][a-z0-9]+)*$/.test(error);
+  return /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/.test(error);
 }
 
-function checkRefusalBody(body) {
-  const checks = {};
+function isMachineActionableUrlSafe(url, origin) {
+  if (typeof url !== "string" || url.trim().length === 0) return false;
+  if (url.startsWith("/")) return true;
+  if (!origin) return false;
+  try {
+    return new URL(url).origin === origin;
+  } catch {
+    return false;
+  }
+}
+
+function checkRefusalBody(body, origin) {
   const parsed = typeof body === "string" ? tryParseJson(body) : body;
 
   if (!parsed) {
@@ -256,8 +275,25 @@ function checkRefusalBody(body) {
     };
   }
 
-  const missing = REQUIRED_REFUSAL_FIELDS.filter((f) => !(f in parsed));
-  const constructive = CONSTRUCTIVE_FIELDS.filter((f) => f in parsed);
+  const missing = REQUIRED_REFUSAL_FIELDS.filter((f) => {
+    if (f === "retryAfterSeconds") {
+      return !Number.isInteger(parsed[f]) || parsed[f] < 0;
+    }
+    if (f === "error") {
+      return typeof parsed[f] !== "string" || parsed[f].length === 0 || !isStableErrorValue(parsed[f]);
+    }
+    return typeof parsed[f] !== "string" || parsed[f].trim().length === 0;
+  });
+
+  const constructive = CONSTRUCTIVE_FIELDS.filter((f) => {
+    if (!(f in parsed)) return false;
+    if (f === "cached") return typeof parsed[f] === "boolean";
+    if (typeof parsed[f] !== "string" || parsed[f].trim().length === 0) return false;
+    if (MACHINE_ACTIONABLE_URL_FIELDS.includes(f)) {
+      return isMachineActionableUrlSafe(parsed[f], origin);
+    }
+    return true;
+  });
 
   // Quality checks
   const whyIsNotRestated =
@@ -310,8 +346,8 @@ function checkLimitsBody(body) {
   const hasLimits = body.limits && typeof body.limits === "object" && !Array.isArray(body.limits);
   const conformance = typeof body.conformance === "string" ? body.conformance : null;
 
-  if (!hasService) warnings.push("Missing 'service' field");
-  if (!hasDescription) warnings.push("Missing 'description' field");
+  if (!hasService) errors.push("Missing 'service' field");
+  if (!hasDescription) errors.push("Missing 'description' field");
   if (!hasLimits) errors.push("Missing or invalid 'limits' object");
 
   // Validate conformance value
@@ -328,6 +364,9 @@ function checkLimitsBody(body) {
   for (const [key, entry] of limitEntries) {
     if (!entry.endpoint || typeof entry.endpoint !== "string") {
       entryErrors.push(`${key}: missing or invalid 'endpoint'`);
+    }
+    if (!entry.method || typeof entry.method !== "string") {
+      entryErrors.push(`${key}: missing or invalid 'method'`);
     }
     if (!Array.isArray(entry.limits)) {
       entryErrors.push(`${key}: missing or invalid 'limits' array`);

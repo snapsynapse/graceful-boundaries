@@ -68,11 +68,51 @@ test("Level 1: missing 'retryAfterSeconds' field fails", () => {
   assert(!result.hasRequiredFields, "should fail without retryAfterSeconds");
 });
 
+test("Level 1: malformed required field types fail", () => {
+  const result = checkRefusalBody({
+    error: 123,
+    detail: {},
+    limit: [],
+    retryAfterSeconds: "42",
+    why: false,
+  });
+  assert(!result.hasRequiredFields, "should fail when required fields have wrong types");
+  assert(result.missingFields.includes("error"), "should flag non-string error");
+  assert(result.missingFields.includes("detail"), "should flag non-string detail");
+  assert(result.missingFields.includes("limit"), "should flag non-string limit");
+  assert(result.missingFields.includes("retryAfterSeconds"), "should flag non-numeric retryAfterSeconds");
+  assert(result.missingFields.includes("why"), "should flag non-string why");
+});
+
+test("Level 1: retryAfterSeconds must be a non-negative integer", () => {
+  const result = checkRefusalBody({
+    error: "rate_limit_exceeded",
+    detail: "Try again in 1.5 seconds.",
+    limit: "10 per hour",
+    retryAfterSeconds: 1.5,
+    why: "Prevents abuse.",
+  });
+  assert(!result.hasRequiredFields, "fractional retryAfterSeconds should fail");
+  assert(result.missingFields.includes("retryAfterSeconds"), "should report retryAfterSeconds as invalid");
+});
+
+test("Level 1: error must be snake_case", () => {
+  const result = checkRefusalBody({
+    error: "rate-limit-exceeded",
+    detail: "Try again in 42 seconds.",
+    limit: "10 per hour",
+    retryAfterSeconds: 42,
+    why: "Prevents abuse.",
+  });
+  assert(!result.hasRequiredFields, "kebab-case error should fail");
+  assert(result.missingFields.includes("error"), "should report invalid error format");
+});
+
 test("Level 1: generic body with only 'error' fails", () => {
   const body = { error: "rate limit exceeded" };
   const result = checkRefusalBody(body);
   assert(!result.hasRequiredFields, "should fail with only error");
-  assert(result.missingFields.length === 4, "should have 4 missing fields");
+  assert(result.missingFields.length === 5, "should have 5 invalid or missing fields");
 });
 
 test("Level 1: non-JSON body fails", () => {
@@ -160,6 +200,42 @@ test("Level 3: no constructive fields when absent", () => {
   assert(!result.hasConstructiveFields, "should not detect constructive fields");
 });
 
+test("Level 3: cross-origin machine-actionable URL does not count as constructive", () => {
+  const result = checkRefusalBody({
+    error: "rate_limit_exceeded",
+    detail: "Try again in 42 seconds.",
+    limit: "10 per hour",
+    retryAfterSeconds: 42,
+    why: "Keeps the service available.",
+    alternativeEndpoint: "https://evil.com/steal",
+  });
+  assert(!result.hasConstructiveFields, "cross-origin alternativeEndpoint should not count");
+});
+
+test("Level 3: same-origin absolute machine-actionable URL counts with origin", () => {
+  const result = checkRefusalBody({
+    error: "rate_limit_exceeded",
+    detail: "Try again in 42 seconds.",
+    limit: "10 per hour",
+    retryAfterSeconds: 42,
+    why: "Keeps the service available.",
+    alternativeEndpoint: "https://example.com/api/result?id=test",
+  }, "https://example.com");
+  assert(result.hasConstructiveFields, "same-origin alternativeEndpoint should count when origin is known");
+});
+
+test("Level 3: same-origin absolute URL does not count without origin", () => {
+  const result = checkRefusalBody({
+    error: "rate_limit_exceeded",
+    detail: "Try again in 42 seconds.",
+    limit: "10 per hour",
+    retryAfterSeconds: 42,
+    why: "Keeps the service available.",
+    alternativeEndpoint: "https://example.com/api/result?id=test",
+  });
+  assert(!result.hasConstructiveFields, "absolute alternativeEndpoint should not count without origin context");
+});
+
 // ─── Level Assessment ────────────────────────────────────────────
 
 test("Assessment: N/A when declared with empty limits", () => {
@@ -233,6 +309,21 @@ test("Assessment: Level 3 with discovery + refusal + guidance", () => {
     })
   );
   assert(level === 3, `expected 3, got ${level}`);
+});
+
+test("Assessment: cross-origin machine-actionable guidance does not reach Level 3", () => {
+  const level = assessLevel(
+    [{ found: true, wellFormed: true }],
+    checkRefusalBody({
+      error: "rate_limit_exceeded",
+      detail: "Try again in 42 seconds.",
+      limit: "10 per hour",
+      retryAfterSeconds: 42,
+      why: "Keeps things running.",
+      alternativeEndpoint: "https://evil.com/steal",
+    })
+  );
+  assert(level === 2, `expected 2, got ${level}`);
 });
 
 // ─── Summary ─────────────────────────────────────────────────────
