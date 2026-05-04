@@ -112,6 +112,61 @@ This is distinct from user-agent blocking. Blocking is visible — the agent kno
 
 **Mitigation:** None needed. Status pages are designed to be public.
 
+### 11. Action Boundary Over-Disclosure
+
+**Risk:** Action Boundaries and Commercial Boundaries documents may reveal too much about approval thresholds, fraud controls, or automated access policy. Attackers could use this to craft requests that stay just below published boundaries.
+
+**Severity:** Medium. The same boundary often becomes visible through trial and error, but machine-readable disclosure makes calibration faster.
+
+**Mitigation:**
+- Published action boundaries SHOULD describe policy categories, not enforcement mechanisms.
+- Services MAY apply stricter internal controls than the published boundary.
+- Fraud and abuse language SHOULD say what is permitted or disallowed without listing detection rules, model signals, device checks, or bypassable thresholds.
+
+### 12. Agent Intent as Authority
+
+**Risk:** A service treats an agent's stated intent as proof of authority. A malicious or confused agent could claim buyer, organization, or admin authority without an enforceable delegation path.
+
+**Severity:** High for commercial, account, permission, or legal workflows.
+
+**Mitigation:**
+- Action Boundary documents MUST NOT be treated as authentication or authorization systems.
+- Services SHOULD validate delegated authority independently before executing consequential actions.
+- Refusals SHOULD use `authority_insufficient` or `approval_required` when authority is unclear.
+
+### 13. Recourse URL Manipulation
+
+**Risk:** Action Boundary documents include recourse, refund, cancellation, approval, or audit URLs. If these URLs are cross-origin or modified by an intermediary, agents may send users or sensitive transaction context to attacker-controlled destinations.
+
+**Severity:** Medium.
+
+**Mitigation:**
+- Machine-actionable Action Boundary URLs SHOULD be relative paths or same-origin absolute URLs.
+- Cross-origin URLs SHOULD be limited to human-facing navigation fields and clearly labeled.
+- Agents SHOULD treat boundary documents as untrusted input unless fetched directly from the service origin over HTTPS.
+
+### 14. Audit Log Privacy Leakage
+
+**Risk:** Audit metadata can reveal whether a transaction, account, buyer, or support case exists. If audit endpoints are exposed through machine-readable links, attackers may enumerate sensitive commercial activity.
+
+**Severity:** Medium-High depending on the resource.
+
+**Mitigation:**
+- Boundary documents SHOULD disclose audit capability, not specific audit records.
+- Audit record retrieval MUST require appropriate authorization.
+- When resource existence is sensitive, audit and recourse endpoints SHOULD use uniform responses that do not reveal whether a resource exists.
+
+### 15. Declared Boundary vs. Verified Trust
+
+**Risk:** A merchant or service publishes a Commercial Boundaries document and users mistake it for third-party verification, merchant certification, payment safety, or ranking.
+
+**Severity:** Medium.
+
+**Mitigation:**
+- The spec SHOULD state that boundary documents are declarations, not endorsements.
+- External evaluators MAY verify declarations against observed behavior, but that verification is separate from Graceful Boundaries conformance.
+- Implementations SHOULD avoid labels such as "verified", "certified", "recommended", or "trusted" unless a separate verification process exists.
+
 ## Summary of Spec Changes Needed
 
 | # | Risk | Spec Addition |
@@ -125,3 +180,8 @@ This is distinct from user-agent blocking. Blocking is visible — the agent kno
 | 7 | Timing signal | "Services MAY add jitter to `reset` values." |
 | 8 | Agent SSRF via scanUrl | "`scanUrl` is convenience, not trust bypass. Scan endpoint's own controls apply." |
 | 9 | Content cloaking via agent headers | "Level 4 services SHOULD NOT serve materially divergent content via agent-signaling headers." |
+| 11 | Action boundary over-disclosure | "Action boundaries SHOULD describe policy categories, not enforcement mechanisms." |
+| 12 | Agent intent as authority | "Action Boundary documents MUST NOT be treated as authentication or authorization systems." |
+| 13 | Recourse URL manipulation | "Machine-actionable Action Boundary URLs SHOULD be relative or same-origin." |
+| 14 | Audit log privacy leakage | "Boundary documents SHOULD disclose audit capability, not specific audit records." |
+| 15 | Declared boundary vs. verified trust | "Boundary documents are declarations, not endorsements or certifications." |

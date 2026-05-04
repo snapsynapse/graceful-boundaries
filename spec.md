@@ -1,6 +1,6 @@
 # Graceful Boundaries
 
-**Version:** 1.2.0
+**Version:** 1.3.0
 **Status:** Released
 **License:** CC-BY-4.0
 **URL:** https://gracefulboundaries.dev
@@ -58,6 +58,7 @@ A conforming service MUST provide a limits discovery endpoint that returns all e
   "conformance": "string (optional) — self-declared conformance level (see Conformance Levels)",
   "changelog": "string (optional) — URL to a changelog resource for limit changes",
   "feed": "string (optional) — URL to a feed (JSON Feed, Atom, RSS) for change notifications",
+  "extensions": "object (optional) — named same-origin or relative URLs for extension discovery",
   "limits": {
     "<endpoint-key>": {
       "endpoint": "string — path pattern",
@@ -119,6 +120,25 @@ A change is `breaking` if it reduces limits below previous values, removes endpo
 The `feed` URL SHOULD point to a standard feed format (JSON Feed, Atom, or RSS) with entries for each limit change. This allows agents to poll or subscribe using existing feed infrastructure.
 
 Agents SHOULD check for changes on startup and every 1–6 hours for long-lived processes. An agent that receives a `429` with an unfamiliar `limit` value SHOULD re-fetch the discovery endpoint, as limits may have changed.
+
+**Extension discovery:**
+
+The `extensions` field allows a service to point agents toward optional boundary documents without changing its core Graceful Boundaries conformance level. Extension URLs MUST be relative paths or same-origin absolute URLs.
+
+```json
+{
+  "service": "Example Merchant",
+  "description": "Public commerce API.",
+  "conformance": "level-4",
+  "extensions": {
+    "actionBoundaries": "/.well-known/action-boundaries",
+    "commercialBoundaries": "/.well-known/commercial-boundaries"
+  },
+  "limits": {}
+}
+```
+
+Unknown extension keys SHOULD be ignored by clients that do not understand them. The presence or absence of `extensions` does not affect Level 1 through Level 4 conformance.
 
 **Conformance declaration:**
 
@@ -746,3 +766,210 @@ When success responses include `RateLimit` headers, track the `remaining` value.
 When a service returns a response with `_rescanBlocked: true`, the response body contains the cached result. Use it directly rather than retrying or waiting.
 
 When discovery fails (network error, timeout, non-200 response), fall back to conservative defaults: assume a rate limit of 1 request per second, respect `Retry-After` headers on any 429, and re-check the discovery endpoint periodically. Discovery failure degrades you from proactive to reactive but does not require you to stop.
+
+## Appendix C: Action Boundaries Extension
+
+*This section is non-normative.*
+
+Graceful Boundaries defines how services communicate operational limits, refusals, and next steps. Some agent workflows need a related but broader signal: whether an autonomous caller has authority to take a consequential action.
+
+Action Boundaries is an optional extension pattern for those workflows. It does not replace the core conformance model. It describes action authority, approval requirements, recourse paths, audit expectations, and refusal reasons for tasks where the cost of acting incorrectly is higher than the cost of retrying incorrectly.
+
+### C.1: Extension Scope
+
+Action Boundaries applies when an agent may do something consequential:
+
+- Commit money
+- Create, modify, or cancel a commercial relationship
+- Provision an account or service
+- Change access, identity, or permissions
+- Trigger fulfillment, delivery, or support obligations
+- Produce an auditable record on behalf of a human or organization
+
+Operational limits answer:
+
+```text
+How often may this caller use the service?
+```
+
+Action boundaries answer:
+
+```text
+What may this caller do, under whose authority, with what approval, and with what recourse?
+```
+
+### C.2: Discovery
+
+A service that publishes action boundaries SHOULD link them from the core limits discovery response:
+
+```json
+{
+  "extensions": {
+    "actionBoundaries": "/.well-known/action-boundaries"
+  }
+}
+```
+
+The linked document SHOULD be JSON and SHOULD be cacheable. Services MAY publish profile-specific boundary documents, such as:
+
+```json
+{
+  "extensions": {
+    "actionBoundaries": "/.well-known/action-boundaries",
+    "commercialBoundaries": "/.well-known/commercial-boundaries"
+  }
+}
+```
+
+### C.3: Common Action Boundary Shape
+
+The base extension shape is intentionally generic:
+
+```json
+{
+  "service": "Example Service",
+  "profile": "action-boundaries",
+  "version": "0.1-draft",
+  "updatedAt": "2026-05-04T00:00:00Z",
+  "actions": {
+    "read": {
+      "status": "allowed",
+      "authorityRequired": "none"
+    },
+    "create_account": {
+      "status": "requires_approval",
+      "authorityRequired": "user",
+      "approval": {
+        "type": "explicit",
+        "humanReadable": "A human must approve account creation before the agent submits."
+      }
+    }
+  },
+  "recourse": {
+    "supportUrl": "/support",
+    "escalationUrl": "/contact"
+  },
+  "audit": {
+    "eventLogAvailable": true,
+    "receiptAvailable": true,
+    "retentionDays": 90
+  }
+}
+```
+
+Valid action statuses SHOULD include:
+
+| Status | Meaning |
+|---|---|
+| `allowed` | The action may be performed without additional approval beyond normal authentication. |
+| `requires_approval` | The action may proceed only after explicit approval. |
+| `unsupported` | The service does not support this action by agents. |
+| `human_only` | The action requires human handling. |
+| `blocked` | The action is disallowed by policy. |
+
+### C.4: Action Refusal Classes
+
+Services that refuse consequential actions SHOULD use the core `error`, `detail`, and `why` fields, plus action-specific guidance.
+
+```json
+{
+  "error": "approval_required",
+  "detail": "A human must approve purchases over 100 USD before the agent can continue.",
+  "why": "Purchases above this threshold create financial obligations that require explicit approval.",
+  "action": "purchase",
+  "approvalUrl": "/approve/purchase/abc123",
+  "humanUrl": "/support"
+}
+```
+
+Recommended action refusal errors:
+
+| Error | When to use |
+|---|---|
+| `intent_ambiguous` | The requested action cannot be safely mapped to a specific outcome. |
+| `approval_required` | The action is supported but needs explicit approval. |
+| `authority_insufficient` | The caller lacks delegated authority for the requested action. |
+| `action_unsupported` | The service does not support the action for agents. |
+| `recourse_unavailable` | The action cannot proceed because required recourse paths are unavailable. |
+| `audit_unavailable` | The action requires an audit trail that cannot be produced. |
+
+### C.5: Commercial Boundaries Profile
+
+Commercial Boundaries is the first Action Boundaries profile. It describes whether buyer agents can safely understand, evaluate, purchase, modify, cancel, and resolve commercial relationships with a merchant or service provider. It does not process payments, issue credentials, verify identity, or replace payment protocols. It describes the boundary conditions around commercial action.
+
+```json
+{
+  "service": "Example Merchant",
+  "profile": "commercial-boundaries",
+  "version": "0.1-draft",
+  "updatedAt": "2026-05-04T00:00:00Z",
+  "commercialTasks": {
+    "browse_catalog": {
+      "status": "allowed",
+      "authorityRequired": "none"
+    },
+    "request_quote": {
+      "status": "allowed",
+      "authorityRequired": "user_or_organization"
+    },
+    "purchase": {
+      "status": "requires_approval",
+      "authorityRequired": "buyer",
+      "approvalThresholds": [
+        {
+          "maxAmount": 10000,
+          "currency": "usd",
+          "approval": "explicit"
+        }
+      ],
+      "payment": {
+        "acceptedShapes": ["card", "tokenized_payment", "invoice"],
+        "paymentAuthorityRequired": true
+      }
+    },
+    "cancel": {
+      "status": "allowed",
+      "authorityRequired": "buyer",
+      "policyUrl": "/cancellation"
+    },
+    "refund": {
+      "status": "human_only",
+      "authorityRequired": "buyer",
+      "policyUrl": "/refunds",
+      "humanUrl": "/support"
+    }
+  },
+  "legibility": {
+    "catalogUrl": "/products.json",
+    "pricingUrl": "/pricing",
+    "termsUrl": "/terms",
+    "privacyUrl": "/privacy",
+    "availabilityUrl": "/availability"
+  },
+  "recourse": {
+    "refundUrl": "/refunds",
+    "cancellationUrl": "/cancellation",
+    "supportUrl": "/support",
+    "disputeUrl": "/disputes"
+  },
+  "audit": {
+    "orderConfirmationProvided": true,
+    "receiptProvided": true,
+    "eventLogAvailable": true,
+    "retentionDays": 365
+  },
+  "fraudBoundary": {
+    "automatedBuyerAgentsAllowed": true,
+    "abusiveAutomationBlocked": true,
+    "policyUrl": "/acceptable-use"
+  }
+}
+```
+
+### C.6: Relationship to Payment and Commerce Protocols
+
+Action Boundaries is deliberately underneath payment execution and checkout protocols. Payment systems move money, issue credentials, tokenize payment methods, and settle transactions. Commerce protocols coordinate checkout state, product data, fulfillment choices, and payment completion.
+
+Action Boundaries describes whether an action should proceed before those systems are used, and what the agent should do when it cannot proceed. It is a policy and communication layer, not a payment rail or checkout protocol.
+
+Implementations SHOULD avoid duplicating payment processor responsibilities. They SHOULD publish only the boundary information agents need to decide whether to request approval, proceed, stop, or escalate.

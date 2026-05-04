@@ -4,7 +4,7 @@
  * Graceful Boundaries security constraint tests.
  *
  * Validates that conforming responses follow the security
- * considerations (SC-1 through SC-8) from the spec.
+ * considerations (SC-1 through SC-15) from the spec.
  *
  * Usage: node evals/test-security.js
  */
@@ -209,6 +209,125 @@ test("SC-8: scanUrl should be treated as untrusted input by agents", () => {
   assert(typeof body.scanUrl === "string", "scanUrl is present");
   // The point: scanUrl does NOT bypass scan endpoint validation
   // This test documents the expectation, not a mechanism
+});
+
+// ─── SC-11: action boundaries must not disclose controls ─────────
+
+function actionBoundaryRevealsControlMechanism(text) {
+  const lower = (text || "").toLowerCase();
+  return [
+    /fraud\s*score/,
+    /risk\s*score/,
+    /device\s*fingerprint/,
+    /model\s*threshold/,
+    /classifier/,
+    /rule\s*id/,
+    /ip\s*reputation/,
+    /velocity\s*rule/,
+    /approval\s*secret/,
+  ].some((p) => p.test(lower));
+}
+
+test("SC-11: action boundaries disclose categories, not control mechanisms", () => {
+  assert(!actionBoundaryRevealsControlMechanism("Purchases above the configured approval threshold require buyer confirmation."));
+  assert(!actionBoundaryRevealsControlMechanism("High-risk orders may require human review."));
+});
+
+test("SC-11: action boundary control mechanism disclosure fails", () => {
+  assert(actionBoundaryRevealsControlMechanism("Orders fail when the fraud score exceeds the model threshold."));
+  assert(actionBoundaryRevealsControlMechanism("Blocked by device fingerprint and IP reputation rule id 712."));
+});
+
+// ─── SC-12: declared intent is not authority ─────────────────────
+
+function boundaryClaimsAuthorityVerification(body) {
+  const text = JSON.stringify(body || {}).toLowerCase();
+  return /\bverified\s*buyer\b/.test(text) ||
+    /\bauthenticated\s*organization\b/.test(text) ||
+    /\bauthority\s*verified\b/.test(text) ||
+    /\bidentity\s*confirmed\b/.test(text);
+}
+
+test("SC-12: authorityRequired declarations are not verification claims", () => {
+  const boundary = {
+    action: "purchase",
+    status: "requires_approval",
+    authorityRequired: "buyer",
+  };
+  assert(!boundaryClaimsAuthorityVerification(boundary), "declaration should not claim verification");
+});
+
+test("SC-12: authority verification claims fail in boundary docs", () => {
+  const boundary = {
+    action: "purchase",
+    status: "allowed",
+    detail: "Caller is a verified buyer and identity confirmed.",
+  };
+  assert(boundaryClaimsAuthorityVerification(boundary), "verification claims should be flagged");
+});
+
+// ─── SC-13: recourse links must stay same-origin ─────────────────
+
+test("SC-13: recourse machine-actionable links are relative or same-origin", () => {
+  assert(isRelativeOrSameOrigin("/support/refunds", "https://example.com"));
+  assert(isRelativeOrSameOrigin("https://example.com/account/disputes", "https://example.com"));
+});
+
+test("SC-13: cross-origin recourse machine-actionable links fail", () => {
+  assert(!isRelativeOrSameOrigin("https://attacker.example/refunds", "https://example.com"));
+});
+
+// ─── SC-14: audit docs must not leak event details ───────────────
+
+function auditBoundaryLeaksPrivateEventData(body) {
+  const text = JSON.stringify(body || {}).toLowerCase();
+  return /\bbuyeremail\b/.test(text) ||
+    /\bcustomeremail\b/.test(text) ||
+    /\borderid\b/.test(text) ||
+    /\bpaymentid\b/.test(text) ||
+    /\bauthenticationtoken\b/.test(text) ||
+    /\bsessionid\b/.test(text);
+}
+
+test("SC-14: audit boundaries describe capability only", () => {
+  const boundary = {
+    audit: {
+      eventLogAvailable: true,
+      auditUrl: "/account/activity",
+    },
+  };
+  assert(!auditBoundaryLeaksPrivateEventData(boundary), "audit capability should not leak event data");
+});
+
+test("SC-14: audit event identifiers and personal data fail", () => {
+  const boundary = {
+    audit: {
+      eventLogAvailable: true,
+      orderId: "ord_123",
+      buyerEmail: "buyer@example.com",
+    },
+  };
+  assert(auditBoundaryLeaksPrivateEventData(boundary), "private event data should be flagged");
+});
+
+// ─── SC-15: declarations are not verification ────────────────────
+
+function boundaryClaimsVerifiedTrust(text) {
+  const lower = (text || "").toLowerCase();
+  return /\bcertified\b/.test(lower) ||
+    /\bverified\s*trust\b/.test(lower) ||
+    /\brecommended\s*merchant\b/.test(lower) ||
+    /\btrusted\s*seller\b/.test(lower) ||
+    /\bapproved\s*vendor\b/.test(lower);
+}
+
+test("SC-15: boundary docs may declare policy without trust claims", () => {
+  assert(!boundaryClaimsVerifiedTrust("This document declares supported actions and approval requirements."));
+});
+
+test("SC-15: verified trust claims fail", () => {
+  assert(boundaryClaimsVerifiedTrust("This is a certified trusted seller."));
+  assert(boundaryClaimsVerifiedTrust("Recommended merchant and approved vendor."));
 });
 
 // ─── Summary ─────────────────────────────────────────────────────

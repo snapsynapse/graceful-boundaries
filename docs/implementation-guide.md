@@ -180,6 +180,26 @@ The discovery endpoint is a contract. If your actual limits don't match what the
 
 The discovery endpoint MUST NOT include internal, admin, or debug endpoints. See [SC-4](../SECURITY-AUDIT.md).
 
+### Optional: Link extension documents
+
+Graceful Boundaries 1.3 adds optional extension discovery. Use this only when your service publishes additional same-origin boundary documents, such as Action Boundaries.
+
+```json
+{
+  "service": "My API",
+  "description": "What your service does, in one sentence.",
+  "conformance": "level-2",
+  "extensions": {
+    "actionBoundaries": "/.well-known/action-boundaries"
+  },
+  "limits": {}
+}
+```
+
+Extension links do not change your Level 1 through Level 4 conformance. They only tell agents where to find optional policy documents. Use relative paths or same-origin absolute URLs. Do not link to payment processors, checkout providers, or unrelated third-party policy pages from machine-actionable extension fields.
+
+Action Boundaries describe pre-action policy: what an agent may attempt, what requires approval, what is human-only, and where recourse lives. They do not execute payments, tokenize credentials, orchestrate checkout, settle funds, or verify merchant trust. Treat the document as a declaration to help callers stop or escalate before a consequential action.
+
 ## Level 3: Constructive
 
 **Goal:** Refusal responses include a useful next step beyond "wait."

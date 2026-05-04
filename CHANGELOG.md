@@ -6,9 +6,22 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 
 ## Unreleased
 
+## [1.3.0] - 2026-05-04
+
+### Added
+- **Action Boundaries extension draft** (`docs/action-boundaries.md`): optional framework for consequential agent actions, delegated authority, approval thresholds, recourse, audit trails, and fraud boundaries.
+- **Commercial Boundaries profile draft**: first Action Boundaries profile for commercial callability without entering payment processing, checkout, wallet, tokenization, settlement, or marketplace territory.
+- **Extension discovery**: optional `extensions` object on the limits discovery response for same-origin links such as `actionBoundaries` and `commercialBoundaries`.
+- **Appendix C** in `spec.md`: non-normative Action Boundaries overview and draft schema.
+- **Security audit SC-11 through SC-15** covering action boundary over-disclosure, agent intent as authority, recourse URL manipulation, audit log privacy leakage, and declared boundary vs. verified trust.
+- **Action Boundaries examples** (`docs/action-boundaries-examples.md`): ecommerce purchase, SaaS subscription change, and account provisioning examples.
+- Unit tests for extension discovery validation, Action Boundaries schema validation, Commercial Boundaries schema validation, SC-11 through SC-15, and extension conformance-level neutrality.
+
 ### Changed
 - Conformance checker now enforces required refusal field types, snake_case `error` values, integer `retryAfterSeconds`, safe machine-actionable guidance URLs, and the full discovery schema.
-- Unit test suite expanded from 131 to 141 tests.
+- Conformance checker now validates optional extension discovery links as relative or same-origin URLs when present.
+- Conformance checker now exports an optional Action Boundaries document validator.
+- Unit test suite expanded from 141 to 173 tests.
 
 ## [1.2.0] - 2026-04-08
 

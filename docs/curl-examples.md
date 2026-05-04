@@ -16,7 +16,7 @@ Check the standard well-known path:
 curl -s https://your-service.com/.well-known/limits | jq .
 ```
 
-A conforming discovery response includes `service`, `description`, `limits`, and optionally `conformance`, `changelog`, and `feed`:
+A conforming discovery response includes `service`, `description`, `limits`, and optionally `conformance`, `changelog`, `feed`, and `extensions`:
 
 ```json
 {
@@ -41,9 +41,14 @@ A conforming discovery response includes `service`, `description`, `limits`, and
         }
       ]
     }
+  },
+  "extensions": {
+    "actionBoundaries": "/.well-known/action-boundaries"
   }
 }
 ```
+
+Extension links are informational declarations. They do not change Level 1 through Level 4 conformance and do not verify trust, identity, payment capability, or merchant quality.
 
 ## 2. Read a structured refusal
 
@@ -158,7 +163,40 @@ The three components of the `RateLimit` header:
 - `remaining` -- requests left before the limit is hit
 - `reset` -- seconds until the window resets
 
-## 7. Run the conformance checker
+## 7. Discover optional extensions
+
+If a service publishes Action Boundaries, fetch the limits endpoint first and follow the same-origin extension link:
+
+```bash
+curl -s https://example.com/api/limits | jq '.extensions'
+curl -s https://example.com/.well-known/action-boundaries | jq .
+```
+
+An Action Boundaries document describes what the service allows agents to attempt:
+
+```json
+{
+  "service": "Example Service",
+  "profile": "action-boundaries",
+  "version": "1.0.0",
+  "updatedAt": "2026-05-04T00:00:00Z",
+  "actions": {
+    "create_project": {
+      "status": "requires_approval",
+      "authorityRequired": "organization",
+      "policyUrl": "/boundaries/actions#create-project"
+    },
+    "read_status": {
+      "status": "allowed",
+      "authorityRequired": "none"
+    }
+  }
+}
+```
+
+Treat the document as policy declaration only. Do not infer that the service has verified the caller, approved a purchase, or completed any downstream transaction.
+
+## 8. Run the conformance checker
 
 The eval suite includes a live checker that tests a service against all conformance levels:
 
@@ -173,7 +211,7 @@ node evals/check.js https://siteline.to --json
 node evals/check.js https://your-service.com --limits-path /.well-known/limits
 ```
 
-## 8. Agent integration pattern
+## 9. Agent integration pattern
 
 An autonomous agent interacting with a Graceful Boundaries-conformant service should follow this sequence:
 

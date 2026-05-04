@@ -266,6 +266,39 @@ test("Level 4 not reachable without constructive fields", () => {
   assert(validated === 2, `expected 2, got ${validated}`);
 });
 
+test("Optional extensions do not affect assessed conformance level", () => {
+  const limitsResult = {
+    found: true,
+    wellFormed: true,
+    extensions: {
+      present: true,
+      keys: ["actionBoundaries"],
+      errors: [],
+      warnings: [],
+    },
+  };
+  const refusal = checkRefusalBody({
+    error: "rate_limit_exceeded",
+    detail: "Try again in 42 seconds.",
+    limit: "10 per hour",
+    retryAfterSeconds: 42,
+    why: "Keeps things running.",
+    cachedResultUrl: "/api/result?id=test",
+  });
+  const headers = checkProactiveHeaders({
+    RateLimit: "limit=10, remaining=9, reset=3540",
+    "RateLimit-Policy": "10;w=3600",
+  });
+
+  assert(assessLevel([limitsResult], refusal, headers) === 4, "extensions should not reduce Level 4");
+
+  const withoutExtensions = { found: true, wellFormed: true };
+  assert(
+    assessLevel([limitsResult], refusal, headers) === assessLevel([withoutExtensions], refusal, headers),
+    "extensions should not change assessed level"
+  );
+});
+
 // ─── Summary ─────────────────────────────────────────────────────
 
 console.log("");

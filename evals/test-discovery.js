@@ -339,6 +339,82 @@ test("v1.1: body without changelog/feed has no false positives", () => {
   assert(!result.hasFeed, "should not detect feed");
 });
 
+// ─── Extension discovery (v1.3) ─────────────────────────────────
+
+test("v1.3: extension discovery links pass with relative URLs", () => {
+  const result = checkLimitsBody({
+    service: "Test",
+    description: "Test service.",
+    limits: {},
+    extensions: {
+      actionBoundaries: "/.well-known/action-boundaries",
+      commercialBoundaries: "/.well-known/commercial-boundaries",
+    },
+  });
+  assert(result.isValid, "should be valid");
+  assert(result.hasExtensions, "should detect extensions");
+  assert(result.extensions.keys.length === 2, "should preserve extension keys");
+});
+
+test("v1.3: extension discovery links pass with same-origin absolute URLs", () => {
+  const result = checkLimitsBody({
+    service: "Test",
+    description: "Test service.",
+    limits: {},
+    extensions: {
+      actionBoundaries: "https://example.com/.well-known/action-boundaries",
+    },
+  }, "https://example.com");
+  assert(result.isValid, "same-origin extension URL should be valid");
+});
+
+test("v1.3: cross-origin extension discovery links fail", () => {
+  const result = checkLimitsBody({
+    service: "Test",
+    description: "Test service.",
+    limits: {},
+    extensions: {
+      actionBoundaries: "https://attacker.example/.well-known/action-boundaries",
+    },
+  }, "https://example.com");
+  assert(!result.isValid, "cross-origin extension URL should fail");
+  assert(result.errors.some((e) => e.includes("extensions.actionBoundaries")), "should report extension key");
+});
+
+test("v1.3: unknown extension keys are allowed", () => {
+  const result = checkLimitsBody({
+    service: "Test",
+    description: "Test service.",
+    limits: {},
+    extensions: {
+      futureProfile: "/.well-known/future-profile",
+    },
+  });
+  assert(result.isValid, "unknown extension keys should be valid");
+  assert(result.extensions.keys.includes("futureProfile"), "should include unknown extension key");
+});
+
+test("v1.3: missing extensions do not affect core discovery validity", () => {
+  const result = checkLimitsBody({
+    service: "Test",
+    description: "Test service.",
+    limits: {},
+  });
+  assert(result.isValid, "core discovery remains valid without extensions");
+  assert(!result.hasExtensions, "should not detect absent extensions");
+});
+
+test("v1.3: extensions must be an object when present", () => {
+  const result = checkLimitsBody({
+    service: "Test",
+    description: "Test service.",
+    limits: {},
+    extensions: [],
+  });
+  assert(!result.isValid, "array extensions should fail");
+  assert(result.errors.some((e) => e.includes("extensions")), "should report extensions error");
+});
+
 // ─── returnsCached flag (v1.1) ───────────────────────────────────
 
 test("v1.1: resource-dedup with returnsCached: true passes", () => {

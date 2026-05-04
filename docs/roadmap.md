@@ -2,6 +2,23 @@
 
 Proposed enhancements for future versions of Graceful Boundaries. These were identified during the v1.1 cycle but deferred to avoid scope expansion before adoption validates the core spec.
 
+## v1.3: Action Boundaries
+
+Graceful Boundaries 1.3 introduces optional extension discovery and a non-normative Action Boundaries draft. The core Level 1 through Level 4 conformance model remains unchanged.
+
+Action Boundaries covers consequential agent actions that need more than rate-limit communication:
+
+- Delegated authority
+- Human approval thresholds
+- Recourse paths
+- Audit trails
+- Fraud and abuse boundaries
+- Human escalation
+
+Commercial Boundaries is the first Action Boundaries profile. It focuses on whether buyer agents can safely understand, evaluate, transact, modify, cancel, and resolve commercial relationships. It is deliberately positioned underneath payment processors, checkout protocols, wallets, tokenization, fraud networks, and settlement systems.
+
+The draft lives in [action-boundaries.md](action-boundaries.md). It should remain optional until real implementers validate the field names and threat model.
+
 ## v1.2: Expanded Limit Taxonomy
 
 ### Quota and cost-based limits

@@ -8,8 +8,8 @@ Guidelines for AI agents working on the Graceful Boundaries repository.
 |------|------|
 | `spec.md` | Source of truth. All normative requirements live here. |
 | `evals/check.js` | Live conformance checker and shared validation library. |
-| `evals/test-*.js` | Unit tests (131 tests across 7 files). |
-| `SECURITY-AUDIT.md` | Threat model (SC-1 through SC-9). |
+| `evals/test-*.js` | Unit tests (173 tests across 8 files). |
+| `SECURITY-AUDIT.md` | Threat model (SC-1 through SC-15). |
 | `docs/implementation-guide.md` | Level-by-level code samples. |
 | `SKILL.md` | Audit skill (inspects live URLs). |
 | `SKILL-builder.md` | Builder skill (generates code in projects). |
@@ -24,7 +24,7 @@ Guidelines for AI agents working on the Graceful Boundaries repository.
 
 ## After making changes
 
-1. Run `npm test` — all 131+ tests must pass.
+1. Run `npm test` — all 173+ tests must pass.
 2. If you changed `spec.md`: update `CHANGELOG.md` with the change.
 3. If you added new spec requirements: add corresponding tests in `evals/`.
 4. If you changed the checker (`evals/check.js`): verify against a live service with `node evals/check.js https://siteline.to`.
@@ -37,7 +37,7 @@ Guidelines for AI agents working on the Graceful Boundaries repository.
 - **All error classes** (400, 401, 403, 404, 429, 500, 503) MUST include `error`, `detail`, and `why`.
 - **No external dependencies**: the eval suite is vanilla Node.js. Do not add npm packages.
 - **Tests use `test(name, fn)` with `assert(condition, message)`**: no test framework.
-- **Security-sensitive changes**: if a change could affect what information is disclosed in error responses, review SC-1 through SC-9 and update SECURITY-AUDIT.md.
+- **Security-sensitive changes**: if a change could affect what information is disclosed in error responses, review SC-1 through SC-15 and update SECURITY-AUDIT.md.
 
 ## Version bumping
 

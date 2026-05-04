@@ -182,6 +182,18 @@ app.get("/api/limits", (req, res) => {
 });
 ```
 
+If the service publishes optional Action Boundaries, link them from
+the discovery endpoint with relative or same-origin URLs. This does
+not change the service's Level 1 through Level 4 conformance.
+
+```json
+{
+  "extensions": {
+    "actionBoundaries": "/.well-known/action-boundaries"
+  }
+}
+```
+
 **Populate the limits object** by surveying every endpoint in the
 project that has rate limiting. Each entry needs:
 - `endpoint`: the path
@@ -196,6 +208,8 @@ project that has rate limiting. Each entry needs:
   this is fine and even recommended as a security measure (SC-1)
 - Add `Cache-Control: public, s-maxage=3600` so agents don't
   re-fetch on every request
+- Extension links are informational. Do not use them to claim payment
+  processing, trust certification, or third-party verification.
 
 ### Step 5: Implement Level 3 — Constructive Guidance
 

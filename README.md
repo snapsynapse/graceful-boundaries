@@ -5,7 +5,7 @@ A specification for how services communicate their operational limits to humans 
 **[gracefulboundaries.dev](https://gracefulboundaries.dev)**
 
 [![License: CC-BY-4.0](https://img.shields.io/badge/License-CC--BY--4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](CHANGELOG.md)
 [![Tests](https://img.shields.io/github/actions/workflow/status/snapsynapse/graceful-boundaries/test.yml?label=tests)](https://github.com/snapsynapse/graceful-boundaries/actions)
 [![ClawHub](https://img.shields.io/badge/ClawHub-83%20installs-blue)](https://clawhub.ai/snapsynapse/graceful-boundaries)
 
@@ -127,7 +127,7 @@ node evals/check.js https://google.com           # Level 0 — no conformance
 node evals/check.js https://your-service.com --json
 ```
 
-Run the unit test suite (141 tests, no dependencies):
+Run the unit test suite (173 tests, no dependencies):
 
 ```bash
 npm test
@@ -155,6 +155,8 @@ For a step-by-step walkthrough with code samples, see the **[implementation guid
 
 **Level 4** -- Add `RateLimit` and `RateLimit-Policy` headers to successful responses so callers can self-throttle before hitting limits.
 
+**Optional extensions** -- Services with consequential agent actions can link Action Boundaries documents from the discovery endpoint. Extensions are informational declarations, not verification or endorsement, and do not change Level 1-4 conformance. See **[docs/action-boundaries.md](docs/action-boundaries.md)**.
+
 **HTML endpoints** -- HTML pages that return `429` SHOULD include `<meta name="retry-after" content="N">` and/or `<link rel="alternate" type="application/json" href="...">` so agents can discover structured refusals without parsing prose.
 
 See the **[full specification](spec.md)** for field definitions, response classes, and security considerations.
@@ -180,7 +182,7 @@ node evals/check.js https://siteline.to
 
 ## Security
 
-The specification includes a [threat model and security audit](SECURITY-AUDIT.md) covering rate limit calibration attacks, security posture disclosure, validation oracles, content cloaking via agent-signaling headers, and other considerations (SC-1 through SC-9), all addressed in the spec.
+The specification includes a [threat model and security audit](SECURITY-AUDIT.md) covering rate limit calibration attacks, security posture disclosure, validation oracles, content cloaking via agent-signaling headers, action boundary risks, and other considerations (SC-1 through SC-15), all addressed in the spec.
 
 ## Sponsor
 

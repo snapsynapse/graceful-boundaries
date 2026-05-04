@@ -79,6 +79,7 @@ async function checkLimitsEndpoint(baseUrl, limitsPath) {
         );
       });
 
+      const extensionCheck = checkExtensions(body.extensions, new URL(baseUrl).origin);
       const cacheControl = response.headers.get("cache-control") || "";
       const isCacheable = /s-maxage=\d+/.test(cacheControl) || /max-age=\d+/.test(cacheControl);
 
@@ -91,7 +92,8 @@ async function checkLimitsEndpoint(baseUrl, limitsPath) {
         hasLimits,
         conformance,
         limitCount: limitEntries.length,
-        wellFormed: hasService && hasDescription && wellFormed,
+        wellFormed: hasService && hasDescription && wellFormed && extensionCheck.errors.length === 0,
+        extensions: extensionCheck,
         isCacheable,
       });
     } catch (error) {
@@ -332,8 +334,210 @@ const VALID_CONFORMANCE_VALUES = [
 ];
 
 const REQUIRED_LIMIT_ENTRY_FIELDS = ["type", "maxRequests", "windowSeconds", "description"];
+const VALID_ACTION_BOUNDARY_PROFILES = ["action-boundaries", "commercial-boundaries"];
+const VALID_ACTION_STATUSES = ["allowed", "requires_approval", "unsupported", "human_only", "blocked"];
+const VALID_ACTION_AUTHORITY_VALUES = [
+  "none",
+  "user",
+  "buyer",
+  "organization",
+  "admin",
+  "legal",
+  "user_or_organization",
+];
+const HUMAN_NAVIGATION_URL_FIELDS = ["humanUrl"];
 
-function checkLimitsBody(body) {
+function isExtensionUrlSafe(url, origin) {
+  if (typeof url !== "string" || url.trim().length === 0) return false;
+  if (url.startsWith("/")) return true;
+  if (!origin) return false;
+  try {
+    return new URL(url).origin === origin;
+  } catch {
+    return false;
+  }
+}
+
+function checkExtensions(extensions, origin) {
+  const errors = [];
+  const warnings = [];
+
+  if (extensions === undefined) {
+    return { present: false, keys: [], errors, warnings };
+  }
+
+  if (!extensions || typeof extensions !== "object" || Array.isArray(extensions)) {
+    errors.push("'extensions' must be an object when present");
+    return { present: true, keys: [], errors, warnings };
+  }
+
+  const keys = Object.keys(extensions);
+  for (const key of keys) {
+    const value = extensions[key];
+    if (typeof value !== "string" || value.trim().length === 0) {
+      errors.push(`extensions.${key}: must be a non-empty string URL`);
+      continue;
+    }
+    if (!isExtensionUrlSafe(value, origin)) {
+      errors.push(`extensions.${key}: URL must be relative or same-origin`);
+    }
+  }
+
+  return { present: true, keys, errors, warnings };
+}
+
+function checkActionBoundariesBody(body, origin) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return { isValid: false, errors: ["Body is not an object"], warnings: [] };
+  }
+
+  const errors = [];
+  const warnings = [];
+  const profile = typeof body.profile === "string" ? body.profile : null;
+
+  if (typeof body.service !== "string" || body.service.length === 0) {
+    errors.push("Missing 'service' field");
+  }
+  if (!profile || !VALID_ACTION_BOUNDARY_PROFILES.includes(profile)) {
+    errors.push(`Invalid profile: "${profile}"`);
+  }
+  if (typeof body.version !== "string" || body.version.length === 0) {
+    errors.push("Missing 'version' field");
+  }
+  if (typeof body.updatedAt !== "string" || Number.isNaN(Date.parse(body.updatedAt))) {
+    errors.push("Missing or invalid 'updatedAt' timestamp");
+  }
+
+  checkUrlFields(body, origin, errors, "root");
+
+  if (profile === "action-boundaries") {
+    validateActionMap(body.actions, origin, errors, "actions");
+  }
+
+  if (profile === "commercial-boundaries") {
+    validateActionMap(body.commercialTasks, origin, errors, "commercialTasks");
+    validateCommercialBoundarySections(body, origin, errors);
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
+    profile,
+    actionCount: countActionEntries(profile === "commercial-boundaries" ? body.commercialTasks : body.actions),
+  };
+}
+
+function validateActionMap(actions, origin, errors, path) {
+  if (!actions || typeof actions !== "object" || Array.isArray(actions)) {
+    errors.push(`Missing or invalid '${path}' object`);
+    return;
+  }
+
+  for (const [key, action] of Object.entries(actions)) {
+    const actionPath = `${path}.${key}`;
+    if (!action || typeof action !== "object" || Array.isArray(action)) {
+      errors.push(`${actionPath}: must be an object`);
+      continue;
+    }
+    if (!VALID_ACTION_STATUSES.includes(action.status)) {
+      errors.push(`${actionPath}: invalid status "${action.status}"`);
+    }
+    if (
+      "authorityRequired" in action &&
+      !VALID_ACTION_AUTHORITY_VALUES.includes(action.authorityRequired)
+    ) {
+      errors.push(`${actionPath}: invalid authorityRequired "${action.authorityRequired}"`);
+    }
+    if ("approvalThresholds" in action) {
+      validateApprovalThresholds(action.approvalThresholds, errors, `${actionPath}.approvalThresholds`);
+    }
+    checkUrlFields(action, origin, errors, actionPath);
+  }
+}
+
+function validateApprovalThresholds(thresholds, errors, path) {
+  if (!Array.isArray(thresholds)) {
+    errors.push(`${path}: must be an array`);
+    return;
+  }
+
+  thresholds.forEach((threshold, index) => {
+    const thresholdPath = `${path}[${index}]`;
+    if (!threshold || typeof threshold !== "object" || Array.isArray(threshold)) {
+      errors.push(`${thresholdPath}: must be an object`);
+      return;
+    }
+    if (typeof threshold.maxAmount !== "number" || threshold.maxAmount < 0) {
+      errors.push(`${thresholdPath}: missing or invalid maxAmount`);
+    }
+    if (typeof threshold.currency !== "string" || threshold.currency.length === 0) {
+      errors.push(`${thresholdPath}: missing or invalid currency`);
+    }
+    if (typeof threshold.approval !== "string" || threshold.approval.length === 0) {
+      errors.push(`${thresholdPath}: missing or invalid approval`);
+    }
+  });
+}
+
+function validateCommercialBoundarySections(body, origin, errors) {
+  if (body.legibility !== undefined) {
+    validateBooleanObject(body.legibility, errors, "legibility");
+    checkUrlFields(body.legibility, origin, errors, "legibility");
+  }
+  if (body.recourse !== undefined) {
+    validateBooleanObject(body.recourse, errors, "recourse");
+    checkUrlFields(body.recourse, origin, errors, "recourse");
+  }
+  if (body.audit !== undefined) {
+    validateBooleanObject(body.audit, errors, "audit");
+    checkUrlFields(body.audit, origin, errors, "audit");
+  }
+  if (body.fraudBoundary !== undefined) {
+    validateBooleanObject(body.fraudBoundary, errors, "fraudBoundary");
+    checkUrlFields(body.fraudBoundary, origin, errors, "fraudBoundary");
+  }
+  if (body.payment !== undefined && (!body.payment || typeof body.payment !== "object" || Array.isArray(body.payment))) {
+    errors.push("payment: must be an object");
+  }
+  if (body.payment && body.payment.acceptedShapes !== undefined && !Array.isArray(body.payment.acceptedShapes)) {
+    errors.push("payment.acceptedShapes: must be an array");
+  }
+}
+
+function validateBooleanObject(value, errors, path) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    errors.push(`${path}: must be an object`);
+    return;
+  }
+
+  for (const [key, item] of Object.entries(value)) {
+    if (key.endsWith("Url") || key.endsWith("Path")) continue;
+    if (typeof item !== "boolean" && typeof item !== "string" && !Array.isArray(item)) {
+      errors.push(`${path}.${key}: must be a boolean, string, or array`);
+    }
+  }
+}
+
+function checkUrlFields(value, origin, errors, path) {
+  if (!value || typeof value !== "object") return;
+
+  for (const [key, item] of Object.entries(value)) {
+    if (key.endsWith("Url") && typeof item === "string") {
+      if (HUMAN_NAVIGATION_URL_FIELDS.includes(key)) continue;
+      if (!isExtensionUrlSafe(item, origin)) {
+        errors.push(`${path}.${key}: URL must be relative or same-origin`);
+      }
+    }
+  }
+}
+
+function countActionEntries(actions) {
+  if (!actions || typeof actions !== "object" || Array.isArray(actions)) return 0;
+  return Object.keys(actions).length;
+}
+
+function checkLimitsBody(body, origin) {
   if (!body || typeof body !== "object") {
     return { isValid: false, errors: ["Body is not an object"] };
   }
@@ -345,10 +549,13 @@ function checkLimitsBody(body) {
   const hasDescription = typeof body.description === "string" && body.description.length > 0;
   const hasLimits = body.limits && typeof body.limits === "object" && !Array.isArray(body.limits);
   const conformance = typeof body.conformance === "string" ? body.conformance : null;
+  const extensionCheck = checkExtensions(body.extensions, origin);
 
   if (!hasService) errors.push("Missing 'service' field");
   if (!hasDescription) errors.push("Missing 'description' field");
   if (!hasLimits) errors.push("Missing or invalid 'limits' object");
+  errors.push(...extensionCheck.errors);
+  warnings.push(...extensionCheck.warnings);
 
   // Validate conformance value
   let conformanceValid = true;
@@ -425,6 +632,8 @@ function checkLimitsBody(body) {
     hasLimits,
     hasChangelog,
     hasFeed,
+    hasExtensions: extensionCheck.present,
+    extensions: extensionCheck,
     conformance,
     conformanceValid,
     conformanceConsistent,
@@ -701,12 +910,18 @@ module.exports = {
   checkHtmlRefusal,
   checkDedupResponse,
   isStableErrorValue,
+  isExtensionUrlSafe,
+  checkExtensions,
+  checkActionBoundariesBody,
   assessLevel,
   REQUIRED_REFUSAL_FIELDS,
   REQUIRED_RESPONSE_FIELDS,
   CONSTRUCTIVE_FIELDS,
   VALID_CONFORMANCE_VALUES,
   REQUIRED_LIMIT_ENTRY_FIELDS,
+  VALID_ACTION_BOUNDARY_PROFILES,
+  VALID_ACTION_STATUSES,
+  VALID_ACTION_AUTHORITY_VALUES,
 };
 
 if (require.main === module) {
