@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   <title>Graceful Boundaries &mdash; API Limit Communication Specification</title>
-  <meta name="description" content="A specification for how services communicate operational limits to humans and autonomous agents. Proactive discovery, structured refusal, constructive guidance.">
-  <meta name="keywords" content="graceful boundaries, rate limiting, 429, API errors, structured refusal, agentic APIs, autonomous agents, RateLimit headers, RFC 9457, problem details, API specification">
+  <meta name="description" content="Graceful Boundaries 1.3.0 is a specification for communicating operational limits, refusals, constructive guidance, and optional agent action boundaries.">
+  <meta name="keywords" content="graceful boundaries, rate limiting, 429, API errors, structured refusal, agentic APIs, autonomous agents, RateLimit headers, action boundaries, commercial boundaries, RFC 9457, problem details, API specification">
   <meta name="author" content="Sam Rogers">
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
   <meta name="theme-color" content="#2563eb">
@@ -16,12 +16,12 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Graceful Boundaries">
   <meta property="og:title" content="Graceful Boundaries">
-  <meta property="og:description" content="A specification for how services communicate operational limits to humans and autonomous agents.">
+  <meta property="og:description" content="A specification for communicating operational limits, refusals, constructive guidance, and optional agent action boundaries.">
   <meta property="og:image" content="https://gracefulboundaries.dev/imgs/og.png">
   <meta property="og:url" content="https://gracefulboundaries.dev/">
   <meta property="og:locale" content="en_US">
   <meta property="article:published_time" content="2026-03-15T00:00:00Z">
-  <meta property="article:modified_time" content="2026-04-09T00:00:00Z">
+  <meta property="article:modified_time" content="2026-05-04T00:00:00Z">
   <meta property="article:author" content="Sam Rogers">
   <meta property="article:publisher" content="https://paice.work/">
   <meta property="article:section" content="Open Patterns">
@@ -33,7 +33,7 @@
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Graceful Boundaries">
-  <meta name="twitter:description" content="A specification for how services communicate operational limits to humans and autonomous agents.">
+  <meta name="twitter:description" content="A specification for communicating operational limits, refusals, constructive guidance, and optional agent action boundaries.">
   <meta name="twitter:image" content="https://gracefulboundaries.dev/imgs/og.png">
   <meta name="twitter:creator" content="@snapsynapse">
 
@@ -51,16 +51,16 @@
     "@type": "TechArticle",
     "headline": "Graceful Boundaries",
     "alternativeHeadline": "A specification for how services communicate operational limits to humans and autonomous agents",
-    "description": "Graceful Boundaries defines how APIs communicate rate limits, refusals, and constraints to humans and autonomous agents. Proactive discovery, structured refusal, constructive guidance.",
+    "description": "Graceful Boundaries defines how APIs communicate rate limits, refusals, constraints, and optional action boundaries to humans and autonomous agents.",
     "inLanguage": "en",
     "url": "https://gracefulboundaries.dev/",
     "mainEntityOfPage": { "@type": "WebPage", "@id": "https://gracefulboundaries.dev/" },
     "datePublished": "2026-03-15",
-    "dateModified": "2026-04-09",
+    "dateModified": "2026-05-04",
     "author": { "@id": "https://gracefulboundaries.dev/#founder" },
     "publisher": { "@id": "https://gracefulboundaries.dev/#organization" },
     "image": "https://gracefulboundaries.dev/imgs/og.png",
-    "keywords": ["graceful boundaries", "rate limiting", "429", "API errors", "structured refusal", "agentic APIs", "RateLimit headers"],
+    "keywords": ["graceful boundaries", "rate limiting", "429", "API errors", "structured refusal", "agentic APIs", "RateLimit headers", "action boundaries", "commercial boundaries"],
     "isPartOf": { "@type": "CreativeWork", "name": "PAICE.work Open Patterns" },
     "license": "https://creativecommons.org/licenses/by/4.0/",
     "copyrightHolder": { "@type": "Organization", "name": "PAICE.work PBC" },
@@ -483,6 +483,7 @@
     <div class="links">
       <a href="#examples">Examples</a>
       <a href="#levels">Levels</a>
+      <a href="#extensions">Extensions</a>
       <a href="#adopt">Adopt</a>
       <a href="#evaluate">Evaluate</a>
       <a class="gh-star" href="https://github.com/snapsynapse/graceful-boundaries" target="_blank" rel="noopener" aria-label="Star snapsynapse/graceful-boundaries on GitHub">
@@ -505,13 +506,13 @@
       <span class="sep">&middot;</span>
       Published <time datetime="2026-03-15">March 15, 2026</time>
       <span class="sep">&middot;</span>
-      Updated <time datetime="2026-04-09">April 9, 2026</time>
+      Updated <time datetime="2026-05-04">May 4, 2026</time>
       <span class="sep">&middot;</span>
       <span class="version">v1.3.0</span>
       <span class="sep">&middot;</span>
       <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC&nbsp;BY&nbsp;4.0</a>
     </p>
-    <p class="hook">Every unclear error response generates follow-up traffic. A vague 429 causes blind retries. A vague 403 causes credential cycling. When autonomous agents are the caller, the waste compounds. This spec fixes that.</p>
+    <p class="hook">Every unclear error response generates follow-up traffic. A vague 429 causes blind retries. A vague 403 causes credential cycling. When autonomous agents are the caller, the waste compounds. Version 1.3.0 adds optional extension discovery for consequential agent actions while keeping the core conformance model stable.</p>
 
     <div class="pillars">
       <div class="pillar">
@@ -531,6 +532,7 @@
     <div class="cta-row">
       <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/spec.md" class="btn btn-primary" target="_blank" rel="noopener">Read the Specification</a>
       <a href="#evaluate" class="btn btn-secondary">Evaluate Your API</a>
+      <a href="#extensions" class="btn btn-secondary">Explore Extensions</a>
     </div>
   </div>
 </section>
@@ -554,11 +556,20 @@
         "maxRequests": 10,
         "windowSeconds": 3600,
         "description": "10 scans per IP per hour."
+      }, {
+        "type": "resource-dedup",
+        "maxRequests": 1,
+        "windowSeconds": 86400,
+        "returnsCached": true,
+        "description": "Repeat scans return cached results."
       }]
     }
+  },
+  "extensions": {
+    "actionBoundaries": "/.well-known/action-boundaries"
   }
 }</pre>
-        <p class="annotation">Agents learn every limit before hitting any of them.</p>
+        <p class="annotation">Agents learn every limit before hitting any of them, and can follow optional same-origin extension links.</p>
       </div>
 
       <div class="code-block">
@@ -630,10 +641,65 @@
   </div>
 </section>
 
-<section class="alt" id="adopt">
+<section class="alt" id="extensions">
+  <div class="container">
+    <h2>Current in v1.3.0</h2>
+    <p>Graceful Boundaries 1.3.0 keeps the Level 1 through Level 4 conformance model unchanged and adds optional extension discovery for services where agents may take consequential actions.</p>
+
+    <div class="code-grid">
+      <div class="code-block">
+        <h3>Extension discovery</h3>
+<pre>{
+  "service": "Example Service",
+  "description": "Public API and commercial service.",
+  "conformance": "level-4",
+  "extensions": {
+    "actionBoundaries": "/.well-known/action-boundaries",
+    "commercialBoundaries": "/.well-known/commercial-boundaries"
+  },
+  "limits": {}
+}</pre>
+        <p class="annotation">Extension URLs must be relative paths or same-origin absolute URLs. Unknown extension keys should be ignored.</p>
+      </div>
+
+      <div class="code-block">
+        <h3>Action refusal</h3>
+<pre>{
+  "error": "approval_required",
+  "detail": "A human must approve purchases over
+             100 USD before the agent can continue.",
+  "why": "Purchases above this threshold create
+          financial obligations that require
+          explicit approval.",
+  "action": "purchase",
+  "approvalUrl": "/approve/purchase/abc123",
+  "humanUrl": "/support"
+}</pre>
+        <p class="annotation">Action Boundaries describe authority, approval, recourse, and audit expectations. They are declarations, not payment rails, checkout, identity proof, or certification.</p>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="level-label">Action Boundaries</div>
+        <p>Optional documents for services where agents may create accounts, change permissions, purchase, cancel, request refunds, or perform other consequential actions.</p>
+      </div>
+      <div class="step">
+        <div class="level-label">Commercial Boundaries</div>
+        <p>The first Action Boundaries profile. It describes whether buyer agents can understand, evaluate, transact, modify, cancel, and resolve a commercial relationship without defining payment execution.</p>
+      </div>
+    </div>
+
+    <p style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+      See the <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/docs/action-boundaries.md" target="_blank" rel="noopener">Action Boundaries draft</a> and <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/docs/action-boundaries-examples.md" target="_blank" rel="noopener">examples</a>.
+    </p>
+  </div>
+</section>
+
+<section id="adopt">
   <div class="container">
     <h2>Getting started</h2>
-    <p>Each level builds on the previous one. Start at Level 1 and work up.</p>
+    <p>Each level builds on the previous one. Start at Level 1 and work up. Add optional extension discovery only when your service publishes same-origin boundary documents for agent actions.</p>
 
     <div class="steps">
       <div class="step">
@@ -643,7 +709,7 @@
       </div>
       <div class="step">
         <div class="level-label">Level 2 &mdash; Discoverable</div>
-        <p>Add a <code>/api/limits</code> endpoint that returns all enforced limits as structured JSON.</p>
+        <p>Add a <code>/api/limits</code> endpoint that returns all enforced limits as structured JSON. If applicable, link same-origin extension documents from <code>extensions</code>.</p>
         <div class="time">30&ndash;60 minutes</div>
       </div>
       <div class="step">
@@ -678,16 +744,16 @@ See spec for response class requirements and constructive guidance.</pre>
   </div>
 </section>
 
-<section id="evaluate">
+<section class="alt" id="evaluate">
   <div class="container">
     <div class="eval-block">
       <h2>Evaluate your API</h2>
-      <p>The conformance checker validates any public URL against the spec. No dependencies required.</p>
+      <p>The conformance checker validates any public URL against the spec. Version 1.3.0 includes stricter response-field checks, discovery schema validation, safe guidance URL checks, and optional Action Boundaries validation. No dependencies required.</p>
 <pre>git clone https://github.com/snapsynapse/graceful-boundaries.git
 cd graceful-boundaries
 node evals/check.js https://your-service.com</pre>
       <p class="ref">
-        Reference implementation: <a href="https://siteline.to/">Siteline</a> (Level 4).
+        Reference implementation: <a href="https://siteline.to/">Siteline</a> (Level 4). Unit suite: 173 tests.
       </p>
       <div class="cta-row" style="margin-top: 1.5rem;">
         <a href="https://github.com/snapsynapse/graceful-boundaries" class="btn btn-primary" target="_blank" rel="noopener">View on GitHub</a>
@@ -700,7 +766,7 @@ node evals/check.js https://your-service.com</pre>
       <a href="https://clawhub.ai/snapsynapse/graceful-boundaries" target="_blank" rel="noopener">ClawHub</a>,
       LinkedIn, or other platforms are derived from this source and should cite
       <a href="https://gracefulboundaries.dev/">gracefulboundaries.dev</a> as canonical.
-      Last substantive revision: <time datetime="2026-04-09">2026-04-09</time>.
+      Last substantive revision: <time datetime="2026-05-04">2026-05-04</time>.
       <a href="https://github.com/snapsynapse/graceful-boundaries/commits/main/spec.md" target="_blank" rel="noopener">Revision history &rarr;</a>
     </aside>
   </div>
