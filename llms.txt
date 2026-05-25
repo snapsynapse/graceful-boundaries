@@ -24,6 +24,8 @@ Graceful Boundaries defines three requirements that existing standards address s
 - Full spec: https://github.com/snapsynapse/graceful-boundaries/blob/main/spec.md
 - Implementation guide: https://github.com/snapsynapse/graceful-boundaries/blob/main/docs/implementation-guide.md
 - Conformance checker: https://github.com/snapsynapse/graceful-boundaries/blob/main/evals/check.js
+- Assistant guide: https://gracefulboundaries.dev/.well-known/assistant-guide.txt
+- GuideCheck standard: https://guidecheck.org/
 - Reference implementation (Level 4): https://siteline.to/
 
 ## Metadata
@@ -32,4 +34,5 @@ Graceful Boundaries defines three requirements that existing standards address s
 - License: CC-BY-4.0
 - Author: Sam Rogers, PAICE.work PBC
 - Published: 2026-03-15
-- Updated: 2026-04-09
+- Updated: 2026-05-25
+- Assistant guide profile: GuideCheck Human-Verifiable Assistant Guide 0.3.0

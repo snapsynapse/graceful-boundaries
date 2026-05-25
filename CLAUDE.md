@@ -11,6 +11,7 @@ A specification for how services communicate their operational limits to humans 
 - `SKILL.md` — agentic skill for conformance assessment
 - `SKILL-builder.md` — agentic skill for implementing the spec in code
 - `AGENTS.md` — contributor protocol for AI agents working on this repo
+- `assistant-guide.txt` — GuideCheck assistant guide for bounded contributor work
 
 ## Commands
 
@@ -19,11 +20,13 @@ npm test                                          # run all 173 unit tests
 node evals/check.js <url>                         # check a live service
 node evals/check.js <url> --json                  # machine-readable output
 node evals/check.js <url> --limits-path /custom   # custom limits endpoint path
+python3 /path/to/guidecheck/scripts/guidecheck_verify.py assistant-guide.txt
 ```
 
 ## Conventions
 
 - No npm dependencies. The eval suite is vanilla Node.js.
+- Assistant-facing contributor guidance follows GuideCheck 0.3.0 and is served at `https://gracefulboundaries.dev/.well-known/assistant-guide.txt`.
 - Tests use `test(name, fn)` with `assert(condition, message)`. No test framework.
 - Shared functions (`checkRefusalBody`, `checkResponseBody`, `checkLimitsBody`, `checkProactiveHeaders`, `checkHtmlRefusal`, `checkDedupResponse`, `isStableErrorValue`, `assessLevel`) are in `check.js` and exported.
 - Test files run independently and export nothing.

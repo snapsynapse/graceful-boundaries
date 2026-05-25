@@ -21,7 +21,7 @@
   <meta property="og:url" content="https://gracefulboundaries.dev/">
   <meta property="og:locale" content="en_US">
   <meta property="article:published_time" content="2026-03-15T00:00:00Z">
-  <meta property="article:modified_time" content="2026-05-04T00:00:00Z">
+  <meta property="article:modified_time" content="2026-05-25T00:00:00Z">
   <meta property="article:author" content="Sam Rogers">
   <meta property="article:publisher" content="https://paice.work/">
   <meta property="article:section" content="Open Patterns">
@@ -38,6 +38,7 @@
   <meta name="twitter:creator" content="@snapsynapse">
 
   <link rel="alternate" type="text/plain" href="https://gracefulboundaries.dev/llms.txt" title="LLM-readable summary">
+  <link rel="alternate" type="text/plain" href="https://gracefulboundaries.dev/.well-known/assistant-guide.txt" title="GuideCheck assistant guide">
   <link rel="icon" href="imgs/favicon.svg" type="image/svg+xml">
   <link rel="mask-icon" href="imgs/favicon.svg" color="#2563eb">
   <link rel="icon" href="imgs/favicon.ico" sizes="48x48">
@@ -56,7 +57,7 @@
     "url": "https://gracefulboundaries.dev/",
     "mainEntityOfPage": { "@type": "WebPage", "@id": "https://gracefulboundaries.dev/" },
     "datePublished": "2026-03-15",
-    "dateModified": "2026-05-04",
+    "dateModified": "2026-05-25",
     "author": { "@id": "https://gracefulboundaries.dev/#founder" },
     "publisher": { "@id": "https://gracefulboundaries.dev/#organization" },
     "image": "https://gracefulboundaries.dev/imgs/og.png",
@@ -66,6 +67,7 @@
     "copyrightHolder": { "@type": "Organization", "name": "PAICE.work PBC" },
     "copyrightYear": 2026,
     "citation": [
+      { "@type": "WebPage", "name": "GuideCheck", "url": "https://guidecheck.org/" },
       { "@type": "WebPage", "name": "Knowledge as Code", "url": "https://knowledge-as-code.com/" },
       { "@type": "WebPage", "name": "Skill Provenance", "url": "https://skillprovenance.dev/" },
       { "@type": "WebPage", "name": "Siteline — reference implementation", "url": "https://siteline.to/" }
@@ -730,7 +732,7 @@
 
     <h3 style="margin-top: 2.5rem; margin-bottom: 0.75rem;">Add to your AI coding workflow</h3>
     <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
-      Drop this into your project's <code>CLAUDE.md</code> or AI context file. Any AI assistant working in your codebase will apply Graceful Boundaries automatically.
+      Drop this into your project's <code>CLAUDE.md</code> or AI context file. Any AI assistant working in your codebase will apply Graceful Boundaries automatically. For this repository, contributor guidance is also published as a GuideCheck <a href="/.well-known/assistant-guide.txt">assistant-guide.txt</a> file.
     </p>
 <pre>## Error Responses
 
@@ -751,7 +753,10 @@ See spec for response class requirements and constructive guidance.</pre>
       <p>The conformance checker validates any public URL against the spec. Version 1.3.0 includes stricter response-field checks, discovery schema validation, safe guidance URL checks, and optional Action Boundaries validation. No dependencies required.</p>
 <pre>git clone https://github.com/snapsynapse/graceful-boundaries.git
 cd graceful-boundaries
-node evals/check.js https://your-service.com</pre>
+node evals/check.js https://your-service.com
+
+# Optional: verify the assistant guide before AI-assisted work
+python3 /path/to/guidecheck/scripts/guidecheck_verify.py assistant-guide.txt</pre>
       <p class="ref">
         Reference implementation: <a href="https://siteline.to/">Siteline</a> (Level 4). Unit suite: 173 tests.
       </p>
@@ -779,7 +784,7 @@ node evals/check.js https://your-service.com</pre>
       <div class="footer-meta">
         <p>Graceful Boundaries v1.3.0 &middot; <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC-BY-4.0</a></p>
         <p>A <a href="https://paice.work/" target="_blank" rel="noopener">PAICE.work</a> project.</p>
-        <p style="margin-top: 0.5rem;">See also: <a href="https://knowledge-as-code.com/" target="_blank" rel="noopener">Knowledge as Code</a> &middot; <a href="https://skillprovenance.dev/" target="_blank" rel="noopener">Skill Provenance</a></p>
+        <p style="margin-top: 0.5rem;">See also: <a href="https://guidecheck.org/" target="_blank" rel="noopener">GuideCheck</a> &middot; <a href="https://knowledge-as-code.com/" target="_blank" rel="noopener">Knowledge as Code</a> &middot; <a href="https://skillprovenance.dev/" target="_blank" rel="noopener">Skill Provenance</a></p>
       </div>
       <div class="footer-links">
         <a href="https://github.com/snapsynapse/graceful-boundaries" target="_blank" rel="noopener">GitHub</a>
@@ -788,6 +793,7 @@ node evals/check.js https://your-service.com</pre>
         <a href="https://github.com/snapsynapse/graceful-boundaries/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
         <a href="https://github.com/snapsynapse/graceful-boundaries/commits/main/spec.md" target="_blank" rel="noopener">Revisions</a>
         <a href="https://clawhub.ai/snapsynapse/graceful-boundaries" target="_blank" rel="noopener">ClawHub</a>
+        <a href="/.well-known/assistant-guide.txt">assistant-guide.txt</a>
         <a href="/llms.txt">llms.txt</a>
         <a href="https://github.com/sponsors/snapsynapse" target="_blank" rel="noopener">Sponsor</a>
       </div>

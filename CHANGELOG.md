@@ -6,6 +6,11 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 
 ## Unreleased
 
+### Added
+- GuideCheck `assistant-guide.txt` adoption for assistant-facing contributor validation.
+- Well-known assistant guide path at `/.well-known/assistant-guide.txt`.
+- Contributor, implementation, skill, and landing-page copy for verifying the assistant guide before AI-assisted work.
+
 ## [1.3.0] - 2026-05-04
 
 ### Added

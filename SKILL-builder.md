@@ -328,6 +328,9 @@ After implementation, verify conformance using the checker:
 git clone https://github.com/snapsynapse/graceful-boundaries.git
 cd graceful-boundaries
 
+# Optional: verify the assistant guide before AI-assisted implementation work
+python3 /path/to/guidecheck/scripts/guidecheck_verify.py assistant-guide.txt
+
 # Check the service
 node evals/check.js https://localhost:3000
 node evals/check.js https://localhost:3000 --json

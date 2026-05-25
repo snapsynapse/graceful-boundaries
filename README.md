@@ -133,6 +133,18 @@ Run the unit test suite (173 tests, no dependencies):
 npm test
 ```
 
+## Assistant guide
+
+Graceful Boundaries adopts the [GuideCheck](https://guidecheck.org/) Human-Verifiable Assistant Guide profile. The assistant-facing guide is committed at [assistant-guide.txt](assistant-guide.txt) and published from `https://gracefulboundaries.dev/.well-known/assistant-guide.txt`.
+
+Verify the guide before asking an assistant to follow it. Use the hosted verifier at [guidecheck.org/verify](https://guidecheck.org/verify) or a conformant local verifier:
+
+```bash
+python3 /path/to/guidecheck/scripts/guidecheck_verify.py assistant-guide.txt
+```
+
+The committed root copy and the well-known copy must remain byte-identical.
+
 ## Which level should you target?
 
 - **No API or agentic surface?** Declare `not-applicable` — takes 5 minutes.
@@ -200,4 +212,4 @@ The patterns in this spec emerged from building [Siteline](https://siteline.to/)
 
 The conformance audit skill is available on **[ClawHub](https://clawhub.ai/snapsynapse/graceful-boundaries)**.
 
-See also: **[Skill Provenance](https://github.com/snapsynapse/skill-provenance)** -- version identity that travels with agent skill bundles. Also a PAICE.work project.
+See also: **[GuideCheck](https://guidecheck.org/)** -- human-verifiable assistant guides, and **[Skill Provenance](https://github.com/snapsynapse/skill-provenance)** -- version identity that travels with agent skill bundles. Also PAICE.work projects.

@@ -1,6 +1,6 @@
 # Contributing to Graceful Boundaries
 
-Graceful Boundaries is a specification, not a library. Contributions improve the spec text, the eval suite, or the documentation. If you're an AI agent, see [AGENTS.md](AGENTS.md) for contributor guidelines specific to your workflow.
+Graceful Boundaries is a specification, not a library. Contributions improve the spec text, the eval suite, or the documentation. If you're an AI agent, see [AGENTS.md](AGENTS.md) and [assistant-guide.txt](assistant-guide.txt) for contributor guidelines specific to your workflow.
 
 ## Getting started
 
@@ -13,6 +13,16 @@ npm test
 ```
 
 There are no dependencies to install. The eval suite is vanilla Node.js.
+
+## AI-assisted setup
+
+This repository publishes a GuideCheck assistant guide for bounded contributor work:
+
+```bash
+curl -s https://gracefulboundaries.dev/.well-known/assistant-guide.txt
+```
+
+Before asking an assistant to follow the guide, verify it with [GuideCheck](https://guidecheck.org/verify) or a conformant local verifier. The guide is also committed at [assistant-guide.txt](assistant-guide.txt) for repository-local review.
 
 ## Running the live conformance checker
 
@@ -27,7 +37,8 @@ node evals/check.js https://your-service.com --limits-path /.well-known/limits
 1. Fork the repo and create a branch.
 2. Make your changes.
 3. Run `npm test` to verify all tests pass.
-4. Open a PR with a clear description of what changed and why.
+4. If you changed assistant-facing guidance, verify `assistant-guide.txt`.
+5. Open a PR with a clear description of what changed and why.
 
 ## Spec changes
 

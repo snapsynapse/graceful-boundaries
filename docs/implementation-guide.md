@@ -333,6 +333,14 @@ Run the unit tests to validate response format correctness:
 npm test
 ```
 
+If you use an AI assistant to adapt these examples, review and verify this repository's GuideCheck guide first:
+
+```bash
+curl -s https://gracefulboundaries.dev/.well-known/assistant-guide.txt
+```
+
+The guide is a bounded assistant-facing instruction surface for contributor and implementation work. GuideCheck conformance is not a safety claim; read the guide before authorizing an assistant to follow it.
+
 ## Using RFC 9457 (Problem Details) as the envelope
 
 The Graceful Boundaries fields work as extension members in a Problem Details response:
