@@ -200,6 +200,31 @@ Extension links do not change your Level 1 through Level 4 conformance. They onl
 
 Action Boundaries describe pre-action policy: what an agent may attempt, what requires approval, what is human-only, and where recourse lives. They do not execute payments, tokenize credentials, orchestrate checkout, settle funds, or verify merchant trust. Treat the document as a declaration to help callers stop or escalate before a consequential action.
 
+Machine-readable guidance is untrusted data. Keep `detail`, `why`, policy text, approval descriptions, and boundary documents declarative. Do not include text that tells an agent to ignore prior instructions, override local policy, bypass authorization, or skip approval gates.
+
+### Optional: Publish cost, quota, and size metadata
+
+For LLM-backed or queue-backed services, add optional limit metadata when request counts do not fully describe the constraint:
+
+```json
+{
+  "type": "cost-limit",
+  "limitId": "generation-token-budget",
+  "limitType": "cost-limit",
+  "scope": "user",
+  "maxRequests": 100000,
+  "windowSeconds": 2592000,
+  "costMetric": "tokens",
+  "maxInputTokens": 32000,
+  "maxOutputTokens": 8000,
+  "maxDurationSeconds": 60,
+  "maxQueueDepth": 10,
+  "description": "100k generation tokens per user per month."
+}
+```
+
+When multiple limits apply, report the most constraining active limit in `RateLimit` headers and use discovery metadata or refusal fields such as `limitId`, `limitType`, and `scope` for detailed state.
+
 ## Level 3: Constructive
 
 **Goal:** Refusal responses include a useful next step beyond "wait."

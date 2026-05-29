@@ -11,7 +11,7 @@ Do not open a public issue for security vulnerabilities.
 **In scope:**
 - Spec requirements that could lead services to disclose sensitive information (e.g., a required field that reveals internal architecture)
 - Conformance checker bugs that produce misleading security assessments
-- Threat model gaps in [SECURITY-AUDIT.md](SECURITY-AUDIT.md) (SC-1 through SC-15)
+- Threat model gaps in [SECURITY-AUDIT.md](SECURITY-AUDIT.md) (SC-1 through SC-16)
 
 **Out of scope:**
 - Design philosophy disagreements about what the spec should require
@@ -20,4 +20,4 @@ Do not open a public issue for security vulnerabilities.
 
 ## Threat model
 
-See [SECURITY-AUDIT.md](SECURITY-AUDIT.md) for the full threat model covering rate limit calibration attacks, security posture disclosure, validation oracles, content cloaking, and other considerations.
+See [SECURITY-AUDIT.md](SECURITY-AUDIT.md) for the full threat model covering rate limit calibration attacks, security posture disclosure, validation oracles, content cloaking, untrusted machine-readable guidance, and other considerations.

@@ -16,7 +16,7 @@ https://gracefulboundaries.dev
 ## Twitter / X
 
 **Short (under 280 chars):**
-Graceful Boundaries: a spec for how APIs communicate limits to humans and agents. Discovery before failure. Structured refusal with reasons. Constructive guidance instead of bare 429s. CC-BY-4.0.
+Graceful Boundaries: a spec for how APIs communicate limits to humans and agents. Discovery before failure. Structured refusal with reasons. Constructive guidance instead of bare 429s. v1.4 adds hardened guidance and quota/cost metadata. CC-BY-4.0.
 
 https://gracefulboundaries.dev
 
@@ -32,6 +32,8 @@ Graceful Boundaries is an open specification (CC-BY-4.0) for how services commun
 3. Offer alternatives -- a cached result, a different endpoint, an upgrade path (constructive guidance)
 
 Four conformance levels from "structured refusal" to "proactive headers on every success response." An eval suite validates any public API. A reference implementation demonstrates all four levels.
+
+Version 1.4 hardens machine-readable guidance as untrusted data and adds optional quota, cost, token, duration, queue, and multi-limit metadata for LLM-backed and high-volume services.
 
 https://gracefulboundaries.dev
 

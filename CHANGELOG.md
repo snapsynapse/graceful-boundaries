@@ -6,10 +6,25 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 
 ## Unreleased
 
+## [1.4.0] - 2026-05-29
+
 ### Added
 - GuideCheck `assistant-guide.txt` adoption for assistant-facing contributor validation.
 - Well-known assistant guide path at `/.well-known/assistant-guide.txt`.
-- Contributor, implementation, skill, and landing-page copy for verifying the assistant guide before AI-assisted work.
+- Contributor, implementation, and skill guidance for verifying the assistant guide before AI-assisted work.
+- Optional quota, cost, burst, size, token, duration, queue, and multi-limit metadata fields for limits discovery and refusal responses.
+- Security consideration SC-16: machine-readable guidance and boundary documents are untrusted data, not instructions.
+- Optional `--check-cloaking` checker mode for advisory HTML vs. agent-signaled content containment checks.
+- Agentic surfaces disclosure document covering `llms.txt`, GuideCheck, assistant guides, skills, crawler policy, and checker surfaces.
+- Agentic surface release evals for assistant-guide copy identity, GuideCheck disclosure drift, and `--check-cloaking` CLI flag parsing.
+
+### Changed
+- Conformance checker now uses strict same-origin or relative URL validation for extension, guidance, changelog, feed, and Action Boundaries URL fields.
+- Action Boundaries validation now rejects trust, identity, authority, authorization, and payment-safety claims in machine-readable declarations.
+- Discovery validation now warns on malformed optional limit metadata and unsafe `changelog` or `feed` URLs.
+- Level 1 conformance wording now consistently covers all non-success responses plus 429-specific fields.
+- Security audit status table now tracks implemented constraints through SC-16.
+- Unit test suite expanded from 193 to 200 tests.
 
 ## [1.3.0] - 2026-05-04
 

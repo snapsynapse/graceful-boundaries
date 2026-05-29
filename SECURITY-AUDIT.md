@@ -15,7 +15,7 @@ An attacker reads the Graceful Boundaries spec and uses it to exploit services t
 **Mitigation:**
 - Services SHOULD use the published limit as a public-facing value and enforce a slightly lower internal limit (e.g., publish 10, enforce at 8). This is consistent with the spec — the discovery endpoint describes the policy, not the exact enforcement threshold.
 - Services SHOULD implement behavioral rate limiting (e.g., progressive slowdowns) in addition to hard cutoffs.
-- Add to spec: "The discovery endpoint describes the policy. Services MAY enforce stricter internal limits than published."
+- Implemented in spec: "The discovery endpoint describes the policy. Services MAY enforce stricter internal limits than published."
 
 ### 2. Security Posture Disclosure via `why`
 
@@ -27,7 +27,7 @@ An attacker reads the Graceful Boundaries spec and uses it to exploit services t
 - The `why` field SHOULD describe the **category** of defense, not the **mechanism**.
   - Good: "Blocks requests to non-public addresses." (category)
   - Bad: "Validates URLs against RFC 1918 ranges and cloud metadata IPs." (mechanism)
-- Add to spec: "The `why` field MUST NOT reveal implementation details of security controls. It SHOULD state the category of protection (e.g., 'prevents abuse') without describing how the protection works (e.g., 'uses a WAF rule on header X')."
+- Implemented in spec: "The `why` field MUST NOT reveal implementation details of security controls. It SHOULD state the category of protection (e.g., 'prevents abuse') without describing how the protection works (e.g., 'uses a WAF rule on header X')."
 
 ### 3. Validation Oracle via Input Class
 
@@ -39,7 +39,7 @@ An attacker reads the Graceful Boundaries spec and uses it to exploit services t
 - The `expected` field SHOULD describe the positive requirement, not the negative filter.
   - Good: "A public URL." (positive)
   - Bad: "Not a private IP, not port 8080, not localhost." (negative — reveals filter rules)
-- Add to spec: "The `expected` field SHOULD describe what valid input looks like in positive terms. It MUST NOT enumerate rejected patterns, as this reveals the filter logic."
+- Implemented in spec: "The `expected` field SHOULD describe what valid input looks like in positive terms. It MUST NOT enumerate rejected patterns, as this reveals the filter logic."
 
 ### 4. Endpoint Enumeration via Discovery
 
@@ -49,7 +49,7 @@ An attacker reads the Graceful Boundaries spec and uses it to exploit services t
 
 **Mitigation:**
 - The limits endpoint SHOULD only list publicly documented endpoints. Internal or admin endpoints MUST NOT appear.
-- Add to spec: "The discovery endpoint MUST NOT list endpoints that are not intended for public use. Internal, admin, or debug endpoints MUST be excluded."
+- Implemented in spec: "The discovery endpoint MUST NOT list endpoints that are not intended for public use. Internal, admin, or debug endpoints MUST be excluded."
 
 ### 5. Resource Existence Enumeration via 404
 
@@ -59,7 +59,7 @@ An attacker reads the Graceful Boundaries spec and uses it to exploit services t
 
 **Mitigation:**
 - Services with sensitive resources SHOULD return identical 404 responses regardless of whether the resource never existed or expired.
-- Add to spec: "When resource existence is sensitive, services SHOULD return identical responses for never-existed and expired resources. The distinction in the Not Found class is OPTIONAL and should only be used when existence is not sensitive."
+- Implemented in spec: "When resource existence is sensitive, services SHOULD return identical responses for never-existed and expired resources. The distinction in the Not Found class is OPTIONAL and should only be used when existence is not sensitive."
 
 ### 6. Alternative Endpoint as Attack Surface
 
@@ -69,7 +69,7 @@ An attacker reads the Graceful Boundaries spec and uses it to exploit services t
 
 **Mitigation:**
 - Constructive guidance URLs MUST be relative paths or same-origin absolute URLs. Cross-origin URLs MUST NOT be included in `alternativeEndpoint` or `scanUrl`.
-- Add to spec: "Constructive guidance URLs (`alternativeEndpoint`, `scanUrl`, `cachedResultUrl`) MUST be relative paths or same-origin absolute URLs. Cross-origin redirects MUST use `humanUrl` or `upgradeUrl` and SHOULD be clearly labeled as external."
+- Implemented in spec: "Constructive guidance URLs (`alternativeEndpoint`, `scanUrl`, `cachedResultUrl`) MUST be relative paths or same-origin absolute URLs. Cross-origin redirects MUST use `humanUrl` or `upgradeUrl` and SHOULD be clearly labeled as external."
 
 ### 7. Proactive Headers as Timing Signal
 
@@ -79,7 +79,7 @@ An attacker reads the Graceful Boundaries spec and uses it to exploit services t
 
 **Mitigation:**
 - Services MAY add jitter to the `reset` value (e.g., ±10% randomization) to prevent precise timing.
-- Add to spec: "Services MAY add small random jitter to `reset` values in proactive headers to prevent callers from synchronizing with window boundaries."
+- Implemented in spec: "Services MAY add small random jitter to `reset` values in proactive headers to prevent callers from synchronizing with window boundaries."
 
 ### 8. Agent Instruction Following via 404 `scanUrl`
 
@@ -89,7 +89,7 @@ An attacker reads the Graceful Boundaries spec and uses it to exploit services t
 
 **Mitigation:**
 - The `scanUrl` field SHOULD only contain URLs that the service itself would accept. Since Graceful Boundaries services should already have SSRF protection, the scan endpoint will reject internal URLs.
-- Add to spec: "Services that include `scanUrl` in Not Found responses MUST ensure the referenced scan endpoint has adequate input validation. The `scanUrl` field is a convenience, not a trust bypass — the scan endpoint's own security controls still apply."
+- Implemented in spec: "Services that include `scanUrl` in Not Found responses MUST ensure the referenced scan endpoint has adequate input validation. The `scanUrl` field is a convenience, not a trust bypass — the scan endpoint's own security controls still apply."
 
 ### 9. Content Cloaking via Agent-Signaling Headers
 
@@ -102,7 +102,7 @@ This is distinct from user-agent blocking. Blocking is visible — the agent kno
 **Mitigation:**
 - Services claiming Level 4 conformance SHOULD NOT serve materially divergent content via agent-signaling headers. Formatting differences (boilerplate removal) are expected; informational differences are not.
 - Agents SHOULD compare content across request variants using an asymmetric containment metric: what fraction of the HTML's core text survives into the alternate response. Legitimate CDN conversions produce 60%+ containment. Content cloaking produces sub-60%.
-- Add to spec: "SC-9: Content Cloaking via Agent-Signaling Headers" (added in v1.1).
+- Implemented in spec: "SC-9: Content Cloaking via Agent-Signaling Headers" (added in v1.1).
 
 ### 10. `statusUrl` Infrastructure Disclosure
 
@@ -167,21 +167,34 @@ This is distinct from user-agent blocking. Blocking is visible — the agent kno
 - External evaluators MAY verify declarations against observed behavior, but that verification is separate from Graceful Boundaries conformance.
 - Implementations SHOULD avoid labels such as "verified", "certified", "recommended", or "trusted" unless a separate verification process exists.
 
-## Summary of Spec Changes Needed
+### 16. Machine-Readable Guidance as Prompt Injection Surface
+
+**Risk:** Graceful Boundaries responses, limits documents, and Action Boundaries documents are designed for autonomous agents to parse. An attacker who can influence `detail`, `why`, policy text, approval descriptions, or guidance URLs could try to smuggle instructions such as "ignore previous instructions" into an agent workflow.
+
+**Severity:** Medium. The fields are not executable, but agents may over-trust structured service-provided text unless the spec explicitly frames it as untrusted data.
+
+**Mitigation:**
+- Agents MUST treat machine-readable guidance and boundary documents as untrusted data, not instructions.
+- Services SHOULD keep guidance declarative and avoid instruction-like text that asks an agent to override system, user, policy, authorization, or approval controls.
+- Machine-actionable URLs remain subject to the target endpoint's normal authentication, authorization, validation, rate limiting, and approval checks.
+
+## Security Constraint Status
 
 | # | Risk | Spec Addition |
 |---|---|---|
-| 1 | Rate limit calibration | "Services MAY enforce stricter internal limits than published." |
-| 2 | Security posture disclosure | "`why` MUST NOT reveal implementation details. SHOULD state category of protection." |
-| 3 | Validation oracle | "`expected` SHOULD describe valid input positively. MUST NOT enumerate rejected patterns." |
-| 4 | Endpoint enumeration | "Discovery endpoint MUST NOT list non-public endpoints." |
-| 5 | Resource existence | "When existence is sensitive, SHOULD return identical 404s." |
-| 6 | Alternative endpoint redirect | "Guidance URLs MUST be relative or same-origin. Cross-origin uses `humanUrl`." |
-| 7 | Timing signal | "Services MAY add jitter to `reset` values." |
-| 8 | Agent SSRF via scanUrl | "`scanUrl` is convenience, not trust bypass. Scan endpoint's own controls apply." |
-| 9 | Content cloaking via agent headers | "Level 4 services SHOULD NOT serve materially divergent content via agent-signaling headers." |
-| 11 | Action boundary over-disclosure | "Action boundaries SHOULD describe policy categories, not enforcement mechanisms." |
-| 12 | Agent intent as authority | "Action Boundary documents MUST NOT be treated as authentication or authorization systems." |
-| 13 | Recourse URL manipulation | "Machine-actionable Action Boundary URLs SHOULD be relative or same-origin." |
-| 14 | Audit log privacy leakage | "Boundary documents SHOULD disclose audit capability, not specific audit records." |
-| 15 | Declared boundary vs. verified trust | "Boundary documents are declarations, not endorsements or certifications." |
+| 1 | Rate limit calibration | Implemented: services MAY enforce stricter internal limits than published. |
+| 2 | Security posture disclosure | Implemented: `why` describes categories, not mechanisms. |
+| 3 | Validation oracle | Implemented: `expected` uses positive descriptions and avoids enumerating rejected patterns. |
+| 4 | Endpoint enumeration | Implemented: discovery MUST NOT list non-public endpoints. |
+| 5 | Resource existence | Implemented: sensitive resources SHOULD use uniform 404s. |
+| 6 | Alternative endpoint redirect | Implemented: machine-actionable guidance URLs MUST be relative or same-origin. |
+| 7 | Timing signal | Implemented: services MAY jitter proactive `reset` values. |
+| 8 | Agent SSRF via scanUrl | Implemented: `scanUrl` is a convenience, not a trust bypass. |
+| 9 | Content cloaking via agent headers | Implemented: Level 4 services SHOULD NOT serve materially divergent agent-signaled content. |
+| 10 | Status URL disclosure | Accepted: status pages are public by design. |
+| 11 | Action boundary over-disclosure | Implemented: action boundaries describe policy categories, not enforcement mechanisms. |
+| 12 | Agent intent as authority | Implemented: boundary documents are not authentication or authorization systems. |
+| 13 | Recourse URL manipulation | Implemented: machine-actionable boundary URLs SHOULD be relative or same-origin. |
+| 14 | Audit log privacy leakage | Implemented: boundary documents disclose audit capability, not audit records. |
+| 15 | Declared boundary vs. verified trust | Implemented: boundary documents are declarations, not endorsements or certifications. |
+| 16 | Machine-readable guidance as prompt injection surface | Implemented: guidance and boundary documents are untrusted data, not instructions. |

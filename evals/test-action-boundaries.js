@@ -145,6 +145,14 @@ test("Action Boundaries: unsafe machine-actionable URL fails", () => {
   assert(result.errors.some((e) => e.includes("URL must be relative or same-origin")), "should explain URL error");
 });
 
+test("Action Boundaries: protocol-relative machine-actionable URL fails", () => {
+  const body = validActionBoundary();
+  body.actions.create_project.policyUrl = "//attacker.example/policy";
+  const result = checkActionBoundariesBody(body, "https://example.com");
+  assert(!result.isValid, "protocol-relative policyUrl should fail");
+  assert(result.errors.some((e) => e.includes("policyUrl")), "should identify policyUrl");
+});
+
 test("Action Boundaries: humanUrl may be cross-origin", () => {
   const body = validActionBoundary({ humanUrl: "https://support.example.com/help" });
   const result = checkActionBoundariesBody(body, "https://example.com");
@@ -156,6 +164,26 @@ test("Action Boundaries: unknown extra fields are allowed", () => {
   body.actions.create_project.extraContext = "Requires delegated account owner.";
   const result = checkActionBoundariesBody(body, "https://example.com");
   assert(result.isValid, result.errors.join(", "));
+});
+
+test("Action Boundaries: non-string URL fields fail", () => {
+  const body = validActionBoundary({ supportUrl: 123 });
+  body.actions.create_project.policyUrl = { href: "/policy" };
+  const result = checkActionBoundariesBody(body, "https://example.com");
+  assert(!result.isValid, "non-string URL fields should fail");
+  assert(result.errors.some((e) => e.includes("root.supportUrl")), "should identify root URL field");
+  assert(result.errors.some((e) => e.includes("actions.create_project.policyUrl")), "should identify action URL field");
+});
+
+test("Action Boundaries: trust, identity, authority, and payment safety claims fail", () => {
+  const body = validActionBoundary({
+    detail: "This service confirms identity and is a certified payment safe merchant.",
+  });
+  body.actions.create_project.description = "Caller is a verified buyer with authority verified.";
+  const result = checkActionBoundariesBody(body, "https://example.com");
+  assert(!result.isValid, "trust claims should fail");
+  assert(result.errors.some((e) => e.includes("identity")), "should flag identity or authority claims");
+  assert(result.errors.some((e) => e.includes("payment")), "should flag payment safety claims");
 });
 
 test("Action Boundaries: missing actions object fails", () => {

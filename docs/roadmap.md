@@ -2,9 +2,9 @@
 
 Proposed enhancements for future versions of Graceful Boundaries. These were identified during the v1.1 cycle but deferred to avoid scope expansion before adoption validates the core spec.
 
-## v1.3: Action Boundaries
+## Current: Action Boundaries
 
-Graceful Boundaries 1.3 introduces optional extension discovery and a non-normative Action Boundaries draft. The core Level 1 through Level 4 conformance model remains unchanged.
+Graceful Boundaries 1.3 introduced optional extension discovery and a non-normative Action Boundaries draft. The core Level 1 through Level 4 conformance model remains unchanged.
 
 Action Boundaries covers consequential agent actions that need more than rate-limit communication:
 
@@ -19,11 +19,11 @@ Commercial Boundaries is the first Action Boundaries profile. It focuses on whet
 
 The draft lives in [action-boundaries.md](action-boundaries.md). It should remain optional until real implementers validate the field names and threat model.
 
-## v1.2: Expanded Limit Taxonomy
+## Future Candidate: Expanded Limit Taxonomy
 
 ### Quota and cost-based limits
 
-The current spec only expresses limits as requests-per-window. Services with cost-based limits (API calls consume "credits" or "tokens") or fixed-allocation quotas (10GB/month) cannot express this in the discovery endpoint.
+Graceful Boundaries 1.4 adds optional metadata for common quota, cost, size, token, duration, burst, and queue constraints. Future work should validate these fields against real deployments and decide whether any should become required for specific profiles.
 
 **Proposed new limit types:**
 
@@ -45,17 +45,17 @@ The current spec only expresses limits as requests-per-window. Services with cos
 }
 ```
 
-**Why deferred:** This is scope expansion that adds complexity before the core spec has adoption. The request-per-window model covers the majority of real-world rate limits. Quota and cost metadata should be validated against real implementations before standardizing.
+**Current status:** Added as optional metadata in 1.4. The request-per-window model still covers the majority of real-world rate limits, and quota or cost metadata should stay optional until adoption validates the field names.
 
 ### Unknown limit type fallback guidance
 
 The spec says unknown types SHOULD be treated as "opaque constraints." This is too vague for agent developers. Future versions should specify that agents encountering unknown types SHOULD parse `maxRequests` and `windowSeconds` if present and treat violations as windowed rate limits.
 
-## v1.2: Multi-Limit Interactions
+## Future Candidate: Multi-Limit Interactions
 
 ### Cascade limit disclosure
 
-Many services enforce limits at multiple levels (global, per-key, per-endpoint). The spec doesn't address how limits interact or which limit was exceeded when a 429 is returned.
+Many services enforce limits at multiple levels (global, per-key, per-endpoint). Graceful Boundaries 1.4 adds optional `limitId`, `limitType`, `scope`, and `windowResetAt` fields, but future versions may need richer per-limit state for large-scale implementations.
 
 **Proposed refusal field:**
 
@@ -71,11 +71,11 @@ The `limitType` field tells agents which specific limit was exceeded, enabling s
 
 ### Multiple limits in proactive headers
 
-When an endpoint enforces multiple overlapping limits, which limit should `RateLimit: remaining=N` report? The spec should clarify that the most-restrictive remaining budget SHOULD be reported.
+When an endpoint enforces multiple overlapping limits, Graceful Boundaries 1.4 clarifies that `RateLimit: remaining=N` should report the most constraining active limit. Future work may define an extension for reporting multiple simultaneous budgets.
 
 **Why deferred:** These are advanced scenarios that matter at scale but add complexity for initial adopters. The current spec works for the common case (one primary limit per endpoint).
 
-## v1.2: Agent-Oriented Enhancements
+## Future Candidate: Agent-Oriented Enhancements
 
 ### Agent-capable endpoint flag
 

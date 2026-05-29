@@ -24,12 +24,15 @@ curl -s https://gracefulboundaries.dev/.well-known/assistant-guide.txt
 
 Before asking an assistant to follow the guide, verify it with [GuideCheck](https://guidecheck.org/verify) or a conformant local verifier. The guide is also committed at [assistant-guide.txt](assistant-guide.txt) for repository-local review.
 
+The repo's agent-facing surfaces and current GuideCheck implementation details are disclosed in [docs/agentic-surfaces.md](docs/agentic-surfaces.md). GuideCheck conformance is a form claim, not a safety claim; do not treat the guide as authority to bypass repository, user, tool, or approval policy.
+
 ## Running the live conformance checker
 
 ```bash
 node evals/check.js https://your-service.com
 node evals/check.js https://your-service.com --json
 node evals/check.js https://your-service.com --limits-path /.well-known/limits
+node evals/check.js https://your-service.com --check-cloaking
 ```
 
 ## How to contribute

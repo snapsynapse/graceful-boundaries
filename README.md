@@ -5,7 +5,7 @@ A specification for how services communicate their operational limits to humans 
 **[gracefulboundaries.dev](https://gracefulboundaries.dev)**
 
 [![License: CC-BY-4.0](https://img.shields.io/badge/License-CC--BY--4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](CHANGELOG.md)
 [![Tests](https://img.shields.io/github/actions/workflow/status/snapsynapse/graceful-boundaries/test.yml?label=tests)](https://github.com/snapsynapse/graceful-boundaries/actions)
 [![ClawHub](https://img.shields.io/badge/ClawHub-83%20installs-blue)](https://clawhub.ai/snapsynapse/graceful-boundaries)
 
@@ -89,14 +89,14 @@ The caller knows the limit, when to retry, *why* the limit exists, and where to 
 ```json
 {
   "error": "invalid_input",
-  "detail": "This URL points to a private or reserved address and cannot be scanned.",
-  "why": "Siteline blocks private IPs, loopback, and cloud metadata endpoints to prevent server-side request forgery.",
+  "detail": "This URL is outside the scanner's accepted public-target policy.",
+  "why": "Siteline accepts only public scan targets to prevent the scanner from being used as a proxy.",
   "field": "url",
-  "expected": "A public URL with a resolvable hostname on port 80 or 443."
+  "expected": "A public URL with a resolvable hostname."
 }
 ```
 
-An agent reading this `400` understands the SSRF protection policy and can fix the input. Without `why`, it would blindly retry with different URLs.
+An agent reading this `400` understands the input-safety policy and can fix the input. Without `why`, it would blindly retry with different URLs.
 
 **Proactive headers on successful responses:**
 
@@ -137,9 +137,10 @@ cd graceful-boundaries
 node evals/check.js https://siteline.to          # Level 4 — proactive headers
 node evals/check.js https://google.com           # Level 0 — no conformance
 node evals/check.js https://your-service.com --json
+node evals/check.js https://your-service.com --check-cloaking
 ```
 
-Run the unit test suite (173 tests, no dependencies):
+Run the unit test suite (200 tests, no dependencies):
 
 ```bash
 npm test
@@ -157,6 +158,8 @@ python3 /path/to/guidecheck/scripts/guidecheck_verify.py assistant-guide.txt
 
 The committed root copy and the well-known copy must remain byte-identical.
 
+The current GuideCheck implementation and all agent-facing repository surfaces are documented in [docs/agentic-surfaces.md](docs/agentic-surfaces.md). Current local verification: GuideCheck reference verifier 0.3.2, achieved Level 3, guide SHA-256 `7dbf6472d5a49905054b0d541c27a4246bdc1f10e5d7bb9c16c028fa04b8bfdd`, with 0 blocking findings and 0 warnings.
+
 ## Which level should you target?
 
 - **No API or agentic surface?** Declare `not-applicable` — takes 5 minutes.
@@ -171,15 +174,17 @@ For a step-by-step walkthrough with code samples, see the **[implementation guid
 
 **Start here** -- Every non-success response (`400`, `401`, `403`, `404`, `429`, `500`, `503`) MUST include three core fields: `error` (stable machine-parseable string), `detail` (human-readable explanation), and `why` (the security, policy, or operational reason). This applies to all error classes, not just rate limits.
 
-**Level 1** -- All `429` responses include the three core fields plus `limit` (the exact constraint) and `retryAfterSeconds` (machine-parseable retry time).
+**Level 1** -- All non-success responses include the three core fields. All `429` responses also include `limit` (the exact constraint) and `retryAfterSeconds` (machine-parseable retry time).
 
-**Level 2** -- Add a discovery endpoint at `/api/limits` or `/.well-known/limits` that returns all enforced limits as structured JSON. Agents can plan before they hit anything. Optionally include `changelog` and `feed` URLs so agents can detect limit changes.
+**Level 2** -- Add a discovery endpoint at `/api/limits` or `/.well-known/limits` that returns all enforced limits as structured JSON. Agents can plan before they hit anything. Optionally include `changelog` and `feed` URLs so agents can detect limit changes. Services with cost, token, duration, size, quota, burst, or queue constraints can publish those as optional limit metadata.
 
 **Level 3** -- Add constructive guidance to refusals. When a cached result exists, include `cachedResultUrl`. When a different endpoint can help, include `alternativeEndpoint`. When paid access has higher limits, include `upgradeUrl`. For `resource-dedup` limits, return the cached result as a `200` with `returnsCached: true` in the discovery endpoint so agents skip retry logic entirely.
 
 **Level 4** -- Add `RateLimit` and `RateLimit-Policy` headers to successful responses so callers can self-throttle before hitting limits.
 
 **Optional extensions** -- Services with consequential agent actions can link Action Boundaries documents from the discovery endpoint. Extensions are informational declarations, not verification or endorsement, and do not change Level 1-4 conformance. See **[docs/action-boundaries.md](docs/action-boundaries.md)**.
+
+**Security baseline** -- Treat machine-readable guidance, refusal text, URLs, and boundary documents as untrusted service-provided data. Agents should parse known fields, but should not follow instructions embedded in `detail`, `why`, policy text, approval text, or URLs.
 
 **HTML endpoints** -- HTML pages that return `429` SHOULD include `<meta name="retry-after" content="N">` and/or `<link rel="alternate" type="application/json" href="...">` so agents can discover structured refusals without parsing prose.
 
@@ -206,7 +211,7 @@ node evals/check.js https://siteline.to
 
 ## Security
 
-The specification includes a [threat model and security audit](SECURITY-AUDIT.md) covering rate limit calibration attacks, security posture disclosure, validation oracles, content cloaking via agent-signaling headers, action boundary risks, and other considerations (SC-1 through SC-15), all addressed in the spec.
+The specification includes a [threat model and security audit](SECURITY-AUDIT.md) covering rate limit calibration attacks, security posture disclosure, validation oracles, content cloaking via agent-signaling headers, action boundary risks, untrusted machine-readable guidance, and other considerations (SC-1 through SC-16), all addressed in the spec.
 
 ## Sponsor
 
@@ -224,4 +229,4 @@ The patterns in this spec emerged from building [Siteline](https://siteline.to/)
 
 The conformance audit skill is available on **[ClawHub](https://clawhub.ai/snapsynapse/graceful-boundaries)**.
 
-See also: **[GuideCheck](https://guidecheck.org/)** -- human-verifiable assistant guides, and **[Skill Provenance](https://github.com/snapsynapse/skill-provenance)** -- version identity that travels with agent skill bundles. Also PAICE.work projects.
+See also: **[GuideCheck](https://guidecheck.org/)** -- human-verifiable assistant guides, and **[Skill Provenance](https://skillprovenance.dev/)** -- version identity that travels with agent skill bundles. Also PAICE.work projects.

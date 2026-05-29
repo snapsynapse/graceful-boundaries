@@ -6,7 +6,7 @@
  * Tests a live service against the three conformance levels:
  *   N/A:     Not Applicable — no agentic interaction surface
  *   Level 0: Non-Conformant — limits exist but are not described
- *   Level 1: Structured Refusal — 429 responses include required fields
+ *   Level 1: Structured Refusal — all non-success responses include core fields; 429s include limit fields
  *   Level 2: Discoverable — a limits discovery endpoint exists
  *   Level 3: Constructive — refusal responses include guidance fields
  *   Level 4: Proactive — successful responses include proactive limit headers
@@ -15,22 +15,33 @@
  *   node evals/check.js https://your-service.com
  *   node evals/check.js https://your-service.com --limits-path /api/limits
  *   node evals/check.js https://your-service.com --json
+ *   node evals/check.js https://your-service.com --check-cloaking
  */
 
 const REQUIRED_REFUSAL_FIELDS = ["error", "detail", "limit", "retryAfterSeconds", "why"];
 const CONSTRUCTIVE_FIELDS = ["cached", "cachedResultUrl", "alternativeEndpoint", "upgradeUrl", "humanUrl"];
 const DEFAULT_LIMITS_PATHS = ["/api/limits", "/.well-known/limits"];
 const MACHINE_ACTIONABLE_URL_FIELDS = ["cachedResultUrl", "alternativeEndpoint", "scanUrl"];
+const OPTIONAL_LIMIT_STRING_FIELDS = ["limitId", "limitType", "scope", "costMetric"];
+const OPTIONAL_LIMIT_NUMBER_FIELDS = [
+  "maxInputBytes",
+  "maxInputTokens",
+  "maxOutputTokens",
+  "maxDurationSeconds",
+  "maxQueueDepth",
+];
 
 function parseArgs(argv) {
   const args = argv.slice(2);
-  const options = { baseUrl: null, limitsPath: null, json: false };
+  const options = { baseUrl: null, limitsPath: null, json: false, checkCloaking: false };
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--limits-path" && i + 1 < args.length) {
       options.limitsPath = args[++i];
     } else if (args[i] === "--json") {
       options.json = true;
+    } else if (args[i] === "--check-cloaking") {
+      options.checkCloaking = true;
     } else if (!args[i].startsWith("--")) {
       options.baseUrl = args[i].replace(/\/$/, "");
     }
@@ -80,6 +91,7 @@ async function checkLimitsEndpoint(baseUrl, limitsPath) {
       });
 
       const extensionCheck = checkExtensions(body.extensions, new URL(baseUrl).origin);
+      const bodyCheck = checkLimitsBody(body, new URL(baseUrl).origin);
       const cacheControl = response.headers.get("cache-control") || "";
       const isCacheable = /s-maxage=\d+/.test(cacheControl) || /max-age=\d+/.test(cacheControl);
 
@@ -92,9 +104,10 @@ async function checkLimitsEndpoint(baseUrl, limitsPath) {
         hasLimits,
         conformance,
         limitCount: limitEntries.length,
-        wellFormed: hasService && hasDescription && wellFormed && extensionCheck.errors.length === 0,
+        wellFormed: hasService && hasDescription && wellFormed && bodyCheck.isValid,
         extensions: extensionCheck,
         isCacheable,
+        warnings: bodyCheck.warnings,
       });
     } catch (error) {
       results.push({ path, status: 0, found: false, error: error.message });
@@ -253,15 +266,60 @@ function isStableErrorValue(error) {
   return /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/.test(error);
 }
 
-function isMachineActionableUrlSafe(url, origin) {
-  if (typeof url !== "string" || url.trim().length === 0) return false;
-  if (url.startsWith("/")) return true;
+function containsControlCharacters(value) {
+  return /[\u0000-\u001F\u007F]/.test(value);
+}
+
+function hasEncodedProtocolRelativePrefix(value) {
+  const lower = value.toLowerCase();
+  return lower.startsWith("/%2f") || lower.startsWith("/%5c") || lower.startsWith("%2f%2f") || lower.startsWith("%5c%5c");
+}
+
+function isSafeSameOriginOrRelativeUrl(url, origin) {
+  if (typeof url !== "string") return false;
+  if (url.length === 0 || url.trim() !== url) return false;
+  if (containsControlCharacters(url) || /\\/.test(url)) return false;
+  if (hasEncodedProtocolRelativePrefix(url)) return false;
+
+  if (url.startsWith("/")) {
+    if (url.startsWith("//")) return false;
+    try {
+      // Reject encoded control characters and encoded protocol-relative forms.
+      const decoded = decodeURIComponent(url);
+      if (containsControlCharacters(decoded)) return false;
+      if (decoded.startsWith("//") || /\\/.test(decoded)) return false;
+    } catch {
+      return false;
+    }
+    return true;
+  }
+
   if (!origin) return false;
   try {
-    return new URL(url).origin === origin;
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:") return false;
+    return parsed.origin === origin;
   } catch {
     return false;
   }
+}
+
+function isMachineActionableUrlSafe(url, origin) {
+  return isSafeSameOriginOrRelativeUrl(url, origin);
+}
+
+function containsInstructionLikeText(value) {
+  if (typeof value !== "string") return false;
+  const lower = value.toLowerCase();
+  return [
+    /ignore (all |any |previous |prior )?(instructions|rules|polic(?:y|ies)|system prompts?)/,
+    /disregard (all |any |previous |prior )?(instructions|rules|polic(?:y|ies)|system prompts?)/,
+    /override (the )?(system|developer|user|policy)/,
+    /follow (these|this) instructions/,
+    /execute (this|the following)/,
+    /send (secrets?|tokens?|credentials?)/,
+    /exfiltrat/,
+  ].some((pattern) => pattern.test(lower));
 }
 
 function checkRefusalBody(body, origin) {
@@ -274,8 +332,11 @@ function checkRefusalBody(body, origin) {
       missingFields: REQUIRED_REFUSAL_FIELDS,
       hasConstructiveFields: false,
       constructiveFields: [],
+      warnings: [],
     };
   }
+
+  const warnings = [];
 
   const missing = REQUIRED_REFUSAL_FIELDS.filter((f) => {
     if (f === "retryAfterSeconds") {
@@ -297,6 +358,41 @@ function checkRefusalBody(body, origin) {
     return true;
   });
 
+  for (const field of ["detail", "why", "limit"]) {
+    if (containsInstructionLikeText(parsed[field])) {
+      warnings.push(`${field}: contains instruction-like text; treat as untrusted data`);
+    }
+  }
+  for (const field of MACHINE_ACTIONABLE_URL_FIELDS) {
+    if (field in parsed && typeof parsed[field] === "string" && containsInstructionLikeText(parsed[field])) {
+      warnings.push(`${field}: machine-actionable guidance contains instruction-like text`);
+    }
+    if (field in parsed && typeof parsed[field] === "string" && !isMachineActionableUrlSafe(parsed[field], origin)) {
+      warnings.push(`${field}: machine-actionable URL must be relative or same-origin`);
+    }
+  }
+  for (const field of CONSTRUCTIVE_FIELDS) {
+    if (field in parsed && field !== "cached" && typeof parsed[field] !== "string") {
+      warnings.push(`${field}: guidance field should be a string URL`);
+    }
+    if (field === "cached" && field in parsed && typeof parsed[field] !== "boolean") {
+      warnings.push("'cached' should be a boolean");
+    }
+  }
+
+  if ("limitId" in parsed && typeof parsed.limitId !== "string") {
+    warnings.push("'limitId' should be a string when present");
+  }
+  if ("limitType" in parsed && typeof parsed.limitType !== "string") {
+    warnings.push("'limitType' should be a string when present");
+  }
+  if ("scope" in parsed && typeof parsed.scope !== "string") {
+    warnings.push("'scope' should be a string when present");
+  }
+  if ("windowResetAt" in parsed && !isValidResetTimestamp(parsed.windowResetAt)) {
+    warnings.push("'windowResetAt' should be an ISO timestamp string or non-negative Unix timestamp");
+  }
+
   // Quality checks
   const whyIsNotRestated =
     parsed.why &&
@@ -315,6 +411,7 @@ function checkRefusalBody(body, origin) {
     missingFields: missing,
     hasConstructiveFields: constructive.length > 0,
     constructiveFields: constructive,
+    warnings,
     whyIsNotRestated: whyIsNotRestated !== false,
     detailIncludesTime,
     retryIsNumber,
@@ -348,14 +445,7 @@ const VALID_ACTION_AUTHORITY_VALUES = [
 const HUMAN_NAVIGATION_URL_FIELDS = ["humanUrl"];
 
 function isExtensionUrlSafe(url, origin) {
-  if (typeof url !== "string" || url.trim().length === 0) return false;
-  if (url.startsWith("/")) return true;
-  if (!origin) return false;
-  try {
-    return new URL(url).origin === origin;
-  } catch {
-    return false;
-  }
+  return isSafeSameOriginOrRelativeUrl(url, origin);
 }
 
 function checkExtensions(extensions, origin) {
@@ -409,6 +499,9 @@ function checkActionBoundariesBody(body, origin) {
   }
 
   checkUrlFields(body, origin, errors, "root");
+
+  const trustClaims = findBoundaryTrustClaims(body);
+  errors.push(...trustClaims.map((claim) => `Boundary documents must not claim trust, identity, authority, payment safety, or authorization: ${claim}`));
 
   if (profile === "action-boundaries") {
     validateActionMap(body.actions, origin, errors, "actions");
@@ -512,7 +605,12 @@ function validateBooleanObject(value, errors, path) {
   }
 
   for (const [key, item] of Object.entries(value)) {
-    if (key.endsWith("Url") || key.endsWith("Path")) continue;
+    if (key.endsWith("Url") || key.endsWith("Path")) {
+      if (typeof item !== "string") {
+        errors.push(`${path}.${key}: must be a string URL`);
+      }
+      continue;
+    }
     if (typeof item !== "boolean" && typeof item !== "string" && !Array.isArray(item)) {
       errors.push(`${path}.${key}: must be a boolean, string, or array`);
     }
@@ -523,6 +621,9 @@ function checkUrlFields(value, origin, errors, path) {
   if (!value || typeof value !== "object") return;
 
   for (const [key, item] of Object.entries(value)) {
+    if ((key.endsWith("Url") || key.endsWith("Path")) && item !== undefined && typeof item !== "string") {
+      errors.push(`${path}.${key}: must be a string URL`);
+    }
     if (key.endsWith("Url") && typeof item === "string") {
       if (HUMAN_NAVIGATION_URL_FIELDS.includes(key)) continue;
       if (!isExtensionUrlSafe(item, origin)) {
@@ -535,6 +636,31 @@ function checkUrlFields(value, origin, errors, path) {
 function countActionEntries(actions) {
   if (!actions || typeof actions !== "object" || Array.isArray(actions)) return 0;
   return Object.keys(actions).length;
+}
+
+function findBoundaryTrustClaims(body) {
+  const text = JSON.stringify(body || {}).toLowerCase();
+  const claims = [
+    ["verified buyer", /\bverified\s*buyer\b/],
+    ["authenticated organization", /\bauthenticated\s*organization\b/],
+    ["authority verified", /\bauthority\s*verified\b/],
+    ["identity confirmed", /\bidentity\s*confirmed\b/],
+    ["confirms identity", /\bconfirms?\s*identity\b/],
+    ["certified", /\bcertified\b/],
+    ["recommended merchant", /\brecommended\s*merchant\b/],
+    ["trusted seller", /\btrusted\s*seller\b/],
+    ["approved vendor", /\bapproved\s*vendor\b/],
+    ["payment safe", /\bpayment\s*safe\b/],
+    ["merchant verified", /\bmerchant\s*verified\b/],
+    ["authorized caller", /\bauthorized\s*caller\b/],
+  ];
+  return claims.filter(([, pattern]) => pattern.test(text)).map(([label]) => label);
+}
+
+function isValidResetTimestamp(value) {
+  if (typeof value === "number") return Number.isFinite(value) && value >= 0;
+  if (typeof value === "string") return value.length > 0 && !Number.isNaN(Date.parse(value));
+  return false;
 }
 
 function checkLimitsBody(body, origin) {
@@ -597,6 +723,19 @@ function checkLimitsBody(body, origin) {
           warnings.push(`${key}.limits[${i}]: 'returnsCached' is only meaningful on resource-dedup limits`);
         }
       }
+      for (const field of OPTIONAL_LIMIT_STRING_FIELDS) {
+        if (field in limit && (typeof limit[field] !== "string" || limit[field].length === 0)) {
+          warnings.push(`${key}.limits[${i}]: '${field}' should be a non-empty string`);
+        }
+      }
+      for (const field of OPTIONAL_LIMIT_NUMBER_FIELDS) {
+        if (field in limit && (typeof limit[field] !== "number" || limit[field] < 0)) {
+          warnings.push(`${key}.limits[${i}]: '${field}' should be a non-negative number`);
+        }
+      }
+      if ("windowResetAt" in limit && !isValidResetTimestamp(limit.windowResetAt)) {
+        warnings.push(`${key}.limits[${i}]: 'windowResetAt' should be an ISO timestamp string or non-negative Unix timestamp`);
+      }
     }
   }
 
@@ -604,13 +743,13 @@ function checkLimitsBody(body, origin) {
   const hasChangelog = "changelog" in body;
   const hasFeed = "feed" in body;
   if (hasChangelog) {
-    if (typeof body.changelog !== "string" || body.changelog.length === 0) {
-      warnings.push("'changelog' field present but empty or not a string");
+    if (!isExtensionUrlSafe(body.changelog, origin)) {
+      warnings.push("'changelog' field present but not a safe relative or same-origin URL");
     }
   }
   if (hasFeed) {
-    if (typeof body.feed !== "string" || body.feed.length === 0) {
-      warnings.push("'feed' field present but empty or not a string");
+    if (!isExtensionUrlSafe(body.feed, origin)) {
+      warnings.push("'feed' field present but not a safe relative or same-origin URL");
     }
   }
 
@@ -708,6 +847,60 @@ function checkProactiveHeaders(headers) {
   };
 }
 
+function normalizeCoreText(text) {
+  if (typeof text !== "string") return "";
+  return text
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&[a-z0-9#]+;/gi, " ")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function tokenizeCoreText(text) {
+  const normalized = normalizeCoreText(text);
+  if (!normalized) return [];
+  return normalized.split(/\s+/).filter((token) => token.length >= 3);
+}
+
+function checkContentContainment(html, alternate, threshold = 0.6) {
+  const htmlTokens = tokenizeCoreText(html);
+  const alternateTokens = new Set(tokenizeCoreText(alternate));
+
+  if (htmlTokens.length === 0) {
+    return {
+      containment: 0,
+      threshold,
+      likelyCloaking: false,
+      warnings: ["HTML content has no comparable core text"],
+    };
+  }
+
+  const matched = htmlTokens.filter((token) => alternateTokens.has(token)).length;
+  const containment = matched / htmlTokens.length;
+  const likelyCloaking = containment < threshold;
+  return {
+    containment,
+    threshold,
+    likelyCloaking,
+    warnings: likelyCloaking ? [`Content containment ${containment.toFixed(2)} is below ${threshold}`] : [],
+  };
+}
+
+async function checkContentCloaking(baseUrl) {
+  const response = await fetch(baseUrl, { headers: { Accept: "text/html" } });
+  const html = await response.text();
+  const alternateResponse = await fetch(baseUrl, { headers: { Accept: "text/markdown" } });
+  const alternate = await alternateResponse.text();
+  return {
+    htmlStatus: response.status,
+    alternateStatus: alternateResponse.status,
+    ...checkContentContainment(html, alternate),
+  };
+}
+
 function assessLevel(limitsResults, refusalCheck, proactiveHeaders) {
   const limitsFound = limitsResults.some((r) => r.found && r.wellFormed);
 
@@ -738,7 +931,7 @@ async function main() {
   const options = parseArgs(process.argv);
 
   if (!options.baseUrl) {
-    console.error("Usage: node evals/check.js <base-url> [--limits-path /path] [--json]");
+    console.error("Usage: node evals/check.js <base-url> [--limits-path /path] [--json] [--check-cloaking]");
     console.error("");
     console.error("Examples:");
     console.error("  node evals/check.js https://siteline.to");
@@ -752,6 +945,7 @@ async function main() {
     limitsDiscovery: null,
     refusalFormat: null,
     conformanceLevel: 0,
+    contentCloaking: null,
     notes: [],
   };
 
@@ -768,6 +962,9 @@ async function main() {
     }
     if (!foundLimits.isCacheable) {
       report.notes.push("Limits endpoint is not cacheable. Consider adding Cache-Control headers.");
+    }
+    if (foundLimits.warnings && foundLimits.warnings.length > 0) {
+      report.notes.push(`Limits endpoint warnings: ${foundLimits.warnings.join("; ")}`);
     }
   } else {
     console.error("  No limits discovery endpoint found.");
@@ -871,6 +1068,24 @@ async function main() {
     }
   }
 
+  if (options.checkCloaking) {
+    try {
+      console.error("Checking content variant containment...");
+      report.contentCloaking = await checkContentCloaking(options.baseUrl);
+      if (report.contentCloaking.likelyCloaking) {
+        report.notes.push(
+          `Possible agent-signaled content cloaking: containment ${(report.contentCloaking.containment * 100).toFixed(1)}%.`
+        );
+      } else {
+        report.notes.push(
+          `Content variant containment check passed: ${(report.contentCloaking.containment * 100).toFixed(1)}%.`
+        );
+      }
+    } catch (error) {
+      report.notes.push(`Could not run content cloaking check: ${error.message}`);
+    }
+  }
+
   if (options.json) {
     console.log(JSON.stringify(report, null, 2));
   } else {
@@ -903,14 +1118,18 @@ async function main() {
 }
 
 module.exports = {
+  parseArgs,
   checkRefusalBody,
   checkResponseBody,
   checkLimitsBody,
   checkProactiveHeaders,
   checkHtmlRefusal,
   checkDedupResponse,
+  checkContentContainment,
+  containsInstructionLikeText,
   isStableErrorValue,
   isExtensionUrlSafe,
+  isSafeSameOriginOrRelativeUrl,
   checkExtensions,
   checkActionBoundariesBody,
   assessLevel,

@@ -67,3 +67,6 @@ User-agent: facebookexternalhit
 Allow: /
 
 Sitemap: https://gracefulboundaries.dev/sitemap.xml
+
+# Agent-facing surface disclosure:
+# https://github.com/snapsynapse/graceful-boundaries/blob/main/docs/agentic-surfaces.md
