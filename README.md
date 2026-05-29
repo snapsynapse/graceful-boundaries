@@ -9,6 +9,18 @@ A specification for how services communicate their operational limits to humans 
 [![Tests](https://img.shields.io/github/actions/workflow/status/snapsynapse/graceful-boundaries/test.yml?label=tests)](https://github.com/snapsynapse/graceful-boundaries/actions)
 [![ClawHub](https://img.shields.io/badge/ClawHub-83%20installs-blue)](https://clawhub.ai/snapsynapse/graceful-boundaries)
 
+## Who this is for
+
+API and service operators, plus the agent builders calling them, who need operational limits expressed in a way autonomous callers can actually act on.
+
+## What problem it solves
+
+Services signal limits with status codes (429, 403, 500) that agents can't interpret, so agents retry blindly and the waste compounds. Graceful Boundaries is a specification for communicating operational limits to humans and autonomous agents.
+
+## Canonical URL
+
+https://gracefulboundaries.dev/
+
 ## The problem
 
 Every unclear response generates follow-up traffic. A vague `429` causes blind retries. A vague `403` causes re-attempts with different credentials. A generic `500` causes indefinite retries. When autonomous agents are the caller, the waste compounds: agents retry faster, probe more systematically, and lack the human judgment to know when to stop.
