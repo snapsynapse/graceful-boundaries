@@ -1,0 +1,58 @@
+# Skill Provenance manifest for graceful-boundaries
+# This repo is the canonical home for two skill bundles that live at the
+# repo root (see INTENT.md "Exceptions to Repo Standards"):
+#   - graceful-boundaries-audit  (SKILL.md)
+#   - graceful-boundaries-builder (SKILL-builder.md)
+
+bundle: graceful-boundaries
+home: https://github.com/snapsynapse/graceful-boundaries
+canonical_url: https://gracefulboundaries.dev/
+spec_url: https://gracefulboundaries.dev/spec
+spec_version: 1.4.0
+license_code: MIT
+license_spec: CC-BY-4.0
+manifest_version: 1
+date: 2026-06-03
+
+skills:
+  - name: graceful-boundaries-audit
+    file: SKILL.md
+    sha256: 5092d2ab4ba0546854104b5503d5f6c064782296e65657961a164ce38060fab4
+    role: audit
+    description: |
+      Assess any API or website's Graceful Boundaries conformance level
+      (N/A through 4) and provide concrete guidance for reaching the next level.
+
+  - name: graceful-boundaries-builder
+    file: SKILL-builder.md
+    sha256: 922cee848c842093c02483b3ac521bb1b39bb5a2b461654d9f1b9ca8e73d0413
+    role: builder
+    description: |
+      Implement Graceful Boundaries in an existing API or service. Adds
+      structured refusals, limits discovery, constructive guidance, and
+      proactive headers per the conformance ladder.
+
+verifier:
+  - name: evals/check.js
+    role: conformance-checker
+    runs: node evals/check.js <url>
+
+assistant_guide:
+  file: assistant-guide.txt
+  served_at:
+    - https://gracefulboundaries.dev/assistant-guide.txt
+    - https://gracefulboundaries.dev/.well-known/assistant-guide.txt
+  guidecheck_version: "0.3.0"
+
+related_standards:
+  - hardguard25
+  - guidecheck
+  - skill-provenance
+
+notes:
+  - Hash values are computed at manifest write time. Run skill-provenance:close to
+    refresh on edit. Drift detection is part of the release checklist.
+  - Both skill files live at repo root, not in skills/<bundle>/. This is the
+    "skill IS the repo" pattern; see INTENT.md Exceptions section. The
+    cross-portfolio standards doc treats this as an open layout question for
+    v0.4 of `0_Across/Repo Standards.md`.

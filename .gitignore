@@ -1,20 +1,33 @@
-node_modules/
+.DS_Store
 **/.DS_Store
+.env
+.env.*
+!.env.example
+.claude/
+.vercel
+node_modules/
+dist/
+build/
+
+# Logs / editor swap
 *.log
 *.swp
 *.swo
 *~
-.perplexity-research/
-.claude/launch.json
 
-# --- baseline additions (automated audit 2026-04-21) ---
-.env
-.env.*
+# Python
 __pycache__/
 *.pyc
-.vscode/
-.idea/
-dist/
-build/
 .venv/
 venv/
+
+# Editors
+.vscode/
+.idea/
+
+# Research scratch
+.perplexity-research/
+
+# Local working state
+handoffs/
+working/
