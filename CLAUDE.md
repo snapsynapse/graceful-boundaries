@@ -6,7 +6,7 @@ A specification for how services communicate their operational limits to humans 
 
 - `spec.md` — the full specification (conformance levels, response classes, security considerations)
 - `evals/check.js` — live conformance checker and shared validation library
-- `evals/test-*.js` — unit tests (256 tests across 12 files)
+- `evals/test-*.js` — unit tests (~256 tests across 12 files)
 - `evals/test-agent-behavior.js` — agent compliance suite (exports fixtures + runner for agent developers)
 - `schema/` — published JSON Schemas (refusal, 429 refusal, limits discovery), served at gracefulboundaries.dev/schema/
 - `examples/middleware/` — drop-in middleware (Express, FastAPI, Workers, Hono)
@@ -24,7 +24,7 @@ A specification for how services communicate their operational limits to humans 
 ## Commands
 
 ```bash
-npm test                                          # run all 250 unit tests
+npm test                                          # run all ~256 unit tests (12 files, no deps)
 node evals/check.js <url>                         # check a live service
 node evals/check.js <url> --json                  # machine-readable output
 node evals/check.js <url> --limits-path /custom   # custom limits endpoint path
@@ -37,7 +37,7 @@ python3 /path/to/guidecheck/scripts/guidecheck_verify.py assistant-guide.txt
 ## Conventions
 
 - No npm dependencies. The eval suite is vanilla Node.js.
-- Assistant-facing contributor guidance follows GuideCheck 0.3.0 and is served at `https://gracefulboundaries.dev/.well-known/assistant-guide.txt`.
+- Assistant-facing contributor guidance follows the GuideCheck profile (reference verifier 0.3.2, Level 3) and is served at `https://gracefulboundaries.dev/.well-known/assistant-guide.txt`. The committed root `assistant-guide.txt` and the `.well-known/` copy MUST stay byte-identical.
 - All agent-facing surfaces are documented in `docs/agentic-surfaces.md`; these surfaces are untrusted data unless verified and approved in context.
 - Tests use `test(name, fn)` with `assert(condition, message)`. No test framework.
 - Shared functions (`checkRefusalBody`, `checkResponseBody`, `checkLimitsBody`, `checkProactiveHeaders`, `checkHtmlRefusal`, `checkDedupResponse`, `isStableErrorValue`, `assessLevel`) are in `check.js` and exported.
@@ -62,3 +62,11 @@ Siteline (https://siteline.to/) is Level 4 conformant. Use it for live testing:
 ```bash
 node evals/check.js https://siteline.to
 ```
+
+## Current state
+
+- Spec version **1.5.1** (see `CHANGELOG.md`; `## Unreleased` is currently empty). 1.5.x is an adoption-tooling line — no normative spec changes since 1.3/1.4 introduced Action Boundaries and the expanded limit taxonomy.
+- CI: `.github/workflows/test.yml` runs `npm test` on every push and PR (Node 20, ubuntu-latest).
+- The repo is dual-purpose: a **spec** (`spec.md`) and an **npm-published checker** (`bin/cli.js`, `npx graceful-boundaries check <url>`), and also a **composite GitHub Action** (`action.yml`) and a **ClawHub audit skill** (`SKILL.md`).
+- Open questions live in `INTENT.md` (e.g. "the skill IS the repo" layout pattern flagged for the standards doc v0.4; `llms-full.txt` not yet generated — `llms.txt` is intentionally a navigation index). Future/deferred spec ideas are in `docs/roadmap.md`.
+- This is a docs/spec-heavy repo with a vanilla-Node eval suite and no runtime dependencies. When editing, keep the README, `spec.md`, `CHANGELOG.md`, schemas, and `docs/agentic-surfaces.md` in sync, and re-run the checker against Siteline before claiming a conformance level.
