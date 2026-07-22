@@ -1,0 +1,70 @@
+name: Adoption report
+description: Share implementation experience and request an adopter-registry review.
+title: "Adoption: [service name]"
+labels: ["adoption"]
+body:
+  - type: input
+    id: service
+    attributes:
+      label: Service name
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Canonical service URL
+      placeholder: https://api.example.com/
+    validations:
+      required: true
+  - type: dropdown
+    id: target-level
+    attributes:
+      label: Implemented level
+      options:
+        - Level 1
+        - Level 2
+        - Level 3
+        - Level 4
+    validations:
+      required: true
+  - type: input
+    id: discovery
+    attributes:
+      label: Limits discovery endpoint
+      placeholder: /api/limits
+  - type: input
+    id: implementation-time
+    attributes:
+      label: Approximate implementation time
+      placeholder: 3 hours
+  - type: dropdown
+    id: implementation-path
+    attributes:
+      label: Implementation path
+      options:
+        - Repository middleware example
+        - Custom middleware
+        - Framework or platform integration
+        - Existing error layer adapted
+        - Documentation or discovery only
+    validations:
+      required: true
+  - type: textarea
+    id: checker-output
+    attributes:
+      label: Checker output
+      description: Paste `npx graceful-boundaries check <url> --json` output.
+      render: json
+  - type: textarea
+    id: friction
+    attributes:
+      label: Implementation friction and unclear fields
+      description: Include anything that was ambiguous, missing, or harder than expected.
+    validations:
+      required: true
+  - type: checkboxes
+    id: registry
+    attributes:
+      label: Registry request
+      options:
+        - label: Please review this service for inclusion in ADOPTERS.md.

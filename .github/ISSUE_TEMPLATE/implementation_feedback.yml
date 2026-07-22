@@ -1,0 +1,47 @@
+name: Implementation feedback
+description: Validate deferred taxonomy, multi-limit, or Action Boundaries design against a real deployment.
+title: "Implementation feedback: [topic]"
+labels: ["implementation-feedback"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Quota or cost metadata
+        - Multiple interacting limits
+        - Unknown limit types
+        - Agent response handling
+        - Action Boundaries
+        - Commercial Boundaries
+    validations:
+      required: true
+  - type: input
+    id: service
+    attributes:
+      label: Service or implementation
+      description: A public URL is helpful but not required.
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Real implementation scenario
+      description: Describe the enforced limits or consequential actions and the caller behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: fields
+    attributes:
+      label: Fields tested
+      description: Include a redacted discovery or refusal example when possible.
+      render: json
+  - type: textarea
+    id: findings
+    attributes:
+      label: What worked and what did not
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Suggested clarification or change
+      description: Explain why existing fields or guidance are insufficient.

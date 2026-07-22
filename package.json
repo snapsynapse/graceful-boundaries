@@ -1,6 +1,6 @@
 {
   "name": "graceful-boundaries",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "A specification for how services communicate their operational limits to humans and autonomous agents.",
   "license": "CC-BY-4.0 AND MIT",
   "bin": {

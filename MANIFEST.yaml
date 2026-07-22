@@ -8,11 +8,11 @@ bundle: graceful-boundaries
 home: https://github.com/snapsynapse/graceful-boundaries
 canonical_url: https://gracefulboundaries.dev/
 spec_url: https://gracefulboundaries.dev/spec
-spec_version: 1.5.0
+spec_version: 1.5.2
 license_code: MIT
 license_spec: CC-BY-4.0
 manifest_version: 1
-date: 2026-06-09
+date: 2026-07-21
 
 skills:
   - name: graceful-boundaries-audit

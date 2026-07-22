@@ -171,10 +171,75 @@ test("GitHub Action passes inputs through environment variables", () => {
   assert(!/\$\{\{\s*inputs\./.test(runBlock), "run block must not interpolate action inputs directly");
 });
 
+test("release version is consistent across published surfaces", () => {
+  const packageVersion = JSON.parse(readRepoFile("package.json")).version;
+  const checks = {
+    "spec.md": /^\*\*Version:\*\* (\S+)$/m,
+    "README.md": /version-(\d+\.\d+\.\d+)-blue/,
+    "index.html": /<span class="version">v(\d+\.\d+\.\d+)<\/span>/,
+    "llms.txt": /^- Version: (\S+)$/m,
+    "MANIFEST.yaml": /^spec_version: (\S+)$/m,
+    "CLAUDE.md": /Spec version \*\*(\d+\.\d+\.\d+)\*\*/,
+    "PROJECT_CONTEXT.md": /Spec version \*\*(\d+\.\d+\.\d+)\*\*/,
+  };
+
+  for (const [file, pattern] of Object.entries(checks)) {
+    const match = readRepoFile(file).match(pattern);
+    assert(match, `${file} must disclose a machine-checkable release version`);
+    assert.strictEqual(match[1], packageVersion, `${file} version must match package.json`);
+  }
+
+  const changelog = readRepoFile("CHANGELOG.md");
+  const latest = changelog.match(/## Unreleased\s+## \[([^\]]+)\]/);
+  assert(latest, "CHANGELOG.md must place the latest release immediately after Unreleased");
+  assert.strictEqual(latest[1], packageVersion, "latest changelog release must match package.json");
+
+  const specDate = readRepoFile("spec.md").match(/^\*\*Date:\*\* (\d{4}-\d{2}-\d{2})$/m);
+  assert(specDate, "spec.md must disclose an ISO release date");
+  const dateChecks = {
+    "CHANGELOG.md": new RegExp(`^## \\[${packageVersion.replace(/\./g, "\\.")}\\] - (${specDate[1]})$`, "m"),
+    "index.html": new RegExp(`<time datetime="(${specDate[1]})">`),
+    "llms.txt": new RegExp(`^- Updated: (${specDate[1]})$`, "m"),
+    "MANIFEST.yaml": new RegExp(`^date: (${specDate[1]})$`, "m"),
+  };
+  for (const [file, pattern] of Object.entries(dateChecks)) {
+    assert(pattern.test(readRepoFile(file)), `${file} release date must match spec.md`);
+  }
+});
+
+test("Skill Provenance manifest hashes match both skill files", () => {
+  const manifest = readRepoFile("MANIFEST.yaml");
+  const blocks = manifest.split(/\n  - name: /).slice(1);
+
+  for (const skillFile of ["SKILL.md", "SKILL-builder.md"]) {
+    const block = blocks.find((candidate) => candidate.includes(`\n    file: ${skillFile}\n`));
+    assert(block, `MANIFEST.yaml must inventory ${skillFile}`);
+    const declared = block.match(/\n    sha256: ([a-f0-9]{64})\n/);
+    assert(declared, `MANIFEST.yaml must declare a SHA-256 for ${skillFile}`);
+    assert.strictEqual(declared[1], sha256(readRepoFile(skillFile)), `${skillFile} hash must match MANIFEST.yaml`);
+  }
+});
+
+test("adopter revalidation workflow covers every registered service", () => {
+  const adopters = readRepoFile("ADOPTERS.md");
+  const workflow = readRepoFile(".github/workflows/adopter-revalidation.yml");
+  const urls = [...adopters.matchAll(/\[[^\]]+\]\((https:\/\/[^)]+)\)\s*\|\s*[0-4]/g)]
+    .map((match) => match[1]);
+
+  assert(urls.length > 0, "ADOPTERS.md must contain at least one registered service");
+  for (const url of urls) {
+    assert(workflow.includes(`url: ${url}`), `${url} must be present in the adopter revalidation matrix`);
+  }
+  assert(workflow.includes("schedule:"), "adopter revalidation must run on a schedule");
+  assert(workflow.includes("workflow_dispatch:"), "adopter revalidation must support manual runs");
+  assert(workflow.includes("actions/upload-artifact@v4"), "adopter revalidation must retain JSON evidence");
+  assert(workflow.includes("timeout-minutes:"), "live adopter checks must have a bounded job timeout");
+});
+
 test("public docs disclose the current unit test count", () => {
   const count = countUnitTests();
   const expected = `${count} tests`;
-  for (const file of ["README.md", "CONFORMANCE.md", "AGENTS.md", "CLAUDE.md", "index.html"]) {
+  for (const file of ["README.md", "CONFORMANCE.md", "AGENTS.md", "CLAUDE.md", "index.html", "RELEASE_CHECKLIST.md", ".github/PULL_REQUEST_TEMPLATE.md"]) {
     assert(readRepoFile(file).includes(expected), `${file} must include ${expected}`);
   }
 });

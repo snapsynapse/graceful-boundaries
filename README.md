@@ -5,7 +5,7 @@ A specification for how services communicate their operational limits to humans 
 **[gracefulboundaries.dev](https://gracefulboundaries.dev)**
 
 [![License: CC-BY-4.0](https://img.shields.io/badge/License-CC--BY--4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![Version](https://img.shields.io/badge/version-1.5.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.2-blue.svg)](CHANGELOG.md)
 [![Tests](https://img.shields.io/github/actions/workflow/status/snapsynapse/graceful-boundaries/test.yml?label=tests)](https://github.com/snapsynapse/graceful-boundaries/actions)
 [![ClawHub](https://img.shields.io/badge/ClawHub-83%20installs-blue)](https://clawhub.ai/snapsynapse/graceful-boundaries)
 
@@ -141,7 +141,7 @@ npx graceful-boundaries check https://your-service.com --check-cloaking
 
 ![Checker output: Siteline confirms Level 4, Google confirms Level 0](imgs/checker-demo.svg)
 
-Or clone and run from the project root with `node evals/check.js <url>`. Run the unit test suite (256 tests, no dependencies):
+Or clone and run from the project root with `node evals/check.js <url>`. Run the unit test suite (259 tests, no dependencies):
 
 ```bash
 npm test
@@ -239,6 +239,8 @@ npx graceful-boundaries check https://siteline.to
 
 Services implementing the spec are listed in [ADOPTERS.md](ADOPTERS.md), which also covers how to add yours and embed a conformance badge.
 
+The [adoption validation plan](docs/adoption-validation.md) defines the evidence required before deferred fields or extensions are promoted. Registered services are rechecked weekly, with point-in-time JSON results retained as workflow artifacts rather than presented as certification.
+
 ## Security
 
 The specification includes a [threat model and security audit](SECURITY-AUDIT.md) covering rate limit calibration attacks, security posture disclosure, validation oracles, content cloaking via agent-signaling headers, action boundary risks, untrusted machine-readable guidance, and other considerations (SC-1 through SC-16), all addressed in the spec.
@@ -249,7 +251,7 @@ Graceful Boundaries is free and open. If your team relies on this spec, consider
 
 ## License
 
-CC-BY-4.0. Use it, adapt it, build on it. Attribution required.
+The specification and documentation are CC-BY-4.0. The checker and reference code are MIT licensed. See [LICENSE-SPEC](LICENSE-SPEC) and [LICENSE](LICENSE).
 
 ## About
 
