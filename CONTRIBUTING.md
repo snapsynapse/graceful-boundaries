@@ -35,6 +35,15 @@ node evals/check.js https://your-service.com --limits-path /.well-known/limits
 node evals/check.js https://your-service.com --check-cloaking
 ```
 
+## Validation workflow
+
+Repository validation and deployed-service validation are separate phases:
+
+1. Run `npm test` offline before every pull request. This validates the checker, schemas, examples, middleware, agent behavior fixtures, and release metadata without contacting a service.
+2. Run `node evals/check.js https://your-service.com` against the deployed service after offline tests pass. This validates observable discovery and proactive-header behavior. Level 1 and Level 3 claims also require observing a real refusal response.
+
+Do not replace the offline suite with a live check. A live result describes one service at one point in time; it does not validate repository contracts.
+
 ## How to contribute
 
 1. Fork the repo and create a branch.

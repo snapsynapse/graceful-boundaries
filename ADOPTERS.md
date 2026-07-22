@@ -2,6 +2,8 @@
 
 Services that implement Graceful Boundaries. Self-declared, checker-verified.
 
+Implementation feedback is tracked through the [adoption validation plan](docs/adoption-validation.md). Registered services are passively revalidated each week, with JSON checker output retained as workflow evidence.
+
 ## Registry
 
 | Service | Level | Discovery endpoint | Declared | Verify |

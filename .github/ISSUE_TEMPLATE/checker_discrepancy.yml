@@ -1,0 +1,46 @@
+name: Checker discrepancy
+description: Report a difference between observed service behavior and checker output.
+title: "Checker discrepancy: [short description]"
+labels: ["bug", "checker"]
+body:
+  - type: input
+    id: target
+    attributes:
+      label: Target URL
+      placeholder: https://api.example.com/
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Checker version
+      placeholder: npx graceful-boundaries@1.5.2
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Exact command
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Checker output
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Independently observed behavior
+      description: Describe the response, headers, or discovery document that differs from the report. Remove secrets.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected checker behavior
+    validations:
+      required: true

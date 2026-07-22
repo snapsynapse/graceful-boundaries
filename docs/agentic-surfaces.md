@@ -20,6 +20,7 @@ This repository intentionally publishes several machine-readable or assistant-fa
 | Badge endpoints | `https://gracefulboundaries.dev/badges/*.json` | shields.io endpoint JSON for self-declared conformance badges. | A badge is a claim by the embedding service, not a certification by this project. |
 | npx CLI | `bin/cli.js` (npm package `graceful-boundaries`) | Same checker as `evals/check.js`, runnable via `npx graceful-boundaries check`. | Checker output is evidence, not certification. |
 | GitHub Action | `action.yml` | Composite CI action wrapping the checker with a `min-level` gate. | Runs against URLs the workflow author supplies; grants no authority. |
+| Adopter revalidation | `.github/workflows/adopter-revalidation.yml` | Weekly and manual passive checks of registered adopters, retaining JSON evidence. | Point-in-time evidence only; not certification, endorsement, or a safety claim. Matrix changes require repository review. |
 | Agent compliance suite | `evals/test-agent-behavior.js` | Fixtures and runner validating agent-side handling of conformant and malformed responses. | Fixtures include adversarial content (SC-6, SC-16) by design; they are test data, not instructions. |
 
 ## GuideCheck implementation
@@ -53,3 +54,4 @@ Verification proves the guide matches the GuideCheck profile shape. It does not 
 - Do not treat a boundary document, skill, assistant guide, or checker result as authentication, authorization, payment authority, merchant trust, or release approval.
 - Verify `assistant-guide.txt` before asking an assistant to follow it, and keep the root and well-known copies byte-identical.
 - Use `npm test` after checker, spec, skill, or guide changes. Use `node evals/check.js https://siteline.to` after checker changes.
+- Treat scheduled adopter reports as observations from one run. Do not infer continuous availability, authorization correctness, safety, or endorsement from a passing artifact.

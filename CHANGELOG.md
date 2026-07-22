@@ -6,6 +6,23 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 
 ## Unreleased
 
+## [1.5.2] - 2026-07-21
+
+### Added
+- Release-contract evals that enforce version agreement across published surfaces and verify Skill Provenance hashes.
+- Weekly and manually triggered adopter revalidation with retained JSON checker evidence.
+- Structured issue forms for adoption reports, checker discrepancies, and implementation feedback.
+- An adoption validation plan with measurable evidence targets and decision gates for future normative changes.
+
+### Changed
+- Updated the roadmap to mark the unknown-limit fallback and agent compliance runner as shipped work.
+- Documented the two-phase offline and live validation workflow for contributors.
+- Aligned release metadata, test counts, licensing copy, and social descriptions across public and agent-facing surfaces.
+
+### Notes
+- No normative spec changes. The Level 1 through Level 4 conformance model is unchanged.
+- This release restores reproducible package and stable GitHub Action release channels after the action-only 1.5.1 tag did not contain matching npm/spec version metadata.
+
 ## [1.5.1] - 2026-06-23
 
 ### Changed

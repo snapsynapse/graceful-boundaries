@@ -8,7 +8,7 @@ Guidelines for AI agents working on the Graceful Boundaries repository.
 |------|------|
 | `spec.md` | Source of truth. All normative requirements live here. |
 | `evals/check.js` | Live conformance checker and shared validation library. |
-| `evals/test-*.js` | Unit tests (256 tests across 12 files). |
+| `evals/test-*.js` | Unit tests (259 tests across 12 files). |
 | `schema/` | Published JSON Schemas; must stay in sync with spec.md and check.js (enforced by test-schemas.js). |
 | `examples/` | Drop-in middleware and worked limits.json examples; covered by tests. |
 | `bin/cli.js` | npx entry point wrapping check.js. |

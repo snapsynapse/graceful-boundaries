@@ -2,6 +2,8 @@
 
 Proposed enhancements for future versions of Graceful Boundaries. These were identified during the v1.1 cycle but deferred to avoid scope expansion before adoption validates the core spec.
 
+The current evidence plan is documented in [adoption-validation.md](adoption-validation.md). New normative fields remain gated on repeated implementation evidence.
+
 ## Current: Action Boundaries
 
 Graceful Boundaries 1.3 introduced optional extension discovery and a non-normative Action Boundaries draft. The core Level 1 through Level 4 conformance model remains unchanged.
@@ -49,7 +51,7 @@ Graceful Boundaries 1.4 adds optional metadata for common quota, cost, size, tok
 
 ### Unknown limit type fallback guidance
 
-The spec says unknown types SHOULD be treated as "opaque constraints." This is too vague for agent developers. Future versions should specify that agents encountering unknown types SHOULD parse `maxRequests` and `windowSeconds` if present and treat violations as windowed rate limits.
+Completed in 1.4. The spec now says agents encountering unknown types with `maxRequests` and `windowSeconds` SHOULD conservatively treat them as windowed limits.
 
 ## Future Candidate: Multi-Limit Interactions
 
@@ -100,9 +102,7 @@ When an agent processing a batch gets a 429, it doesn't know details about which
 
 ### Agent compliance self-checker
 
-A test harness (`evals/test-agent-behavior.js`) that validates an agent's response handling — does it parse refusal bodies correctly, respect `retryAfterSeconds`, handle edge cases (negative seconds, zero remaining)?
-
-This is tooling rather than spec work, but would improve ecosystem quality.
+Completed in 1.5. `evals/test-agent-behavior.js` exports fixtures and a runner covering retry timing, cached-result preference, unsafe guidance URLs, instruction-like text, malformed retry values, header fallbacks, and proactive self-throttling.
 
 ## Documentation
 
@@ -112,7 +112,7 @@ The security audit (SECURITY-AUDIT.md) lists threats but doesn't show concrete a
 
 ### Eval suite workflow documentation
 
-Clarify the two-phase testing workflow in CONTRIBUTING.md: unit tests (offline, CI-friendly) → live checker (validates deployed service). Currently these are documented separately but the workflow connecting them isn't explicit.
+Completed in 1.5.2. CONTRIBUTING.md now distinguishes offline repository validation from live deployed-service conformance checks.
 
 ## Non-Goals
 
