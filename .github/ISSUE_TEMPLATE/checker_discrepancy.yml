@@ -14,7 +14,7 @@ body:
     id: version
     attributes:
       label: Checker version
-      placeholder: npx graceful-boundaries@1.5.2
+      placeholder: npx graceful-boundaries@1.5.3
     validations:
       required: true
   - type: textarea

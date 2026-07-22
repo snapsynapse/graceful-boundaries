@@ -205,6 +205,36 @@ test("release version is consistent across published surfaces", () => {
   for (const [file, pattern] of Object.entries(dateChecks)) {
     assert(pattern.test(readRepoFile(file)), `${file} release date must match spec.md`);
   }
+
+  const manifestSpecUrl = readRepoFile("MANIFEST.yaml").match(/^spec_url: (\S+)$/m);
+  assert(manifestSpecUrl, "MANIFEST.yaml must disclose the canonical public spec URL");
+  assert.strictEqual(
+    manifestSpecUrl[1],
+    "https://gracefulboundaries.dev/spec.md",
+    "canonical public spec URL must use the deployed markdown endpoint"
+  );
+  const specUrlSurfaces = [
+    "RELEASE_CHECKLIST.md",
+    "schema/limits.schema.json",
+    "schema/refusal.schema.json",
+    "schema/refusal-429.schema.json",
+    "examples/middleware/express/graceful-boundaries.js",
+    "examples/middleware/fastapi/graceful_boundaries.py",
+    "examples/middleware/hono/graceful-boundaries.js",
+    "examples/middleware/workers/graceful-boundaries.js",
+    "examples/middleware/workers/README.md",
+  ];
+  for (const file of specUrlSurfaces) {
+    const content = readRepoFile(file);
+    assert(content.includes(manifestSpecUrl[1]), `${file} must use the canonical public spec URL`);
+    assert(
+      !/https:\/\/gracefulboundaries\.dev\/spec(?!\.md)/.test(content),
+      `${file} must not reference an undeployed spec URL`
+    );
+  }
+  const sitemap = readRepoFile("sitemap.xml");
+  assert(sitemap.includes(`<loc>${manifestSpecUrl[1]}</loc>`), "sitemap.xml must include the canonical public spec URL");
+  assert(sitemap.includes(`<lastmod>${specDate[1]}</lastmod>`), "sitemap.xml must include the current release date");
 });
 
 test("Skill Provenance manifest hashes match both skill files", () => {

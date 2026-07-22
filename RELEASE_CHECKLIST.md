@@ -40,7 +40,7 @@ If this release changes trust semantics, URL handling, agent guidance, conforman
 ## Post-release verification
 
 - [ ] https://gracefulboundaries.dev/ shows the new version
-- [ ] https://gracefulboundaries.dev/spec serves updated content
+- [ ] https://gracefulboundaries.dev/spec.md serves updated content
 - [ ] https://gracefulboundaries.dev/.well-known/assistant-guide.txt SHA-256 matches the in-repo `.sha256` sidecar (if present)
 - [ ] No 5xx or 4xx on the landing page after Pages deploy completes
 - [ ] Siteline still conforms to its claimed level

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://gracefulboundaries.dev/schema/refusal.schema.json",
   "title": "Graceful Boundaries non-success response",
-  "description": "Core structured refusal shape for all non-success HTTP responses (400, 401, 403, 404, 405, 410, 422, 429, 500, 502, 503, 504) per Graceful Boundaries. Spec: https://gracefulboundaries.dev/spec",
+  "description": "Core structured refusal shape for all non-success HTTP responses (400, 401, 403, 404, 405, 410, 422, 429, 500, 502, 503, 504) per Graceful Boundaries. Spec: https://gracefulboundaries.dev/spec.md",
   "type": "object",
   "required": ["error", "detail", "why"],
   "properties": {

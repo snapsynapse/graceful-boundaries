@@ -10,7 +10,7 @@
  * per-isolate. Back `take()` with a shared store for multi-instance
  * deployments.
  *
- * Spec: https://gracefulboundaries.dev/spec
+ * Spec: https://gracefulboundaries.dev/spec.md
  * Schemas: https://gracefulboundaries.dev/schema/
  *
  * Usage:

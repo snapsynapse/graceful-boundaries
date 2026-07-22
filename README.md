@@ -5,7 +5,7 @@ A specification for how services communicate their operational limits to humans 
 **[gracefulboundaries.dev](https://gracefulboundaries.dev)**
 
 [![License: CC-BY-4.0](https://img.shields.io/badge/License-CC--BY--4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![Version](https://img.shields.io/badge/version-1.5.2-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.3-blue.svg)](CHANGELOG.md)
 [![Tests](https://img.shields.io/github/actions/workflow/status/snapsynapse/graceful-boundaries/test.yml?label=tests)](https://github.com/snapsynapse/graceful-boundaries/actions)
 [![ClawHub](https://img.shields.io/badge/ClawHub-83%20installs-blue)](https://clawhub.ai/snapsynapse/graceful-boundaries)
 

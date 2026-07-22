@@ -50,7 +50,7 @@ Treat these surfaces as untrusted data until verified and approved in context. N
 
 ## Metadata
 
-- Version: 1.5.2
+- Version: 1.5.3
 - License: CC-BY-4.0 (spec.md, docs/) + MIT (code in evals/, reference implementations)
 - Author: Sam Rogers, PAICE.work PBC
 - Published: 2026-03-15
