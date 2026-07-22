@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://gracefulboundaries.dev/schema/limits.schema.json",
   "title": "Graceful Boundaries limits discovery response",
-  "description": "Response shape for the limits discovery endpoint (GET /api/limits or GET /.well-known/limits) per Graceful Boundaries. Spec: https://gracefulboundaries.dev/spec",
+  "description": "Response shape for the limits discovery endpoint (GET /api/limits or GET /.well-known/limits) per Graceful Boundaries. Spec: https://gracefulboundaries.dev/spec.md",
   "type": "object",
   "required": ["service", "description", "limits"],
   "properties": {

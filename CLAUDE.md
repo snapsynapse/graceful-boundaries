@@ -65,7 +65,7 @@ node evals/check.js https://siteline.to
 
 ## Current state
 
-- Spec version **1.5.2** (see `CHANGELOG.md`; `## Unreleased` is currently empty). 1.5.x is an adoption-tooling line with no normative spec changes since 1.3/1.4 introduced Action Boundaries and the expanded limit taxonomy.
+- Spec version **1.5.3** (see `CHANGELOG.md`; `## Unreleased` is currently empty). 1.5.x is an adoption-tooling line with no normative spec changes since 1.3/1.4 introduced Action Boundaries and the expanded limit taxonomy.
 - CI: `.github/workflows/test.yml` runs `npm test` on every push and PR (Node 20, ubuntu-latest).
 - The repo is dual-purpose: a **spec** (`spec.md`) and an **npm-published checker** (`bin/cli.js`, `npx graceful-boundaries check <url>`), and also a **composite GitHub Action** (`action.yml`) and a **ClawHub audit skill** (`SKILL.md`).
 - Open questions live in `INTENT.md` (e.g. "the skill IS the repo" layout pattern flagged for the standards doc v0.4; `llms-full.txt` not yet generated — `llms.txt` is intentionally a navigation index). Future/deferred spec ideas are in `docs/roadmap.md`.

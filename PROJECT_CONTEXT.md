@@ -47,7 +47,7 @@ Discernible from README, spec, and docs:
 
 ## Current status
 
-- Spec version **1.5.2** (adoption-tooling line; no normative changes since 1.3/1.4). `CHANGELOG.md` `## Unreleased` is currently empty.
+- Spec version **1.5.3** (adoption-tooling line; no normative changes since 1.3/1.4). `CHANGELOG.md` `## Unreleased` is currently empty.
 - Actively maintained: clean working tree, tests green in CI on every push/PR.
 - License: **CC-BY-4.0** for the spec/content; MIT for the checker code (`LICENSE-SPEC` / `LICENSE`).
 - Open questions and deferred ideas are tracked in `INTENT.md` and `docs/roadmap.md`.

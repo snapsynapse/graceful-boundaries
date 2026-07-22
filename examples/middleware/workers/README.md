@@ -67,4 +67,4 @@ simple = { limit = 60, period = 3600 }
 npx graceful-boundaries check https://my-worker.example.workers.dev
 ```
 
-The spec's Appendix A covers edge runtime considerations (jitter, per-colo counting): https://gracefulboundaries.dev/spec
+The spec's Appendix A covers edge runtime considerations (jitter, per-colo counting): https://gracefulboundaries.dev/spec.md

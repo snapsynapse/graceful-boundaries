@@ -10,7 +10,7 @@
  * process. For multi-instance deployments back the counter with your shared
  * store (Redis, etc.); only `take()` needs to change.
  *
- * Spec: https://gracefulboundaries.dev/spec
+ * Spec: https://gracefulboundaries.dev/spec.md
  * Schemas: https://gracefulboundaries.dev/schema/
  *
  * Usage:

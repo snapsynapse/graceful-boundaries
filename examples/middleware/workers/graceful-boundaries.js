@@ -10,7 +10,7 @@
  * or falls back to an in-isolate Map (best-effort only — isolates are
  * ephemeral). For strict global counting use a Durable Object.
  *
- * Spec: https://gracefulboundaries.dev/spec
+ * Spec: https://gracefulboundaries.dev/spec.md
  * Schemas: https://gracefulboundaries.dev/schema/
  *
  * Usage (module Worker):

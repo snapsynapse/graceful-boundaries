@@ -9,7 +9,7 @@ No dependencies beyond FastAPI itself. In-memory fixed-window counters --
 suitable for a single process. For multi-instance deployments back
 ``_take`` with a shared store (Redis, etc.).
 
-Spec: https://gracefulboundaries.dev/spec
+Spec: https://gracefulboundaries.dev/spec.md
 Schemas: https://gracefulboundaries.dev/schema/
 
 Usage:

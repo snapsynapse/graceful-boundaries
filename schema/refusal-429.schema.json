@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://gracefulboundaries.dev/schema/refusal-429.schema.json",
   "title": "Graceful Boundaries 429 refusal response",
-  "description": "Structured refusal shape for limit-class responses (429). Extends the core refusal shape with the fields Level 1 requires on rate-limit refusals. Spec: https://gracefulboundaries.dev/spec",
+  "description": "Structured refusal shape for limit-class responses (429). Extends the core refusal shape with the fields Level 1 requires on rate-limit refusals. Spec: https://gracefulboundaries.dev/spec.md",
   "$ref": "https://gracefulboundaries.dev/schema/refusal.schema.json",
   "required": ["error", "detail", "why", "limit", "retryAfterSeconds"]
 }

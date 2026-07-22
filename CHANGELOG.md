@@ -6,6 +6,16 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 
 ## Unreleased
 
+## [1.5.3] - 2026-07-21
+
+### Fixed
+- Replaced the undeployed `https://gracefulboundaries.dev/spec` URL with the live `https://gracefulboundaries.dev/spec.md` endpoint across the provenance manifest, release checklist, published schemas, and middleware examples.
+- Added the canonical spec endpoint to `sitemap.xml` and refreshed sitemap modification dates.
+- Extended release-contract evals to reject stale canonical spec URLs and require sitemap coverage.
+
+### Notes
+- No normative spec or checker behavior changes.
+
 ## [1.5.2] - 2026-07-21
 
 ### Added
