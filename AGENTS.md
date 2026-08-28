@@ -8,7 +8,7 @@ Guidelines for AI agents working on the Graceful Boundaries repository.
 |------|------|
 | `spec.md` | Source of truth. All normative requirements live here. |
 | `evals/check.js` | Live conformance checker and shared validation library. |
-| `evals/test-*.js` | Unit tests (260 tests across 12 files). |
+| `evals/test-*.js` | Unit tests (270 tests across 13 files). |
 | `schema/` | Published JSON Schemas; must stay in sync with spec.md and check.js (enforced by test-schemas.js). |
 | `examples/` | Drop-in middleware and worked limits.json examples; covered by tests. |
 | `bin/cli.js` | npx entry point wrapping check.js. |
@@ -21,6 +21,9 @@ Guidelines for AI agents working on the Graceful Boundaries repository.
 | `assistant-guide.txt` | GuideCheck assistant guide for bounded contributor work. |
 | `docs/agentic-surfaces.md` | Inventory and disclosure for agent-facing surfaces. |
 | `index.html` | Landing page for gracefulboundaries.dev. |
+| `sitemap.xml` | Canonical HTML search targets only. Membership is governed by `ops/search-indexing.md`; do not add machine or document surfaces. |
+| `ops/search-indexing.md` | Search index policy, validation lanes, and console action ledger. |
+| `scripts/check-search.mjs` | Offline search contract. Runs in CI after `npm test`. |
 | `CHANGELOG.md` | Version history. Append-only. |
 
 ## Before making changes

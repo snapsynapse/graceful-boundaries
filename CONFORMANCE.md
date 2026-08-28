@@ -29,7 +29,7 @@ A passing run reports the highest level the service satisfies. The verifier is t
 
 ## Test suite
 
-`evals/` ships 260 tests across 12 files:
+`evals/` ships 270 tests across 13 files:
 
 | File | Coverage |
 |---|---|
@@ -45,6 +45,7 @@ A passing run reports the highest level the service satisfies. The verifier is t
 | `test-schemas.js` | Published JSON Schemas vs spec examples, worked limits examples, and checker agreement |
 | `test-middleware-examples.js` | Drop-in middleware examples emit conformant bodies |
 | `test-agent-behavior.js` | Agent-side compliance fixtures (retry, guidance, SC-6, SC-16) |
+| `test-next-step.js` | Next-step derivation (smallest change that raises the confirmed level) |
 
 Run all: `npm test`. No npm dependencies — vanilla Node.js.
 

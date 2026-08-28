@@ -19,8 +19,9 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node evals/test-refusal.js && node evals/test-response-classes.js && node evals/test-security.js && node evals/test-conformance.js && node evals/test-discovery.js && node evals/test-action-boundaries.js && node evals/test-proactive-headers.js && node evals/test-html-refusal.js && node evals/test-agentic-surfaces.js && node evals/test-schemas.js && node evals/test-middleware-examples.js && node evals/test-agent-behavior.js",
+    "test": "node evals/test-refusal.js && node evals/test-response-classes.js && node evals/test-security.js && node evals/test-conformance.js && node evals/test-discovery.js && node evals/test-action-boundaries.js && node evals/test-proactive-headers.js && node evals/test-html-refusal.js && node evals/test-agentic-surfaces.js && node evals/test-schemas.js && node evals/test-middleware-examples.js && node evals/test-agent-behavior.js && node evals/test-next-step.js",
     "test:agent": "node evals/test-agent-behavior.js",
+    "test:next-step": "node evals/test-next-step.js",
     "test:schemas": "node evals/test-schemas.js",
     "test:middleware": "node evals/test-middleware-examples.js",
     "test:html": "node evals/test-html-refusal.js",
@@ -32,7 +33,9 @@
     "test:actions": "node evals/test-action-boundaries.js",
     "test:headers": "node evals/test-proactive-headers.js",
     "test:agentic": "node evals/test-agentic-surfaces.js",
-    "check": "node evals/check.js"
+    "check": "node evals/check.js",
+    "search": "node scripts/check-search.mjs",
+    "search:production": "node scripts/check-production-search.mjs"
   },
   "type": "commonjs",
   "author": "PAICE.work PBC <https://paice.work/>",

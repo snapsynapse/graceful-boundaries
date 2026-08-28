@@ -1,33 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  HTML sitemap membership is reserved for canonical HTML search targets.
+  Machine and document surfaces (/spec.md, /llms.txt, /docs/*.md,
+  /.well-known/assistant-guide.txt, /schema/*.json, /badges/*.json) remain
+  publicly crawlable but are deliberately not search index targets.
+  Policy: ops/search-indexing.md
+-->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://gracefulboundaries.dev/</loc>
-    <lastmod>2026-07-21</lastmod>
+    <lastmod>2026-08-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://gracefulboundaries.dev/spec.md</loc>
-    <lastmod>2026-07-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://gracefulboundaries.dev/.well-known/assistant-guide.txt</loc>
-    <lastmod>2026-07-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://gracefulboundaries.dev/llms.txt</loc>
-    <lastmod>2026-07-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://gracefulboundaries.dev/docs/agentic-surfaces.md</loc>
-    <lastmod>2026-07-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
   </url>
 </urlset>

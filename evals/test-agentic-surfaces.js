@@ -241,9 +241,21 @@ test("release version is consistent across published surfaces", () => {
       `${file} must not reference an undeployed spec URL`
     );
   }
+  // Index policy (ops/search-indexing.md): HTML sitemap membership is reserved
+  // for canonical HTML search targets. The spec is published as raw markdown at
+  // the canonical URL asserted above, and is deliberately not an index target.
+  // Freshness agreement for "/" is enforced by scripts/check-search.mjs.
   const sitemap = readRepoFile("sitemap.xml");
-  assert(sitemap.includes(`<loc>${manifestSpecUrl[1]}</loc>`), "sitemap.xml must include the canonical public spec URL");
-  assert(sitemap.includes(`<lastmod>${specDate[1]}</lastmod>`), "sitemap.xml must include the current release date");
+  assert(
+    !sitemap.includes(`<loc>${manifestSpecUrl[1]}</loc>`),
+    "sitemap.xml must not list the raw spec URL as an HTML index target"
+  );
+  const sitemapLocs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+  assert.deepStrictEqual(
+    sitemapLocs,
+    ["https://gracefulboundaries.dev/"],
+    "sitemap.xml must list exactly the canonical HTML search targets"
+  );
 });
 
 test("changelog release lookup tolerates a populated Unreleased section", () => {

@@ -141,7 +141,7 @@ npx graceful-boundaries check https://your-service.com --check-cloaking
 
 ![Checker output: Siteline confirms Level 4, Google confirms Level 0](imgs/checker-demo.svg)
 
-Or clone and run from the project root with `node evals/check.js <url>`. Run the unit test suite (260 tests, no dependencies):
+Or clone and run from the project root with `node evals/check.js <url>`. Run the unit test suite (270 tests, no dependencies):
 
 ```bash
 npm test
@@ -159,6 +159,21 @@ The repo doubles as a composite GitHub Action. Add a job that fails when your de
 ```
 
 Levels 2 and 4 are confirmable passively and make reliable CI gates; Levels 1 and 3 require observing a live refusal (see [CONFORMANCE.md](CONFORMANCE.md)).
+
+### Every run ends with the next step
+
+The checker does not stop at what is missing. It names the single smallest change that raises your level, and gives you the code to paste:
+
+```text
+Next step:
+  You are Level 0. Add a limits discovery endpoint at /api/limits or /.well-known/limits, listing each public endpoint's limits.
+  That reaches Level 2.
+
+  Guide:   https://gracefulboundaries.dev/docs/implementation-guide.md#level-2-discoverable
+  Example: examples/limits/saas-api.json
+```
+
+`--json` carries the same content in a `nextStep` object (`currentLevel`, `nextLevel`, `summary`, `action`, `guideUrl`, `example`, `snippet`, `verifiable`) so CI and agents can surface it. `verifiable` is `false` when the next level needs a live refusal and so cannot be confirmed by another passive run.
 
 ## Assistant guide
 

@@ -1,0 +1,98 @@
+{
+  "$schema": "portfolio-search-indexing-audit/v4",
+  "contractVersion": 4,
+  "canonicalOrigin": "https://gracefulboundaries.dev/",
+  "outputDir": ".",
+  "sitemaps": ["sitemap.xml"],
+  "minimumWords": 120,
+  "thinPageExemptions": [],
+  "expectedNoindex": ["/404.html"],
+  "requireJsonLd": true,
+  "jsonLdRequiredPaths": [],
+  "lastmodAgreementPaths": ["/"],
+  "compareRepositorySitemaps": true,
+  "internalSourceRules": [],
+  "requiredFiles": [
+    {
+      "path": "robots.txt",
+      "contentTypes": ["text/plain"],
+      "contains": ["Sitemap: https://gracefulboundaries.dev/sitemap.xml"]
+    },
+    {
+      "path": "sitemap.xml",
+      "contentTypes": ["xml"],
+      "contains": []
+    },
+    {
+      "path": "spec.md",
+      "contentTypes": ["text/markdown", "text/plain"],
+      "contains": ["Graceful Boundaries"]
+    },
+    {
+      "path": "llms.txt",
+      "contentTypes": ["text/plain"],
+      "contains": ["Graceful Boundaries"]
+    },
+    {
+      "path": "assistant-guide.txt",
+      "contentTypes": ["text/plain"],
+      "contains": ["canonical-url: https://gracefulboundaries.dev/.well-known/assistant-guide.txt"]
+    },
+    {
+      "path": ".well-known/assistant-guide.txt",
+      "contentTypes": ["text/plain"],
+      "contains": ["canonical-url: https://gracefulboundaries.dev/.well-known/assistant-guide.txt"]
+    },
+    {
+      "path": "docs/agentic-surfaces.md",
+      "contentTypes": ["text/markdown", "text/plain"],
+      "contains": ["Agentic Surfaces"]
+    },
+    {
+      "path": "schema/refusal.schema.json",
+      "contentTypes": ["application/json", "application/schema+json"],
+      "contains": []
+    },
+    {
+      "path": "schema/refusal-429.schema.json",
+      "contentTypes": ["application/json", "application/schema+json"],
+      "contains": []
+    },
+    {
+      "path": "schema/limits.schema.json",
+      "contentTypes": ["application/json", "application/schema+json"],
+      "contains": []
+    },
+    {
+      "path": "imgs/favicon.svg",
+      "contentTypes": ["image/svg+xml", "svg"],
+      "contains": []
+    },
+    {
+      "path": "imgs/og.png",
+      "contentTypes": ["image/png"],
+      "contains": []
+    }
+  ],
+  "redirects": [
+    {
+      "from": "http://gracefulboundaries.dev/",
+      "to": "https://gracefulboundaries.dev/"
+    },
+    {
+      "from": "https://www.gracefulboundaries.dev/",
+      "to": "https://gracefulboundaries.dev/"
+    },
+    {
+      "from": "http://www.gracefulboundaries.dev/",
+      "to": "https://gracefulboundaries.dev/"
+    }
+  ],
+  "hosted404Patterns": [
+    "There isn't a GitHub Pages site here",
+    "<title>Page not found",
+    "404 File not found",
+    "<title>404 &mdash; Graceful Boundaries</title>"
+  ],
+  "expectedNotFoundPaths": ["/__search-audit-404__", "/spec"]
+}
