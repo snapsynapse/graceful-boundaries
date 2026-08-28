@@ -4,7 +4,7 @@ Run this checklist for every tagged release. The release is incomplete until eve
 
 ## Pre-release
 
-- [ ] All tests pass: `npm test` (259 tests expected)
+- [ ] All tests pass: `npm test` (260 tests expected)
 - [ ] `evals/check.js https://siteline.to` reports the expected level (currently Level 4)
 - [ ] `spec.md` version, status, and any normative changes are accurate
 - [ ] `CHANGELOG.md` has an entry for this release with date and SemVer-correct version

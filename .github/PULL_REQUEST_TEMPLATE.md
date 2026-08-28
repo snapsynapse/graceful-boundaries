@@ -15,6 +15,6 @@
 
 ## Checklist
 
-- [ ] `npm test` passes (259 tests)
+- [ ] `npm test` passes (260 tests)
 - [ ] Spec changes reference the relevant section
 - [ ] New spec requirements have corresponding eval tests
