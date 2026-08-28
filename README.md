@@ -141,7 +141,7 @@ npx graceful-boundaries check https://your-service.com --check-cloaking
 
 ![Checker output: Siteline confirms Level 4, Google confirms Level 0](imgs/checker-demo.svg)
 
-Or clone and run from the project root with `node evals/check.js <url>`. Run the unit test suite (259 tests, no dependencies):
+Or clone and run from the project root with `node evals/check.js <url>`. Run the unit test suite (260 tests, no dependencies):
 
 ```bash
 npm test

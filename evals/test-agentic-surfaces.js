@@ -51,6 +51,16 @@ function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
 }
 
+/**
+ * Latest released version in CHANGELOG.md: the first `## [x.y.z]` heading that
+ * follows `## Unreleased`. Content under Unreleased is permitted and skipped,
+ * so pending entries can be recorded before a version is cut.
+ */
+function latestChangelogRelease(changelog) {
+  const match = changelog.match(/## Unreleased\b[\s\S]*?\n## \[([^\]]+)\]/);
+  return match ? match[1] : null;
+}
+
 function countUnitTests() {
   const evalsDir = path.join(repoRoot, "evals");
   const staticTests = fs.readdirSync(evalsDir)
@@ -189,10 +199,9 @@ test("release version is consistent across published surfaces", () => {
     assert.strictEqual(match[1], packageVersion, `${file} version must match package.json`);
   }
 
-  const changelog = readRepoFile("CHANGELOG.md");
-  const latest = changelog.match(/## Unreleased\s+## \[([^\]]+)\]/);
-  assert(latest, "CHANGELOG.md must place the latest release immediately after Unreleased");
-  assert.strictEqual(latest[1], packageVersion, "latest changelog release must match package.json");
+  const latest = latestChangelogRelease(readRepoFile("CHANGELOG.md"));
+  assert(latest, "CHANGELOG.md must list the latest release after Unreleased");
+  assert.strictEqual(latest, packageVersion, "latest changelog release must match package.json");
 
   const specDate = readRepoFile("spec.md").match(/^\*\*Date:\*\* (\d{4}-\d{2}-\d{2})$/m);
   assert(specDate, "spec.md must disclose an ISO release date");
@@ -235,6 +244,39 @@ test("release version is consistent across published surfaces", () => {
   const sitemap = readRepoFile("sitemap.xml");
   assert(sitemap.includes(`<loc>${manifestSpecUrl[1]}</loc>`), "sitemap.xml must include the canonical public spec URL");
   assert(sitemap.includes(`<lastmod>${specDate[1]}</lastmod>`), "sitemap.xml must include the current release date");
+});
+
+test("changelog release lookup tolerates a populated Unreleased section", () => {
+  const populated = [
+    "# Changelog",
+    "",
+    "## Unreleased",
+    "",
+    "### Added",
+    "- A pending entry recorded before the version is cut.",
+    "",
+    "### Fixed",
+    "- Another pending entry.",
+    "",
+    "## [1.5.3] - 2026-07-21",
+    "",
+    "### Fixed",
+    "- Something released.",
+    "",
+    "## [1.5.2] - 2026-07-21",
+    "",
+  ].join("\n");
+  assert.strictEqual(
+    latestChangelogRelease(populated),
+    "1.5.3",
+    "entries under Unreleased must not hide the latest release"
+  );
+
+  const empty = "# Changelog\n\n## Unreleased\n\n## [1.5.3] - 2026-07-21\n";
+  assert.strictEqual(latestChangelogRelease(empty), "1.5.3", "empty Unreleased must still resolve");
+
+  const noRelease = "# Changelog\n\n## Unreleased\n\n### Added\n- Only pending work.\n";
+  assert.strictEqual(latestChangelogRelease(noRelease), null, "a changelog with no release must not match");
 });
 
 test("Skill Provenance manifest hashes match both skill files", () => {
