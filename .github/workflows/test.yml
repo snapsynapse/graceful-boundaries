@@ -9,3 +9,6 @@ jobs:
         with:
           node-version: '20'
       - run: npm test
+      # Offline search contract only. Production search validation is
+      # release-triggered by design and must not run in ordinary PR CI.
+      - run: node scripts/check-search.mjs

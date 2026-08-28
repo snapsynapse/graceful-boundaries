@@ -28,6 +28,13 @@ venv/
 # Research scratch
 .perplexity-research/
 
+# Browser automation artifacts
+.playwright-mcp/
+
+# Raw authenticated search evidence — never tracked.
+# Sanitized dated evidence belongs in ops/search/<provider>/YYYY-MM-DD/.
+.search-evidence-private/
+
 # Local working state
 handoffs/
 working/

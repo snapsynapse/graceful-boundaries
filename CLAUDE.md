@@ -6,7 +6,7 @@ A specification for how services communicate their operational limits to humans 
 
 - `spec.md` — the full specification (conformance levels, response classes, security considerations)
 - `evals/check.js` — live conformance checker and shared validation library
-- `evals/test-*.js` — unit tests (260 tests across 12 files)
+- `evals/test-*.js` — unit tests (270 tests across 13 files)
 - `evals/test-agent-behavior.js` — agent compliance suite (exports fixtures + runner for agent developers)
 - `schema/` — published JSON Schemas (refusal, 429 refusal, limits discovery), served at gracefulboundaries.dev/schema/
 - `examples/middleware/` — drop-in middleware (Express, FastAPI, Workers, Hono)
@@ -20,17 +20,21 @@ A specification for how services communicate their operational limits to humans 
 - `AGENTS.md` — contributor protocol for AI agents working on this repo
 - `assistant-guide.txt` — GuideCheck assistant guide for bounded contributor work
 - `docs/agentic-surfaces.md` — inventory and disclosure for agent-facing surfaces
+- `ops/search-indexing.md` — search index policy, validation lanes, console action ledger
+- `scripts/check-search.mjs` / `scripts/check-production-search.mjs` — vendored search contract validators
 
 ## Commands
 
 ```bash
-npm test                                          # run all 260 unit tests (12 files, no deps)
+npm test                                          # run all 270 unit tests (13 files, no deps)
 node evals/check.js <url>                         # check a live service
 node evals/check.js <url> --json                  # machine-readable output
 node evals/check.js <url> --limits-path /custom   # custom limits endpoint path
 node evals/check.js <url> --check-cloaking        # advisory agent-signaled content check
 node evals/check.js <url> --min-level 2           # nonzero exit below the given level (CI gate)
 npx graceful-boundaries check <url>               # same checker via npm (after publish)
+npm run search                                    # offline search contract (also runs in CI)
+npm run search:production                         # production search contract (release-triggered)
 python3 /path/to/guidecheck/scripts/guidecheck_verify.py assistant-guide.txt
 ```
 

@@ -6,6 +6,21 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 
 ## Unreleased
 
+### Added
+- The checker derives and reports the single smallest change that raises a service's confirmed conformance level. Human output gains a `Next step` block with the target level, an anchored implementation-guide link, an example file, and a pasteable snippet; `--json` gains a `nextStep` object carrying the same content, including a `verifiable` flag that is `false` when the next level requires observing a live refusal.
+- `deriveNextStep` is exported from `evals/check.js`.
+- `evals/test-next-step.js` — offline tests for next-step derivation.
+- Search index policy and contract: `ops/search-indexing.md`, `search-audit.config.json`, and vendored `scripts/check-search.mjs` and `scripts/check-production-search.mjs`. The offline lane runs in CI after `npm test`; the production lane is release-triggered.
+
+### Changed
+- HTML sitemap membership is now reserved for canonical HTML search targets. `sitemap.xml` lists only `https://gracefulboundaries.dev/`. The specification remains published and crawlable at `https://gracefulboundaries.dev/spec.md` but is no longer declared a search index target, because it is served as raw Markdown and cannot carry a canonical link element or JSON-LD. Nothing was removed from the site.
+- Aligned the homepage's sitemap `lastmod`, `article:modified_time`, and JSON-LD `dateModified`, which had drifted to three different dates. `lastmodAgreementPaths` now locks the agreement against regression.
+- Limits discovery results carry `errors` alongside `warnings`, so a malformed discovery endpoint names the specific fields to fix instead of returning generic advice.
+- The 1.5.3 release eval requiring the spec URL in the sitemap is inverted to enforce the new index policy, and now asserts the sitemap lists exactly the canonical HTML search targets.
+
+### Notes
+- No normative spec changes. Conformance levels, required fields, and response classes are unchanged.
+
 ## [1.5.3] - 2026-07-21
 
 ### Fixed

@@ -124,6 +124,7 @@ async function checkLimitsEndpoint(baseUrl, limitsPath) {
         wellFormed: hasService && hasDescription && wellFormed && bodyCheck.isValid,
         extensions: extensionCheck,
         isCacheable,
+        errors: bodyCheck.errors || [],
         warnings: bodyCheck.warnings,
       });
     } catch (error) {
@@ -944,6 +945,123 @@ function assessLevel(limitsResults, refusalCheck, proactiveHeaders) {
   return 0;
 }
 
+const GUIDE_BASE = "https://gracefulboundaries.dev/docs/implementation-guide.md";
+
+const LEVEL_GUIDANCE = {
+  1: {
+    anchor: "#level-1-structured-refusal",
+    example: "examples/middleware/express/graceful-boundaries.js",
+    snippet: [
+      "res.status(429).json({",
+      '  error: "rate_limit_exceeded",',
+      '  detail: "You have used all 100 requests in this hour.",',
+      '  why: "Scans are rate limited so one caller cannot exhaust shared capacity.",',
+      '  limit: "100 per hour",',
+      "  retryAfterSeconds: 1800",
+      "});",
+    ].join("\n"),
+  },
+  2: {
+    anchor: "#level-2-discoverable",
+    example: "examples/limits/saas-api.json",
+    snippet: [
+      'app.get("/api/limits", (req, res) => {',
+      '  res.set("Cache-Control", "public, max-age=3600");',
+      "  res.json({",
+      '    service: "Your Service",',
+      '    conformance: "graceful-boundaries/2",',
+      "    limits: {",
+      '      scan: { type: "rate", maxRequests: 100, windowSeconds: 3600,',
+      '              description: "100 scans per hour", endpoint: "/api/scan", method: "POST" }',
+      "    }",
+      "  });",
+      "});",
+    ].join("\n"),
+  },
+  3: {
+    anchor: "#level-3-constructive",
+    example: "examples/middleware/express/graceful-boundaries.js",
+    snippet: [
+      "// Add at least one constructive field to refusals:",
+      "// cached, cachedResultUrl, alternativeEndpoint, upgradeUrl, humanUrl",
+      "res.status(429).json({",
+      "  ...refusal,",
+      "  cached: true,",
+      '  cachedResultUrl: "/results/abc123",',
+      '  upgradeUrl: "/pricing"',
+      "});",
+    ].join("\n"),
+  },
+  4: {
+    anchor: "#level-4-proactive",
+    example: "examples/middleware/express/graceful-boundaries.js",
+    snippet: [
+      "// On every successful response, not just refusals:",
+      'res.set("RateLimit", `limit=${limit}, remaining=${remaining}, reset=${reset}`);',
+      'res.set("RateLimit-Policy", `${limit};w=3600`);',
+    ].join("\n"),
+  },
+};
+
+/**
+ * Derive the single smallest change that raises the confirmed conformance level.
+ *
+ * Pure function over a finished report. Returns null when no next step applies
+ * (a consistent not-applicable declaration, or a confirmed Level 4).
+ *
+ * `verifiable` records whether this checker can confirm the next level
+ * passively. Levels 1 and 3 require observing a live refusal, so a passing
+ * implementation of either will not change the reported level on the next run.
+ */
+function deriveNextStep(report) {
+  const level = report.conformanceLevel;
+
+  if (level === "not-applicable") return null;
+  if (level === 4) return null;
+
+  const limitsResults = report.limitsDiscovery || [];
+  const foundLimits = limitsResults.find((r) => r.found);
+
+  let nextLevel;
+  let action;
+
+  if (!foundLimits) {
+    nextLevel = 2;
+    action =
+      "Add a limits discovery endpoint at /api/limits or /.well-known/limits, " +
+      "listing each public endpoint's limits.";
+  } else if (!foundLimits.wellFormed) {
+    nextLevel = 2;
+    const detail = foundLimits.errors && foundLimits.errors.length > 0
+      ? ` Fix: ${foundLimits.errors.join("; ")}.`
+      : ` Every limit entry needs ${REQUIRED_LIMIT_ENTRY_FIELDS.join(", ")}.`;
+    action = `The limits endpoint at ${foundLimits.path} exists but is not well-formed.${detail}`;
+  } else if (level === 2) {
+    nextLevel = 3;
+    action =
+      "Add at least one constructive field to refusal bodies (" +
+      CONSTRUCTIVE_FIELDS.join(", ") +
+      ") so a refused caller has somewhere to go.";
+  } else {
+    nextLevel = 2;
+    action = "Verify the limits discovery endpoint returns a well-formed body.";
+  }
+
+  const guidance = LEVEL_GUIDANCE[nextLevel];
+  const levelDisplay = level === "not-applicable" ? "N/A" : `Level ${level}`;
+
+  return {
+    currentLevel: level,
+    nextLevel,
+    summary: `You are ${levelDisplay}. ${action}`,
+    action,
+    guideUrl: `${GUIDE_BASE}${guidance.anchor}`,
+    example: guidance.example,
+    snippet: guidance.snippet,
+    verifiable: nextLevel === 2 || nextLevel === 4,
+  };
+}
+
 async function main() {
   const options = parseArgs(process.argv);
 
@@ -1109,6 +1227,8 @@ async function main() {
     }
   }
 
+  report.nextStep = deriveNextStep(report);
+
   if (options.json) {
     console.log(JSON.stringify(report, null, 2));
   } else {
@@ -1136,6 +1256,26 @@ async function main() {
     if (report.notes.length > 0) {
       console.log("Notes:");
       report.notes.forEach((n) => console.log(`  - ${n}`));
+    }
+
+    console.log("");
+    if (report.nextStep) {
+      const step = report.nextStep;
+      console.log("Next step:");
+      console.log(`  ${step.summary}`);
+      console.log(`  That reaches Level ${step.nextLevel}.`);
+      if (!step.verifiable) {
+        console.log("  This checker cannot confirm that level passively; it requires a live refusal.");
+      }
+      console.log("");
+      console.log(`  Guide:   ${step.guideUrl}`);
+      console.log(`  Example: ${step.example}`);
+      console.log("");
+      step.snippet.split("\n").forEach((line) => console.log(`    ${line}`));
+    } else if (report.conformanceLevel === 4) {
+      console.log("Next step: none. Level 4 is the highest conformance level.");
+    } else {
+      console.log("Next step: none. The not-applicable declaration is consistent.");
     }
   }
 
@@ -1168,6 +1308,7 @@ module.exports = {
   checkExtensions,
   checkActionBoundariesBody,
   assessLevel,
+  deriveNextStep,
   REQUIRED_REFUSAL_FIELDS,
   REQUIRED_RESPONSE_FIELDS,
   CONSTRUCTIVE_FIELDS,
