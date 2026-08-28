@@ -6,7 +6,7 @@ status: active
 updated: 2026-08-28
 owner: "Snap Synapse LLC"
 open_tasks:
-  - "Deploy the Option B sitemap repair and rerun the production search contract."
+  - "Optional: one sitemap resubmission in Google Search Console, now that the changed inventory is live and verified."
 ---
 # Search indexing
 
@@ -62,7 +62,7 @@ Scaffolded 2026-08-28 from the skill's `assets/` templates, vendored so CI does 
 
 Exit code `0` is pass, `1` is a site or generated-output defect, and `2` is configuration or infrastructure failure. Exit code `2` is unknown. It is neither a passing site nor evidence of a defect, and a monitoring system must preserve that distinction.
 
-`.github/workflows/test.yml` runs `npm test` (269 tests) and then the offline search contract on every push and pull request. The production contract is deliberately not wired into pull-request CI: it asserts against the deployed origin, which lags the branch under test.
+`.github/workflows/test.yml` runs `npm test` (270 tests) and then the offline search contract on every push and pull request. The production contract is deliberately not wired into pull-request CI: it asserts against the deployed origin, which lags the branch under test.
 
 `search-audit.config.json` sets `lastmodAgreementPaths: ["/"]`, so the offline validator fails if sitemap `lastmod`, `article:modified_time`, and JSON-LD `dateModified` for the homepage drift apart again. `requireJsonLd` is `true`, and `expectedNotFoundPaths` includes `/spec` so the intentional 404 is affirmative rather than incidental.
 
@@ -101,10 +101,10 @@ Reconciled from the 2026-08-20 audit. See [`audit.md`](search/GoogleSearchConsol
 
 | Observation | Classification | Current disposition |
 |---|---|---|
-| Sitemap mixed one canonical HTML page with four machine or document surfaces | Defect, repaired in repository 2026-08-28 | Option B applied; sitemap now lists `/` only. Awaiting deployment |
+| Sitemap mixed one canonical HTML page with four machine or document surfaces | Defect, repaired and deployed 2026-08-28 | Option B applied; deployed sitemap lists `/` only |
 | `/spec.md` was declared in the sitemap, unknown to Google, never crawled, and had no first-party internal source | Resolved by policy 2026-08-28 | Option B makes `unknown to Google` policy-consistent. Never request indexing for it |
-| Sitemap `lastmod` `2026-07-21`, `article:modified_time` `2026-05-29`, JSON-LD `dateModified` `2026-06-09` disagreed | Defect, repaired in repository 2026-08-28 | All three now `2026-08-28`; regression-locked by `lastmodAgreementPaths` |
-| Deployed sitemap still serves the pre-repair five-URL inventory | Pending deployment | Production contract reports 18 defects until the repair ships; rerun after deployment |
+| Sitemap `lastmod` `2026-07-21`, `article:modified_time` `2026-05-29`, JSON-LD `dateModified` `2026-06-09` disagreed | Defect, repaired and deployed 2026-08-28 | All three now `2026-08-28`; regression-locked by `lastmodAgreementPaths` |
+| Production contract reported 18 defects against the pre-repair deployed sitemap | Resolved by deployment 2026-08-28 | Zero defects at deployed SHA `b799b71`; all excluded surfaces verified still HTTP 200 |
 | Root is indexed with exact user and Google canonical | Policy-consistent indexed page | No indexing request justified |
 | Three HTTP or `www` examples appear as `Page with redirect` | Expected policy-consistent exclusion | Do not start `Validate fix` |
 | Sitemap reports `Success`, one discovered page, last read 2026-04-25 | Stale provider evidence against a healthy live endpoint | Do not resubmit merely to force a refresh |
@@ -139,11 +139,10 @@ No indexing requests, sitemap submissions, or validation batches were started du
 
 ## Next review
 
-The index policy is settled. The property now waits on deployment, then on provider evidence.
+The index policy is settled and the repair is deployed and verified. The property now waits on provider evidence only.
 
-1. Deploy the Option B repair. The production contract will keep reporting the deployed five-URL sitemap until it ships.
-2. After deployment, rerun `node scripts/check-production-search.mjs` and expect zero defects.
-3. Only then consider console follow-up. A sitemap whose inventory materially changed is the one condition that justifies a resubmission, so a single submission is permitted after the repair is live and verified. Record it in the ledger.
-4. Do not request indexing for anything. `/` is already indexed and `/spec.md` is now a non-index target by policy.
+Repository and production gates both pass at deployed SHA `b799b71`. The one remaining permitted console action is a single sitemap resubmission: the inventory materially changed from five URLs to one, which is exactly the condition the repeat policy allows. It is optional. The endpoint is healthy and Google will re-read it unprompted; resubmission only shortens the wait on a last-read date stuck at 2026-04-25. If taken, record it in the ledger with an observed confirmation, not an inferred one.
 
-For provider evidence, review after the repaired deployment passes production validation, or when the sitemap last-read date advances beyond 2026-04-25. If neither has happened, recheck on 2026-09-03. Before any console mutation, rerun repository and production gates and reconcile this ledger.
+Do not request indexing for anything. `/` is already indexed, and `/spec.md` is now a non-index target by policy.
+
+Recheck provider evidence when the sitemap last-read date advances beyond 2026-04-25, when Page indexing advances beyond its 2026-08-16 report date, or on 2026-09-03 if neither has happened. Expect the three redirect exclusions to persist; they are intentional. Before any console mutation, rerun both gates and reconcile this ledger.
