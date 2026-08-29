@@ -327,6 +327,10 @@ test("Extensions and change discovery fields validate", () => {
     limits: {},
   });
   assert(errors.length === 0, errors.join("; "));
+  assert(
+    !("agentCapable" in schemas[LIMITS].$defs.endpointEntry.properties),
+    "roadmap-only fields must not be reserved in the published schema before admission to the spec"
+  );
 });
 
 test("Resource-dedup entry with returnsCached and quota metadata validates", () => {

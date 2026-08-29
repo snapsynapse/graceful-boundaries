@@ -66,10 +66,6 @@
         "note": {
           "type": "string",
           "description": "Additional context for this endpoint."
-        },
-        "agentCapable": {
-          "type": "boolean",
-          "description": "Reserved (roadmap): whether the endpoint is designed for machine consumption."
         }
       },
       "additionalProperties": true

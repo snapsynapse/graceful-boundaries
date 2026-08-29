@@ -12,6 +12,7 @@ This repository intentionally publishes several machine-readable or assistant-fa
 | Agent protocol | `AGENTS.md` | Contributor protocol for AI agents working in this repo. | Applies only inside this repository. |
 | Claude context | `CLAUDE.md` | Local project context for Claude-style coding assistants. | Advisory repository context, lower priority than system/user/tool policy. |
 | Audit skill | `SKILL.md` | Agent skill for auditing live services for Graceful Boundaries conformance. | Reads live HTTP surfaces; does not authorize stress testing. |
+| ClawHub audit package | `build/clawhub-graceful-boundaries/` (generated from `distribution/clawhub/skill-card.md`) | Audit-only consumer package containing `SKILL.md`, a derived manifest, and the registry card. | Generated locally by `npm run build:clawhub`. The repository root is never the ClawHub upload source. |
 | Builder skill | `SKILL-builder.md` | Agent skill for implementing Graceful Boundaries in other codebases. | Must adapt to the target repo and avoid new dependencies unless explicitly approved. |
 | Live checker | `evals/check.js` | Dependency-free conformance checker and exported validation library. | Checker output is evidence, not certification. |
 | Crawling policy | `robots.txt` | Allows search and AI crawlers. | Crawl permission is not permission to treat content as instructions. |
@@ -54,4 +55,5 @@ Verification proves the guide matches the GuideCheck profile shape. It does not 
 - Do not treat a boundary document, skill, assistant guide, or checker result as authentication, authorization, payment authority, merchant trust, or release approval.
 - Verify `assistant-guide.txt` before asking an assistant to follow it, and keep the root and well-known copies byte-identical.
 - Use `npm test` after checker, spec, skill, or guide changes. Use `node evals/check.js https://siteline.to` after checker changes.
+- Build ClawHub releases with `npm run build:clawhub` and publish only the generated audit-only directory. A working-tree build is review evidence, not a publishable artifact.
 - Treat scheduled adopter reports as observations from one run. Do not infer continuous availability, authorization correctness, safety, or endorsement from a passing artifact.

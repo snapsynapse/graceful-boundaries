@@ -29,6 +29,17 @@ For each implementation, record:
 
 Use the adoption report, checker discrepancy, and implementation feedback issue forms. Registry inclusion remains descriptive and does not constitute certification or endorsement.
 
+## Comparative caller benchmark
+
+The remaining behavior claim needs framework-level evidence before it becomes promotional copy. Run the same mock-service scenarios through two or three real agent runtimes, including at least one portable open-source framework:
+
+1. Send the caller a bare `429` or `500` with no structured guidance.
+2. Repeat with the equivalent Graceful Boundaries response.
+3. Record total requests, repeated requests that did not advance the task, input and output tokens when the runtime exposes them, elapsed time, and the terminal behavior: wait, use a cached result, switch endpoints, or escalate to a human.
+4. Publish the harness, runtime versions, prompts, raw event logs, and aggregation method alongside `docs/benchmark.md` so the result is reproducible.
+
+Do not publish a headline reduction number unless the scenarios, raw evidence, and aggregation reproduce it. If the measured difference is small or framework-dependent, report that result directly. This benchmark is adoption evidence, not a conformance requirement.
+
 ## Decision gates
 
 Adoption evidence informs future releases as follows:

@@ -7,7 +7,7 @@ Scope: Standards-level strategy for this component. Portfolio-level strategy liv
 
 Graceful Boundaries specifies how services communicate operational limits to humans and autonomous agents. It combines three requirements that existing standards address separately but no specification combines: proactive discovery (limits readable before they are hit), structured refusal (when a limit is exceeded, the response explains what happened, which limit applies, when to retry, and why), and constructive guidance (the refusal includes a useful next step).
 
-The specification is transport-agnostic but provides concrete HTTP conventions. It defines a five-level conformance ladder (N/A, 0, 1, 2, 3, 4) and ships an executable conformance checker at `evals/check.js`.
+The specification is transport-agnostic but provides concrete HTTP conventions. It defines six conformance states (N/A and Levels 0 through 4) and ships an executable conformance checker at `evals/check.js`.
 
 ## Why it exists
 
@@ -34,7 +34,7 @@ Out of scope: rate-limit enforcement algorithms (token bucket, sliding window, e
 
 The conformance ladder is additive. Each level is testable in isolation against the eval suite. A conformant verifier (`evals/check.js`) is the conformance target; any implementation that passes the eval suite is conformant. No central registry, no oracle, no hosted-only verifier as root of trust.
 
-Siteline is the live Level 4 reference implementation (https://siteline.to/). The spec ships a 200-test suite covering response classes, agentic surfaces, action boundaries, refusals, discovery, proactive headers, HTML refusal, and security cases.
+Siteline is the live Level 4 reference implementation (https://siteline.to/). The spec ships a 270-test suite covering response classes, agentic surfaces, action boundaries, refusals, discovery, proactive headers, HTML refusal, and security cases.
 
 ## Admission criteria for changes
 
@@ -45,6 +45,15 @@ A proposed change is admitted only if it satisfies all of the following:
 3. It records a `CHANGELOG.md` entry and, for normative changes, follows SemVer.
 4. It does not introduce a central registry, an oracle, a single point of trust, or a dependency on one hosted service.
 5. It does not break Siteline conformance unless Siteline is updated in coordination.
+
+## Adoption and outreach gates
+
+Adoption work must remain evidence-led and must not turn unanswered directory proposals into unsolicited pull requests.
+
+- The open scoping issues in `marmelab/awesome-rest#208` and `yosriady/awesome-api-devtools#191` remain the authority for those directories. Submit a listing pull request only after a maintainer confirms fit.
+- Do not submit Graceful Boundaries to autonomous-agent project lists unless the target explicitly accepts protocols, specifications, or agent-facing infrastructure. `e2b-dev/awesome-ai-agents` remains deferred unless that fit is established.
+- An IETF HTTPAPI implementation-experience note, RFC 9457 ecosystem outreach, Show HN launch, and agent-framework documentation pull requests each require Sam's explicit approval before any external send or submission.
+- Public performance or retry-reduction claims require the reproducible comparative benchmark defined in `docs/adoption-validation.md`.
 
 ## Relationship to other PAICE standards
 
@@ -58,10 +67,12 @@ A proposed change is admitted only if it satisfies all of the following:
 
 Per `0_Across/Repo Standards.md`, the following deviations are recorded:
 
-- **Root SKILL.md instead of `skills/<bundle>/SKILL.md`**. graceful-boundaries is the canonical home for the `graceful-boundaries-audit` skill (and `graceful-boundaries-builder` via `SKILL-builder.md`). The skill is the repo, not a sub-bundle. v0.3 of the standards doc resolves "where do skill bundles live in their canonical home" with two patterns (`skills/<bundle>/` in hardguard25, `skill/` legacy in siteline) but does not address "the skill IS the repo". This is a third pattern. Flagged as v0.4 open question; meanwhile this layout is treated as compliant via this exception.
+- **Root SKILL.md instead of `skills/<bundle>/SKILL.md`**. Graceful Boundaries is the canonical home for the `graceful-boundaries-audit` skill and `graceful-boundaries-builder` via `SKILL-builder.md`. Repo Standards v0.4 codifies this root-level "skill IS the repo" pattern as valid. The entry remains here as a recorded layout declaration, not an open exception.
 - **llms.txt is link-heavy, not fully comprehensive standalone**. By the v0.3 criterion ("inlines all referenced content, not just links"), `llms.txt` here is link-summary, not comprehensive. `llms-full.txt` is not yet generated. Status: open — either inline spec.md into llms-full.txt or accept that llms.txt is intentionally a navigation index and the spec itself is the comprehensive artifact.
 - **Single CC-BY-4.0 LICENSE was used for all content historically**. As of 2026-06-03, split into `LICENSE` (MIT, for code) and `LICENSE-SPEC` (CC BY 4.0, for spec text) to match the hardguard25 pattern. Re-licensing applies prospectively; prior commits remain under CC-BY-4.0 per their git history.
 
 ## Changelog
 
+- 2026-08-28 — Migrated durable adoption and outreach gates from temporary handoffs. Added the reproducible benchmark prerequisite and preserved unanswered maintainer threads as the authority for directory follow-up.
+- 2026-08-28 — Reconciled conformance/test counts and closed the root-level skill-layout question against Repo Standards v0.4.
 - 2026-06-03 — Initial INTENT.md per `0_Across/Repo Standards.md` v0.3 layout matrix. Recorded license-split, root-SKILL.md, and llms.txt-comprehensiveness exceptions.

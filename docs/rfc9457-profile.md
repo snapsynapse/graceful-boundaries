@@ -23,7 +23,18 @@ Two notes on the mapping:
 
 ## Worked example: 429
 
-A conforming response satisfying both specs simultaneously:
+Start with an ordinary RFC 9457 response:
+
+```json
+{
+  "type": "https://example.com/problems/rate-limit-exceeded",
+  "title": "Rate limit exceeded",
+  "status": 429,
+  "detail": "You can run up to 10 scans per hour. Try again in 2400 seconds."
+}
+```
+
+Keep those members and add the Graceful Boundaries extension members:
 
 ```http
 HTTP/1.1 429 Too Many Requests

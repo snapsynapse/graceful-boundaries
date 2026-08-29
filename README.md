@@ -1,21 +1,52 @@
 # Graceful Boundaries
 
-A specification for how services communicate their operational limits to humans and autonomous agents.
-
-**[gracefulboundaries.dev](https://gracefulboundaries.dev)**
+APIs that return vague `429`, `403`, and `500` responses make autonomous agents retry blindly. Graceful Boundaries grades those responses and names the smallest fix.
 
 [![License: CC-BY-4.0](https://img.shields.io/badge/License-CC--BY--4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![Version](https://img.shields.io/badge/version-1.5.3-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.4-blue.svg)](CHANGELOG.md)
 [![Tests](https://img.shields.io/github/actions/workflow/status/snapsynapse/graceful-boundaries/test.yml?label=tests)](https://github.com/snapsynapse/graceful-boundaries/actions)
-[![ClawHub](https://img.shields.io/badge/ClawHub-83%20installs-blue)](https://clawhub.ai/snapsynapse/graceful-boundaries)
+[![ClawHub](https://img.shields.io/badge/ClawHub-audit%20skill-blue)](https://clawhub.ai/snapsynapse/skills/graceful-boundaries)
+
+## Grade any API in 10 seconds
+
+Literal
+```bash
+npx graceful-boundaries check https://siteline.to
+```
+Verified against the live reference implementation:
+```text
+Limits Discovery:
+  /api/limits: FOUND (6 endpoints, well-formed: true, cacheable: true)
+  /.well-known/limits: NOT FOUND (404)
+
+Confirmed conformance level: Level 4
+
+Next step: none. Level 4 is the highest conformance level.
+```
+The checker has no runtime dependencies. A failed check reports what is missing, gives you the smallest change that raises the level, and includes a pasteable example. Use `--json` for the same result in CI or agent workflows.
+
+## Add the check to CI
+
+Replace: `https://staging.your-service.example` -> the deployed service URL to check
+
+Customize
+```yaml
+- uses: snapsynapse/graceful-boundaries@v1
+  with:
+    url: https://staging.your-service.example
+    min-level: "2"
+```
+This fails the job when the deployed service falls below Level 2. Levels 2 and 4 are confirmable passively; Levels 1 and 3 require observing a live refusal.
+
+Graceful Boundaries is also an open specification. Its fields are [RFC 9457 Problem Details extension members](docs/rfc9457-profile.md), so an API that already emits `application/problem+json` can adopt it without replacing its error pipeline.
 
 ## Who this is for
 
-API and service operators, plus the agent builders calling them, who need operational limits expressed in a way autonomous callers can actually act on.
+API and service operators, plus the agent builders calling them, who need operational limits expressed in a way autonomous callers can act on.
 
 ## What problem it solves
 
-Services signal limits with status codes (429, 403, 500) that agents can't interpret, so agents retry blindly and the waste compounds. Graceful Boundaries is a specification for communicating operational limits to humans and autonomous agents.
+Services signal limits with status codes that agents cannot interpret, so agents retry blindly and the waste compounds. Graceful Boundaries defines proactive discovery, structured refusal, and constructive guidance for those limits.
 
 ## Canonical URL
 
@@ -274,6 +305,6 @@ Graceful Boundaries is a [PAICE.work](https://paice.work/) project. PAICE.work P
 
 The patterns in this spec emerged from building [Siteline](https://siteline.to/), an AI agent readiness scanner, where the quality of the refusal matters as much as the enforcement.
 
-The conformance audit skill is available on **[ClawHub](https://clawhub.ai/snapsynapse/graceful-boundaries)**.
+The conformance audit skill is available on **[ClawHub](https://clawhub.ai/snapsynapse/skills/graceful-boundaries)**.
 
 See also: **[GuideCheck](https://guidecheck.org/)** -- human-verifiable assistant guides, and **[Skill Provenance](https://skillprovenance.dev/)** -- version identity that travels with agent skill bundles. Also PAICE.work projects.

@@ -8,7 +8,7 @@ Graceful Boundaries is an **open specification** for how services communicate th
 
 It is a spec-and-tooling project, not a library. Deliverables:
 
-- The specification (`spec.md`) with 5 conformance levels (N/A, 1–4).
+- The specification (`spec.md`) with six conformance states (N/A and Levels 0–4).
 - A dependency-free conformance checker (`npx graceful-boundaries check <url>`, or `node evals/check.js`).
 - Published JSON Schemas, drop-in middleware examples (Express, FastAPI, Cloudflare Workers, Hono), and worked `limits.json` examples.
 - A composite GitHub Action for CI conformance gating.
@@ -41,13 +41,13 @@ Discernible from README, spec, and docs:
 - Assistant guide: https://gracefulboundaries.dev/.well-known/assistant-guide.txt
 - Repo: https://github.com/snapsynapse/graceful-boundaries
 - Reference implementation (Level 4): https://siteline.to/
-- Audit skill on ClawHub: https://clawhub.ai/snapsynapse/graceful-boundaries
+- Audit skill on ClawHub: https://clawhub.ai/snapsynapse/skills/graceful-boundaries
 - Parent org: https://paice.work/ (PAICE.work PBC — public benefit corporation)
 - Sibling PAICE projects: GuideCheck (https://guidecheck.org/), Skill Provenance (https://skillprovenance.dev/)
 
 ## Current status
 
-- Spec version **1.5.3** (adoption-tooling line; no normative changes since 1.3/1.4). Pending work is recorded under `CHANGELOG.md` `## Unreleased`.
+- Spec version **1.5.4** (maintenance release; no normative changes since 1.3/1.4). Pending work is recorded under `CHANGELOG.md` `## Unreleased`.
 - Actively maintained: clean working tree, tests green in CI on every push/PR.
 - License: **CC-BY-4.0** for the spec/content; MIT for the checker code (`LICENSE-SPEC` / `LICENSE`).
 - Open questions and deferred ideas are tracked in `INTENT.md` and `docs/roadmap.md`.

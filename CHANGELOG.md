@@ -6,17 +6,35 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 
 ## Unreleased
 
+## [1.5.4] - 2026-08-28
+
 ### Added
 - The checker derives and reports the single smallest change that raises a service's confirmed conformance level. Human output gains a `Next step` block with the target level, an anchored implementation-guide link, an example file, and a pasteable snippet; `--json` gains a `nextStep` object carrying the same content, including a `verifiable` flag that is `false` when the next level requires observing a live refusal.
 - `deriveNextStep` is exported from `evals/check.js`.
 - `evals/test-next-step.js` — offline tests for next-step derivation.
 - Search index policy and contract: `ops/search-indexing.md`, `search-audit.config.json`, and vendored `scripts/check-search.mjs` and `scripts/check-production-search.mjs`. The offline lane runs in CI after `npm test`; the production lane is release-triggered.
+- URL-only adopter registration issue template. The checker verifies the available evidence, so registration no longer requires a pull request.
+- Reproducible comparative caller benchmark protocol for future retry-reduction and agent-behavior claims.
+- Reproducible ClawHub consumer-package builder and tracked audit-skill card. The generated artifact contains only `SKILL.md`, its derived manifest, and the card.
+- Concrete before-and-after security examples for SC-2 through SC-6.
 
 ### Changed
+- Reordered the README around the npx checker and CI path, linked RFC 9457 compatibility at the first specification mention, and added a verified Level 4 output sample.
+- Added a literal before-and-after comparison to the RFC 9457 compatibility profile.
+- Expanded npm discovery metadata with rate-limit, Problem Details, AI-agent, and retry terms and aligned the package description with the checker-first entry point.
+- Moved durable adoption and outreach approval gates from temporary handoffs into `INTENT.md`.
+- Recorded the evidence-gated design path for stack-specific checker guidance instead of guessing a service stack from HTTP headers.
+- Reconciled completed roadmap items, existing `windowResetAt` support, current test counts, and the Repo Standards v0.4 root-skill layout decision.
 - HTML sitemap membership is now reserved for canonical HTML search targets. `sitemap.xml` lists only `https://gracefulboundaries.dev/`. The specification remains published and crawlable at `https://gracefulboundaries.dev/spec.md` but is no longer declared a search index target, because it is served as raw Markdown and cannot carry a canonical link element or JSON-LD. Nothing was removed from the site.
 - Aligned the homepage's sitemap `lastmod`, `article:modified_time`, and JSON-LD `dateModified`, which had drifted to three different dates. `lastmodAgreementPaths` now locks the agreement against regression.
 - Limits discovery results carry `errors` alongside `warnings`, so a malformed discovery endpoint names the specific fields to fix instead of returning generic advice.
 - The 1.5.3 release eval requiring the spec URL in the sitemap is inverted to enforce the new index policy, and now asserts the sitemap lists exactly the canonical HTML search targets.
+
+### Fixed
+- Removed the roadmap-only `agentCapable` reservation from the published schema. The schema remains permissive for service-defined extension fields, but no longer presents an unadmitted field as part of the vocabulary.
+- Replaced the drift-prone ClawHub install-count badge with a stable audit-skill badge and made repository-root ClawHub packaging fail closed to `SKILL.md` only.
+- Removed transient `prepared-not-published` status from generated ClawHub manifests and tied consumer versions and hashes to repository release metadata.
+- Corrected the ClawHub skill card from an unsupported MIT-0 claim to the repository's CC-BY-4.0 text and MIT embedded-code license split.
 
 ### Notes
 - No normative spec changes. Conformance levels, required fields, and response classes are unchanged.

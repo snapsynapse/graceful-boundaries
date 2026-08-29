@@ -1,7 +1,7 @@
 {
   "name": "graceful-boundaries",
-  "version": "1.5.3",
-  "description": "A specification for how services communicate their operational limits to humans and autonomous agents.",
+  "version": "1.5.4",
+  "description": "Grade how APIs communicate operational limits and error context to humans and autonomous agents.",
   "license": "CC-BY-4.0 AND MIT",
   "bin": {
     "graceful-boundaries": "bin/cli.js"
@@ -35,7 +35,8 @@
     "test:agentic": "node evals/test-agentic-surfaces.js",
     "check": "node evals/check.js",
     "search": "node scripts/check-search.mjs",
-    "search:production": "node scripts/check-production-search.mjs"
+    "search:production": "node scripts/check-production-search.mjs",
+    "build:clawhub": "node scripts/build-clawhub-package.mjs"
   },
   "type": "commonjs",
   "author": "PAICE.work PBC <https://paice.work/>",
@@ -49,12 +50,16 @@
   },
   "keywords": [
     "graceful-boundaries",
+    "rate-limit",
     "rate-limiting",
     "api",
     "specification",
     "conformance",
     "autonomous-agents",
+    "ai-agents",
     "429",
+    "problem-details",
+    "retry",
     "structured-refusal",
     "limits-discovery"
   ]

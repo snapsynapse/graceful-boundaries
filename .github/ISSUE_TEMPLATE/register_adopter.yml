@@ -1,0 +1,13 @@
+name: Register as adopter
+description: Request verification and addition to the Graceful Boundaries adopter registry.
+title: "Adopter registration: "
+labels: ["adoption"]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: Service URL
+      description: Enter the canonical deployed URL. The checker will verify the available conformance evidence.
+      placeholder: https://api.example.com/
+    validations:
+      required: true

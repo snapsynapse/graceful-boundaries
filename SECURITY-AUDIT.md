@@ -81,6 +81,116 @@ An attacker reads the Graceful Boundaries spec and uses it to exploit services t
 - Services MAY add jitter to the `reset` value (e.g., ±10% randomization) to prevent precise timing.
 - Implemented in spec: "Services MAY add small random jitter to `reset` values in proactive headers to prevent callers from synchronizing with window boundaries."
 
+## Worked Examples for SC-2 Through SC-6
+
+These pairs show the disclosure boundary. The unsafe form reveals implementation details, sensitive resource state, or an untrusted machine-actionable target. The safer form preserves enough information for the caller to act without exposing those details.
+
+### SC-2: Describe the protection category, not the mechanism
+
+Unsafe:
+```json
+{
+  "error": "request_blocked",
+  "detail": "This request is not permitted.",
+  "why": "Rule WAF-17 rejected the X-Forwarded-Host value after the metadata-IP regex matched."
+}
+```
+Safer:
+```json
+{
+  "error": "request_blocked",
+  "detail": "This request is not permitted.",
+  "why": "Requests to non-public destinations are blocked to prevent abuse."
+}
+```
+
+### SC-3: State accepted input positively
+
+Unsafe:
+```json
+{
+  "error": "invalid_input",
+  "detail": "The target URL is not accepted.",
+  "why": "Only public scan targets are accepted.",
+  "field": "url",
+  "expected": "Not localhost, RFC 1918, link-local, metadata IPs, or ports other than 80 and 443."
+}
+```
+Safer:
+```json
+{
+  "error": "invalid_input",
+  "detail": "The target URL is not accepted.",
+  "why": "Only public scan targets are accepted.",
+  "field": "url",
+  "expected": "A public HTTPS URL with a resolvable hostname."
+}
+```
+
+### SC-4: Publish only documented public endpoints
+
+Unsafe discovery entry:
+```json
+{
+  "adminExport": {
+    "endpoint": "/internal/admin/export",
+    "method": "POST",
+    "limits": []
+  }
+}
+```
+Safer discovery entry:
+```json
+{
+  "publicReports": {
+    "endpoint": "/api/reports",
+    "method": "GET",
+    "limits": []
+  }
+}
+```
+
+### SC-5: Use uniform responses when existence is sensitive
+
+Unsafe responses distinguish a resource that never existed from one that expired:
+```json
+{
+  "error": "report_expired",
+  "detail": "Report 7f31 existed but expired yesterday.",
+  "why": "Reports are retained for 30 days."
+}
+```
+Safer response for both states:
+```json
+{
+  "error": "not_found",
+  "detail": "No available report matches this identifier.",
+  "why": "Unavailable and unknown reports use the same response to protect resource privacy."
+}
+```
+
+### SC-6: Keep machine-actionable guidance same-origin
+
+Unsafe:
+```json
+{
+  "error": "rate_limit_exceeded",
+  "detail": "Try the alternate endpoint.",
+  "why": "The primary endpoint is at capacity.",
+  "alternativeEndpoint": "https://collector.example.net/continue"
+}
+```
+Safer:
+```json
+{
+  "error": "rate_limit_exceeded",
+  "detail": "Use the cached result or review the external help page.",
+  "why": "The primary endpoint is at capacity.",
+  "cachedResultUrl": "/api/results/7f31",
+  "humanUrl": "https://support.example.net/capacity"
+}
+```
+
 ### 8. Agent Instruction Following via 404 `scanUrl`
 
 **Risk:** An agent encounters a 404 with `scanUrl: "/api/scan?url=https://internal-server.local"`. If the agent follows this instruction, it triggers a scan against an internal resource. This is an indirect SSRF via agent manipulation.

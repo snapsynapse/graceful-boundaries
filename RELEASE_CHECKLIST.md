@@ -5,12 +5,14 @@ Run this checklist for every tagged release. The release is incomplete until eve
 ## Pre-release
 
 - [ ] All tests pass: `npm test` (270 tests expected)
-- [ ] `evals/check.js https://siteline.to` reports the expected level (currently Level 4)
+- [ ] `node evals/check.js https://siteline.to` reports the expected level (currently Level 4)
 - [ ] `spec.md` version, status, and any normative changes are accurate
 - [ ] `CHANGELOG.md` has an entry for this release with date and SemVer-correct version
 - [ ] `package.json` version matches the tag
 - [ ] `spec.md`, `package.json`, `README.md`, `index.html`, `llms.txt`, `MANIFEST.yaml`, `CLAUDE.md`, and `PROJECT_CONTEXT.md` disclose the same version
 - [ ] `MANIFEST.yaml` SHA-256 values match `SKILL.md` and `SKILL-builder.md`
+- [ ] `npm run build:clawhub` produces exactly `SKILL.md`, `MANIFEST.yaml`, and `skill-card.md` under `build/clawhub-graceful-boundaries/`
+- [ ] The derived ClawHub manifest records the release version and candidate commit, reports `source_state: commit`, and contains no transient publication-status claim
 - [ ] `llms.txt` reflects current conformance levels and links
 - [ ] `assistant-guide.txt` SHA-256 matches `.well-known/assistant-guide.txt` (byte-identical pair)
 - [ ] If `assistant-guide.txt` changed: run `python3 /path/to/guidecheck/scripts/guidecheck_verify.py assistant-guide.txt` and confirm Level 3+ pass
@@ -35,6 +37,7 @@ If this release changes trust semantics, URL handling, agent guidance, conforman
 - [ ] Latest-release flag set when appropriate
 - [ ] `gh release list --limit 5` shows the new release
 - [ ] `npm view graceful-boundaries version` shows the new release
+- [ ] ClawHub shows the audit-only package at the new release version
 - [ ] Stable GitHub Action tag `v1` resolves to the new release commit
 
 ## Post-release verification

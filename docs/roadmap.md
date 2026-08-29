@@ -49,10 +49,6 @@ Graceful Boundaries 1.4 adds optional metadata for common quota, cost, size, tok
 
 **Current status:** Added as optional metadata in 1.4. The request-per-window model still covers the majority of real-world rate limits, and quota or cost metadata should stay optional until adoption validates the field names.
 
-### Unknown limit type fallback guidance
-
-Completed in 1.4. The spec now says agents encountering unknown types with `maxRequests` and `windowSeconds` SHOULD conservatively treat them as windowed limits.
-
 ## Future Candidate: Multi-Limit Interactions
 
 ### Cascade limit disclosure
@@ -79,6 +75,12 @@ When an endpoint enforces multiple overlapping limits, Graceful Boundaries 1.4 c
 
 ## Future Candidate: Agent-Oriented Enhancements
 
+### Stack-specific next-step guidance
+
+The checker currently emits a generic Express snippet with a direct link to all middleware examples. A future checker release may accept an explicit stack selection and return the matching Express, FastAPI, Hono, or Workers example.
+
+Do not infer a server stack from weak or absent HTTP headers. Stack-specific output should require an explicit CLI option or positive evidence, retain the generic fallback, and add offline tests for every supported mapping.
+
 ### Agent-capable endpoint flag
 
 The discovery endpoint doesn't signal which endpoints are designed for machine consumption vs. human-only. An `agentCapable: false` flag would let agents skip endpoints they shouldn't call.
@@ -96,23 +98,20 @@ The discovery endpoint doesn't signal which endpoints are designed for machine c
 
 ### Request context in 429 responses
 
-When an agent processing a batch gets a 429, it doesn't know details about which specific constraint was exceeded or by how much. Optional fields like `limitExceededBy` and `windowResetAt` (unix timestamp) would help agents adjust batch strategy.
+When an agent processing a batch gets a 429, it does not know by how much the request exceeded the active limit. A future optional field such as `limitExceededBy` could help agents adjust batch strategy. Graceful Boundaries 1.4 already provides `windowResetAt` for reset timing.
 
 **Why deferred:** The current `retryAfterSeconds` field handles the common case. These fields are optimizations for high-volume batch agents.
 
-### Agent compliance self-checker
-
-Completed in 1.5. `evals/test-agent-behavior.js` exports fixtures and a runner covering retry timing, cached-result preference, unsafe guidance URLs, instruction-like text, malformed retry values, header fallbacks, and proactive self-throttling.
-
 ## Documentation
 
-### Security audit worked examples
+No documentation-only roadmap items are currently open. Security examples for SC-2 through SC-6 and the offline-versus-live eval workflow are part of the maintained documentation set.
 
-The security audit (SECURITY-AUDIT.md) lists threats but doesn't show concrete attack/mitigation examples. Adding before/after comparisons would make SC-2 through SC-6 more actionable for implementers.
+## Completed
 
-### Eval suite workflow documentation
-
-Completed in 1.5.2. CONTRIBUTING.md now distinguishes offline repository validation from live deployed-service conformance checks.
+- Graceful Boundaries 1.4 defined conservative fallback guidance for unknown limit types that carry `maxRequests` and `windowSeconds`.
+- Graceful Boundaries 1.5 added the agent compliance runner in `evals/test-agent-behavior.js`.
+- Graceful Boundaries 1.5.2 documented the offline repository and live deployed-service validation lanes.
+- Graceful Boundaries 1.5.4 added concrete before-and-after security examples for SC-2 through SC-6.
 
 ## Non-Goals
 

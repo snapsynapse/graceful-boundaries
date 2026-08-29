@@ -17,7 +17,9 @@ Implementation feedback is tracked through the [adoption validation plan](docs/a
 ```bash
 npx graceful-boundaries check https://your-service.example
 ```
-3. Open a pull request adding one row to the table above, in level order (highest first), including the verify command. PRs are accepted when the checker confirms the discovery endpoint and the declared level is consistent with what can be verified passively (Levels 2 and 4; Levels 1 and 3 are taken on declaration since they require observing a live refusal).
+3. [Open a registration issue](https://github.com/snapsynapse/graceful-boundaries/issues/new?template=register_adopter.yml) with the service URL. The checker verifies the rest; a pull request is not required.
+
+Registrations are accepted when the checker confirms the discovery endpoint and the declared level is consistent with what can be verified passively. Levels 2 and 4 can be confirmed passively. Levels 1 and 3 require observing a live refusal, so the registry records them as declared rather than passively confirmed.
 
 Listing is descriptive, not an endorsement. Entries that stop verifying may be removed at any time. The conformance level reflects the service at the date declared; services are responsible for keeping their row current.
 

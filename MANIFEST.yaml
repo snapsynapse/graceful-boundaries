@@ -8,11 +8,11 @@ bundle: graceful-boundaries
 home: https://github.com/snapsynapse/graceful-boundaries
 canonical_url: https://gracefulboundaries.dev/
 spec_url: https://gracefulboundaries.dev/spec.md
-spec_version: 1.5.3
+spec_version: 1.5.4
 license_code: MIT
 license_spec: CC-BY-4.0
-manifest_version: 1
-date: 2026-07-21
+manifest_version: 2
+date: 2026-08-28
 
 skills:
   - name: graceful-boundaries-audit
@@ -53,6 +53,5 @@ notes:
   - Hash values are computed at manifest write time. Run skill-provenance:close to
     refresh on edit. Drift detection is part of the release checklist.
   - Both skill files live at repo root, not in skills/<bundle>/. This is the
-    "skill IS the repo" pattern; see INTENT.md Exceptions section. The
-    cross-portfolio standards doc treats this as an open layout question for
-    v0.4 of `0_Across/Repo Standards.md`.
+    "skill IS the repo" pattern codified by Repo Standards v0.4; see the
+    recorded layout declaration in INTENT.md.

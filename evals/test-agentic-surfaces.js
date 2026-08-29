@@ -112,6 +112,13 @@ test("agentic surfaces disclosure names the GuideCheck implementation", () => {
     "canonical guide URL must be disclosed"
   );
   assert(guide.includes("verifier-conformance: human-verifiable-assistant-guide-verifier >=0.3.0, <0.4.0"));
+
+  const canonical = "https://clawhub.ai/snapsynapse/skills/graceful-boundaries";
+  for (const file of ["README.md", "index.html", "PROJECT_CONTEXT.md", "distribution/clawhub/skill-card.md"]) {
+    const content = readRepoFile(file);
+    assert(content.includes(canonical), `${file} must link to the canonical ClawHub listing`);
+    assert(!content.includes("https://clawhub.ai/snapsynapse/graceful-boundaries"), `${file} must not use the legacy ClawHub path`);
+  }
 });
 
 test("checker CLI parses --check-cloaking as an explicit advisory flag", () => {
@@ -302,6 +309,33 @@ test("Skill Provenance manifest hashes match both skill files", () => {
     assert(declared, `MANIFEST.yaml must declare a SHA-256 for ${skillFile}`);
     assert.strictEqual(declared[1], sha256(readRepoFile(skillFile)), `${skillFile} hash must match MANIFEST.yaml`);
   }
+
+  const build = spawnSync(process.execPath, ["scripts/build-clawhub-package.mjs"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+  assert.strictEqual(build.status, 0, build.stderr || build.stdout);
+
+  const outputDir = path.join(repoRoot, "build", "clawhub-graceful-boundaries");
+  assert.deepStrictEqual(
+    fs.readdirSync(outputDir).sort(),
+    ["MANIFEST.yaml", "SKILL.md", "skill-card.md"],
+    "ClawHub package must contain only the audit skill and its consumer metadata"
+  );
+  assert.strictEqual(fs.readFileSync(path.join(outputDir, "SKILL.md"), "utf8"), readRepoFile("SKILL.md"));
+
+  const consumerManifest = fs.readFileSync(path.join(outputDir, "MANIFEST.yaml"), "utf8");
+  const packageVersion = JSON.parse(readRepoFile("package.json")).version;
+  assert(consumerManifest.includes(`registry_version: ${packageVersion}`), "consumer manifest version must match package.json");
+  assert(consumerManifest.includes(`hash: sha256:${sha256(readRepoFile("SKILL.md"))}`), "consumer manifest hash must match SKILL.md");
+  assert(consumerManifest.includes("license_text: CC-BY-4.0"), "consumer manifest must disclose the skill text license");
+  assert(consumerManifest.includes("license_code_examples: MIT"), "consumer manifest must disclose the embedded-code license");
+  assert(!consumerManifest.includes("prepared-not-published"), "consumer manifest must not embed transient publication status");
+
+  const skillCard = fs.readFileSync(path.join(outputDir, "skill-card.md"), "utf8");
+  assert(skillCard.includes(`${packageVersion} (source: repository release metadata)`), "skill card version must match package.json");
+  assert(!skillCard.includes("MIT-0"), "skill card must not claim a license the repository does not grant");
+  assert(!skillCard.includes("{{REGISTRY_VERSION}}"), "built skill card must not contain a version placeholder");
 });
 
 test("adopter revalidation workflow covers every registered service", () => {
