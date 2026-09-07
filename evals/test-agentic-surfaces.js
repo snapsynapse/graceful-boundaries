@@ -114,7 +114,7 @@ test("agentic surfaces disclosure names the GuideCheck implementation", () => {
   assert(guide.includes("verifier-conformance: human-verifiable-assistant-guide-verifier >=0.3.0, <0.4.0"));
 
   const canonical = "https://clawhub.ai/snapsynapse/skills/graceful-boundaries";
-  for (const file of ["README.md", "index.html", "PROJECT_CONTEXT.md", "distribution/clawhub/skill-card.md"]) {
+  for (const file of ["README.md", "index.html", "PROJECT_CONTEXT.md"]) {
     const content = readRepoFile(file);
     assert(content.includes(canonical), `${file} must link to the canonical ClawHub listing`);
     assert(!content.includes("https://clawhub.ai/snapsynapse/graceful-boundaries"), `${file} must not use the legacy ClawHub path`);
@@ -198,6 +198,7 @@ test("release version is consistent across published surfaces", () => {
     "MANIFEST.yaml": /^spec_version: (\S+)$/m,
     "CLAUDE.md": /Spec version \*\*(\d+\.\d+\.\d+)\*\*/,
     "PROJECT_CONTEXT.md": /Spec version \*\*(\d+\.\d+\.\d+)\*\*/,
+    "CITATION.cff": /^version: (\S+)$/m,
   };
 
   for (const [file, pattern] of Object.entries(checks)) {
@@ -212,6 +213,11 @@ test("release version is consistent across published surfaces", () => {
 
   const specDate = readRepoFile("spec.md").match(/^\*\*Date:\*\* (\d{4}-\d{2}-\d{2})$/m);
   assert(specDate, "spec.md must disclose an ISO release date");
+  const citation = readRepoFile("CITATION.cff");
+  const preferredCitation = citation.split(/^preferred-citation:\n/m)[1] || "";
+  assert(new RegExp(`^  version: ${packageVersion.replace(/\./g, "\\.")}$`, "m").test(preferredCitation), "preferred specification citation must match the released version");
+  assert(new RegExp(`^date-released: "${specDate[1]}"$`, "m").test(citation), "root citation must match the released date");
+  assert(new RegExp(`^  date-released: "${specDate[1]}"$`, "m").test(preferredCitation), "preferred citation must match the released date");
   const dateChecks = {
     "CHANGELOG.md": new RegExp(`^## \\[${packageVersion.replace(/\./g, "\\.")}\\] - (${specDate[1]})$`, "m"),
     "index.html": new RegExp(`<time datetime="(${specDate[1]})">`),
@@ -310,17 +316,21 @@ test("Skill Provenance manifest hashes match both skill files", () => {
     assert.strictEqual(declared[1], sha256(readRepoFile(skillFile)), `${skillFile} hash must match MANIFEST.yaml`);
   }
 
+  // A rebuild must remove stale upload inputs from earlier producer versions.
+  const outputDir = path.join(repoRoot, "build", "clawhub-graceful-boundaries");
+  fs.mkdirSync(outputDir, { recursive: true });
+  fs.writeFileSync(path.join(outputDir, "skill-card.md"), "Stale registry-generated card\n");
+  fs.writeFileSync(path.join(outputDir, "SKILL-builder.md"), "Not part of the audit package\n");
   const build = spawnSync(process.execPath, ["scripts/build-clawhub-package.mjs"], {
     cwd: repoRoot,
     encoding: "utf8",
   });
   assert.strictEqual(build.status, 0, build.stderr || build.stdout);
 
-  const outputDir = path.join(repoRoot, "build", "clawhub-graceful-boundaries");
   assert.deepStrictEqual(
     fs.readdirSync(outputDir).sort(),
-    ["MANIFEST.yaml", "SKILL.md", "skill-card.md"],
-    "ClawHub package must contain only the audit skill and its consumer metadata"
+    ["MANIFEST.yaml", "SKILL.md"],
+    "ClawHub upload must contain exactly the audit skill and derived manifest; ClawHub generates skill-card.md"
   );
   assert.strictEqual(fs.readFileSync(path.join(outputDir, "SKILL.md"), "utf8"), readRepoFile("SKILL.md"));
 
@@ -328,14 +338,12 @@ test("Skill Provenance manifest hashes match both skill files", () => {
   const packageVersion = JSON.parse(readRepoFile("package.json")).version;
   assert(consumerManifest.includes(`registry_version: ${packageVersion}`), "consumer manifest version must match package.json");
   assert(consumerManifest.includes(`hash: sha256:${sha256(readRepoFile("SKILL.md"))}`), "consumer manifest hash must match SKILL.md");
-  assert(consumerManifest.includes("license_text: CC-BY-4.0"), "consumer manifest must disclose the skill text license");
-  assert(consumerManifest.includes("license_code_examples: MIT"), "consumer manifest must disclose the embedded-code license");
+  assert(/^license: MIT-0$/m.test(consumerManifest), "ClawHub artifact must disclose its accepted MIT-0 grant");
+  assert(/^license_text: MIT-0$/m.test(consumerManifest), "consumer text is distributed under MIT-0");
+  assert(/^license_code_examples: MIT-0$/m.test(consumerManifest), "consumer examples are distributed under MIT-0");
+  assert(/^  license_text: CC-BY-4.0$/m.test(consumerManifest), "origin must preserve the canonical text license");
+  assert(/^  license_code_examples: MIT$/m.test(consumerManifest), "origin must preserve the canonical code license");
   assert(!consumerManifest.includes("prepared-not-published"), "consumer manifest must not embed transient publication status");
-
-  const skillCard = fs.readFileSync(path.join(outputDir, "skill-card.md"), "utf8");
-  assert(skillCard.includes(`${packageVersion} (source: repository release metadata)`), "skill card version must match package.json");
-  assert(!skillCard.includes("MIT-0"), "skill card must not claim a license the repository does not grant");
-  assert(!skillCard.includes("{{REGISTRY_VERSION}}"), "built skill card must not contain a version placeholder");
 });
 
 test("adopter revalidation workflow covers every registered service", () => {
@@ -350,8 +358,16 @@ test("adopter revalidation workflow covers every registered service", () => {
   }
   assert(workflow.includes("schedule:"), "adopter revalidation must run on a schedule");
   assert(workflow.includes("workflow_dispatch:"), "adopter revalidation must support manual runs");
-  assert(workflow.includes("actions/upload-artifact@v4"), "adopter revalidation must retain JSON evidence");
+  assert(/uses: actions\/upload-artifact@[a-f0-9]{40}\b/.test(workflow), "adopter revalidation must retain JSON evidence through a pinned action");
   assert(workflow.includes("timeout-minutes:"), "live adopter checks must have a bounded job timeout");
+  for (const file of [".github/workflows/test.yml", ".github/workflows/adopter-revalidation.yml"]) {
+    const content = readRepoFile(file);
+    const uses = [...content.matchAll(/uses: (\S+)/g)].map((match) => match[1]);
+    assert(uses.length > 0, `${file} must declare its actions`);
+    assert(uses.every((ref) => /^[\w-]+\/[\w-]+@[a-f0-9]{40}$/.test(ref)), `${file} actions must use immutable SHAs`);
+    assert(/^permissions:\n  contents: read\n/m.test(content), `${file} must default to read-only contents permission`);
+    assert(content.includes("persist-credentials: false"), `${file} must not persist checkout credentials`);
+  }
 });
 
 test("public docs disclose the current unit test count", () => {
