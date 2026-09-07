@@ -4,9 +4,9 @@ Scope: Graceful Boundaries repository maintenance, trust evidence, and adoption 
 
 ## Baseline and local preparation
 
-The preparation started from clean `main` at `fc2d2e20cd04056fa1cb18ec394155722bc8310c`, also the current public `main` and v1.5.4 release commit. GitHub, npm, ClawHub, and the live specification were independently checked at version 1.5.4. ClawHub reported six versions and MIT-0 for its latest artifact. The release commit, annotated `v1.5.4`, and moving `v1` tag are unsigned. Existing release objects remain unchanged.
+The preparation started from clean `main` at `fc2d2e20cd04056fa1cb18ec394155722bc8310c`, also the public `main` at that checkpoint and the v1.5.4 release commit. GitHub, npm, ClawHub, and the live specification were independently checked at version 1.5.4. ClawHub reported six versions and MIT-0 for its latest artifact. At that checkpoint, the release commit, annotated `v1.5.4`, and moving `v1` tag were unsigned. Versioned historical release objects remain unchanged.
 
-The maintainer authorized the recommended local work and subsequently signed commit, branch push, and PR delivery on 2026-09-07. Changes are under `CHANGELOG.md` `Unreleased`, provisionally targeting 1.5.5. At the local validation checkpoint, no version bump, commit, push, GitHub configuration change, tag movement, registry upload, DOI publication, or deployment had occurred. Commit/push/PR delivery is now authorized; GitHub settings, merge, and release publication remain separate follow-ups.
+The maintainer authorized the recommended local work and subsequently signed commit, branch push, and PR delivery on 2026-09-07. The local maintenance checkpoint kept changes under `CHANGELOG.md` `Unreleased`, provisionally targeting 1.5.5. At the local validation checkpoint, no version bump, commit, push, GitHub configuration change, tag movement, registry upload, DOI publication, or deployment had occurred. That checkpoint authorized commit/push/PR delivery. The subsequent release authorization is recorded below; GitHub settings remain a separate follow-up.
 
 | Work | Local disposition | Remaining delivery condition |
 |---|---|---|
@@ -26,14 +26,18 @@ The maintainer authorized the recommended local work and subsequently signed com
 - ClawHub build: exact two-file inventory; generated manifest reports `source_state: working-tree`, which is review evidence rather than a publishable commit artifact.
 - npm dry-run: 11 intended package files; a tarball installed into a clean temporary consumer. Usage and invalid-argument handling passed with the normalized metadata intact. The CLI has no dedicated `--help` success contract; missing-URL usage returns exit 1.
 - Packed consumer on Node 24.20.0 checked Siteline at `2026-09-07T06:29:50.489Z`: passive Level 4, discovery present and well formed, proactive headers observed. Refusal format was not observed. This is one service assessment, not another adopter.
-- Live production search contract: one page, zero defects, zero infrastructure failures. This is evidence about the current 1.5.4 deployment, not deployment of these changes.
+- Live production search contract: one page, zero defects, zero infrastructure failures. This checkpoint is evidence about the then-current 1.5.4 deployment, not deployment of these changes.
 - Official actionlint 1.7.12 validated both workflows. The binary was verified against the release's SHA-256 digest. ShellCheck was not available, so its optional integration was disabled.
 - Official `cffconvert` validated CFF 1.2.0. Root and preferred-citation versions/dates are included in repository release-consistency checks.
 - Read-only second-agent review found no actionable maintenance-patch defects; it was a review of the visible candidate, not a blind independent position.
 
 Temporary raw package and runtime evidence is under ignored `build/maintenance-*` paths. The durable Scorecard/settings evidence is under `ops/trust/2026-09-07/`. Re-run local gates after any candidate changes; hosted acceptance and signing remain separate evidence.
 
-## Next authorized-delivery proposal
+## Release 1.5.5 authorization
+
+PR #6 was merged as `371efe658487f6b1b4dbd90ef33d8e445b618c6f`. The maintainer then authorized SemVer propagation, documentation/web/agentic updates, tagging, packages, and release publication on 2026-09-07. Version 1.5.5 is selected as a maintenance patch. Delivery includes signed versioned and stable `v1` tags, GitHub Release, npm, ClawHub, and Pages verification. GitHub settings, DOI publication, and paid benchmark execution remain separate. Provider completion evidence is recorded in the release and `build/release-state-1.5.5.json`; authorization alone does not establish publication.
+
+## Ongoing delivery and validation queue
 
 1. Deliver the reviewed local diff as an explicitly authorized signed commit and branch PR. Verify its actual signature and exact-commit CI. Preserve unrelated work and stage only approved paths.
 2. Decide the bounded GitHub settings proposal in [proposed-github-settings.json](trust/proposed-github-settings.json). It preserves `prime` deletion/force-push protections and no bypass actors; adds PRs, resolved review threads, and an up-to-date successful `test` check from GitHub Actions app 15368; sets zero mandatory approvals; enables dependency alerts/security updates and action SHA enforcement. The current full ruleset is retained in the [baseline evidence](trust/2026-09-07/github-ruleset-prime.json). Re-read provider values before any apply.
