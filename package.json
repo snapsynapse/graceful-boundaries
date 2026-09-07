@@ -1,6 +1,6 @@
 {
   "name": "graceful-boundaries",
-  "version": "1.5.4",
+  "version": "1.5.5",
   "description": "Grade how APIs communicate operational limits and error context to humans and autonomous agents.",
   "license": "CC-BY-4.0 AND MIT",
   "bin": {

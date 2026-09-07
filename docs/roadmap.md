@@ -6,7 +6,7 @@ The current evidence plan is documented in [adoption-validation.md](adoption-val
 
 ## Next: Maintenance and Adoption Evidence
 
-The next maintenance patch is provisionally 1.5.5. Local corrections are recorded under `CHANGELOG.md` `Unreleased`; published version metadata remains at 1.5.4 until a release is prepared. Work is sequenced as follows:
+Release 1.5.5 contains the packaging, CI, and citation maintenance tranche. Its remaining delivery checks and ongoing adoption work are tracked in [the maintenance queue](../ops/maintenance.md). Work is sequenced as follows:
 
 | Priority | Work | Completion evidence |
 |---|---|---|
@@ -125,6 +125,7 @@ Security examples for SC-2 through SC-6 and the offline-versus-live eval workflo
 - Graceful Boundaries 1.5 added the agent compliance runner in `evals/test-agent-behavior.js`.
 - Graceful Boundaries 1.5.2 documented the offline repository and live deployed-service validation lanes.
 - Graceful Boundaries 1.5.4 added concrete before-and-after security examples for SC-2 through SC-6.
+- Graceful Boundaries 1.5.5 corrected ClawHub upload and licensing metadata, refreshed CI action pins and runtimes, and added citation and trust/adoption evidence.
 
 ## Non-Goals
 

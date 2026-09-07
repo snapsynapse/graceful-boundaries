@@ -6,6 +6,8 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 
 ## Unreleased
 
+## [1.5.5] - 2026-09-07
+
 ### Fixed
 - ClawHub upload generation now contains exactly `SKILL.md` and the derived `MANIFEST.yaml`. Rebuilds remove stale card and builder files; ClawHub generates `skill-card.md` after publication.
 - Corrected the ClawHub consumer manifest to disclose the publisher's already accepted MIT-0 distribution grant, with the canonical CC-BY-4.0 text and MIT code licenses retained as source metadata. The 1.5.4 changelog's statement that MIT-0 was unsupported was incorrect; its published entry is preserved below.
@@ -20,7 +22,7 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 - A dated trust review, adoption evidence ledger, and comparative caller benchmark design for the next validation phase.
 
 ### Notes
-- Intended for the next maintenance patch, provisionally 1.5.5. No normative specification or checker behavior changes; versioned surfaces continue to identify the latest published release until release preparation is authorized.
+- No normative specification or checker behavior changes. Conformance levels, required fields, and response classes are unchanged.
 
 ## [1.5.4] - 2026-08-28
 

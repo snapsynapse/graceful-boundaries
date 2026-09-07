@@ -53,7 +53,7 @@ Verification proves the guide matches the GuideCheck profile shape. It does not 
 
 The ClawHub audit-only consumer artifact is distributed under the MIT-0 grant already accepted by the publisher. This is an existing distribution grant, not a new license acceptance. Its generated manifest declares MIT-0 for the artifact, instructional text, and embedded examples; the `origin` section records the canonical source licenses separately.
 
-The canonical repository retains CC-BY-4.0 for specification and instructional text and MIT for code and embedded code examples. The ClawHub grant does not relicense the repository or the builder skill. The published 1.5.4 changelog's description of MIT-0 as unsupported was incorrect; the correction is recorded prospectively under `Unreleased` without rewriting that release's history.
+The canonical repository retains CC-BY-4.0 for specification and instructional text and MIT for code and embedded code examples. The ClawHub grant does not relicense the repository or the builder skill. The published 1.5.4 changelog's description of MIT-0 as unsupported was incorrect; the correction is recorded in release 1.5.5 without rewriting that release's history.
 
 ClawHub generates `skill-card.md` after publication. It is not an upload input or a repository-maintained template. Review the registry-generated card and license against the intended release during publication verification.
 

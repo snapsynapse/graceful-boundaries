@@ -6,8 +6,8 @@ authors:
   - name: "PAICE.work PBC"
     website: "https://paice.work/"
 abstract: "The Graceful Boundaries specification defines how services communicate operational limits, structured refusals, and constructive guidance to humans and autonomous agents. This repository has a split license: specification and documentation text under CC BY 4.0, and code, examples, and the conformance checker under MIT."
-version: 1.5.4
-date-released: "2026-08-28"
+version: 1.5.5
+date-released: "2026-09-07"
 url: "https://gracefulboundaries.dev/"
 repository-code: "https://github.com/snapsynapse/graceful-boundaries"
 license:
@@ -27,8 +27,8 @@ preferred-citation:
     - name: "PAICE.work PBC"
       website: "https://paice.work/"
   license: CC-BY-4.0
-  version: 1.5.4
-  date-released: "2026-08-28"
+  version: 1.5.5
+  date-released: "2026-09-07"
   year: 2026
-  url: "https://github.com/snapsynapse/graceful-boundaries/blob/fc2d2e20cd04056fa1cb18ec394155722bc8310c/spec.md"
+  url: "https://github.com/snapsynapse/graceful-boundaries/blob/v1.5.5/spec.md"
   repository-code: "https://github.com/snapsynapse/graceful-boundaries"

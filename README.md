@@ -3,7 +3,7 @@
 APIs that return vague `429`, `403`, and `500` responses make autonomous agents retry blindly. Graceful Boundaries grades those responses and names the smallest fix.
 
 [![License: CC-BY-4.0](https://img.shields.io/badge/License-CC--BY--4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![Version](https://img.shields.io/badge/version-1.5.4-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.5-blue.svg)](CHANGELOG.md)
 [![Tests](https://img.shields.io/github/actions/workflow/status/snapsynapse/graceful-boundaries/test.yml?label=tests)](https://github.com/snapsynapse/graceful-boundaries/actions)
 [![ClawHub](https://img.shields.io/badge/ClawHub-audit%20skill-blue)](https://clawhub.ai/snapsynapse/skills/graceful-boundaries)
 
@@ -294,6 +294,10 @@ The specification includes a [threat model and security audit](SECURITY-AUDIT.md
 ## Sponsor
 
 Graceful Boundaries is free and open. If your team relies on this spec, consider [sponsoring its development](https://github.com/sponsors/snapsynapse) to keep it maintained and evolving. See [SPONSORS.md](SPONSORS.md).
+
+## Citation
+
+Use [CITATION.cff](CITATION.cff) for the preferred versioned specification citation. [Citation guidance](docs/citation.md) explains the specification/code license split and archive scope.
 
 ## License
 
