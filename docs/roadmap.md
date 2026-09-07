@@ -4,6 +4,19 @@ Proposed enhancements for future versions of Graceful Boundaries. These were ide
 
 The current evidence plan is documented in [adoption-validation.md](adoption-validation.md). New normative fields remain gated on repeated implementation evidence.
 
+## Next: Maintenance and Adoption Evidence
+
+The next maintenance patch is provisionally 1.5.5. Local corrections are recorded under `CHANGELOG.md` `Unreleased`; published version metadata remains at 1.5.4 until a release is prepared. Work is sequenced as follows:
+
+| Priority | Work | Completion evidence |
+|---|---|---|
+| 1 | Correct ClawHub upload inventory and MIT-0 consumer licensing, normalize npm metadata, and refresh CI runtimes and action pins | Two-file build, stale-file regression, package consumer smoke, and exact-commit CI without the observed Node 20 action-runtime warnings |
+| 2 | Verify future signed delivery objects and the moving `v1` pointer | Signed commit and annotated tag verification, recorded immutable object IDs, and the [release checklist](../RELEASE_CHECKLIST.md) |
+| 3 | Review Scorecard findings and publish specification-first citation metadata | [Trust review](../ops/trust/scorecard-review.md), validated [citation metadata](citation.md), and GitHub citation UI after delivery |
+| 4 | Collect real adoption and caller-behavior evidence | [Adoption ledger](adoption-evidence.md) and [benchmark design](benchmark.md), with results kept distinct from planned work |
+
+Zenodo connection and DOI publication remain pending creator and archive-scope decisions in [citation guidance](citation.md). OpenSSF Best Practices remains deferred until the GuideCheck pilot supplies a reusable evidence pattern. Neither is a prerequisite for collecting implementation evidence. External outreach follows `INTENT.md` approval and maintainer-fit gates; directory indexing does not count as an independent implementation.
+
 ## Current: Action Boundaries
 
 Graceful Boundaries 1.3 introduced optional extension discovery and a non-normative Action Boundaries draft. The core Level 1 through Level 4 conformance model remains unchanged.
@@ -104,7 +117,7 @@ When an agent processing a batch gets a 429, it does not know by how much the re
 
 ## Documentation
 
-No documentation-only roadmap items are currently open. Security examples for SC-2 through SC-6 and the offline-versus-live eval workflow are part of the maintained documentation set.
+Security examples for SC-2 through SC-6 and the offline-versus-live eval workflow are part of the maintained documentation set. Citation delivery and adoption evidence remain open as sequenced above. The `llms-full.txt` question remains in `INTENT.md`; it is not a dependency of the maintenance patch or adoption sprint.
 
 ## Completed
 

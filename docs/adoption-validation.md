@@ -14,6 +14,8 @@ The initial adoption sprint is complete when all of the following are true:
 
 These are validation targets, not conformance requirements.
 
+Current observations and missing evidence are recorded in the [adoption evidence ledger](adoption-evidence.md). The [benchmark design](benchmark.md) defines the paired caller experiment; it contains no measured reduction claim.
+
 ## Evidence to collect
 
 For each implementation, record:
