@@ -4,7 +4,7 @@ Graceful Boundaries is an open specification for communicating operational limit
 
 PAICE.work PBC. (2026). *Graceful Boundaries: Specification for communicating operational limits, structured refusals, and constructive guidance* (Version 1.5.5). https://gracefulboundaries.dev/
 
-The machine-readable metadata for this citation is in the repository root at [CITATION.cff](../CITATION.cff). GitHub's “Cite this repository” action reads that file and uses its `preferred-citation` entry when generating citation formats. The preferred citation points to the immutable [version 1.5.5 specification source](https://github.com/snapsynapse/graceful-boundaries/blob/v1.5.5/spec.md); the canonical project landing page remains https://gracefulboundaries.dev/.
+The machine-readable metadata for this citation is in the repository root at [CITATION.cff](../CITATION.cff). GitHub's “Cite this repository” action reads that file and uses its `preferred-citation` entry when generating citation formats. The preferred citation points to the immutable [version 1.5.5 specification source](https://github.com/snapsynapse/graceful-boundaries/blob/2ef2fe1c725f199831036c8b0d0fb491e6dafeb8/spec.md); the canonical project landing page remains https://gracefulboundaries.dev/.
 
 The specification and documentation are licensed CC BY 4.0. Code, examples, and the conformance checker are licensed MIT. The root CFF lists both SPDX licenses because the repository has this file-level split; it doesn't mean each file is available under both licenses. See [LICENSE-SPEC](../LICENSE-SPEC) and [LICENSE](../LICENSE).
 

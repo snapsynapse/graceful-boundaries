@@ -30,5 +30,5 @@ preferred-citation:
   version: 1.5.5
   date-released: "2026-09-07"
   year: 2026
-  url: "https://github.com/snapsynapse/graceful-boundaries/blob/v1.5.5/spec.md"
+  url: "https://github.com/snapsynapse/graceful-boundaries/blob/2ef2fe1c725f199831036c8b0d0fb491e6dafeb8/spec.md"
   repository-code: "https://github.com/snapsynapse/graceful-boundaries"
