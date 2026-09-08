@@ -218,7 +218,7 @@ python3 /path/to/guidecheck/scripts/guidecheck_verify.py assistant-guide.txt
 
 The committed root copy and the well-known copy must remain byte-identical.
 
-The current GuideCheck implementation and all agent-facing repository surfaces are documented in [docs/agentic-surfaces.md](docs/agentic-surfaces.md). Current local verification: GuideCheck reference verifier 0.3.2, achieved Level 3, guide SHA-256 `7dbf6472d5a49905054b0d541c27a4246bdc1f10e5d7bb9c16c028fa04b8bfdd`, with 0 blocking findings and 0 warnings.
+The current GuideCheck implementation and all agent-facing repository surfaces are documented in [docs/agentic-surfaces.md](docs/agentic-surfaces.md). Current historical-profile verification: GuideCheck reference verifier 0.3.0, achieved Level 3, guide SHA-256 `5c199ffb154296ea2418a78c4816995285788a29eaeefe22e79a0bea480035b4`, with 0 blocking findings and 0 warnings.
 
 ## Which level should you target?
 

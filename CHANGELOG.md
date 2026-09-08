@@ -211,3 +211,10 @@ First stable release.
 - Conformance checker (`evals/check.js`) with 104 unit tests.
 - Siteline as Level 4 reference implementation.
 - Implementation guide with code samples for each level.
+
+## Assistant guide revisions
+
+### [assistant-guide 1.1.1] - 2026-09-08
+
+### Changed
+- Updated the contributor guide's reviewed applicability to the exact `graceful-boundaries` 1.5.5 package without changing its GuideCheck 0.3.0 profile or verifier range.

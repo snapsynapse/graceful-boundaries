@@ -103,10 +103,20 @@ test("GuideCheck verification SHA is disclosed consistently", () => {
 test("agentic surfaces disclosure names the GuideCheck implementation", () => {
   const guide = readRepoFile("assistant-guide.txt");
   const surfaces = readRepoFile("docs/agentic-surfaces.md");
+  const packageVersion = JSON.parse(readRepoFile("package.json")).version;
+  const guideVersion = guide.match(/^guide-version: (\S+)$/m);
 
   assert(surfaces.includes("human-verifiable-assistant-guide"), "profile must be disclosed");
   assert(surfaces.includes("0.3.0"), "profile version must be disclosed");
-  assert(surfaces.includes("1.1.0"), "guide version must be disclosed");
+  assert(guideVersion, "guide version metadata must be present");
+  assert(
+    surfaces.includes(`- Guide version: \`${guideVersion[1]}\``),
+    "current guide version must be disclosed"
+  );
+  assert(
+    guide.split("\n").includes(`applies-to: graceful-boundaries ${packageVersion}`),
+    "assistant guide applicability must match the package version"
+  );
   assert(
     surfaces.includes("https://gracefulboundaries.dev/.well-known/assistant-guide.txt"),
     "canonical guide URL must be disclosed"

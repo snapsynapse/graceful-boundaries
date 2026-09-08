@@ -31,13 +31,13 @@ Graceful Boundaries uses the GuideCheck Human-Verifiable Assistant Guide profile
 
 - Profile: `human-verifiable-assistant-guide`
 - Profile version: `0.3.0`
-- Guide version: `1.1.0`
+- Guide version: `1.1.1`
 - Canonical guide URL: `https://gracefulboundaries.dev/.well-known/assistant-guide.txt`
 - Repository copy: `assistant-guide.txt`
 - Recommended verifier: `https://guidecheck.org/verify`
 - Local verifier conformance: `human-verifiable-assistant-guide-verifier >=0.3.0, <0.4.0`
 
-Current local verification from May 29, 2026:
+Historical local verification from May 29, 2026:
 
 ```text
 Verifier: guidecheck-reference-local 0.3.2
@@ -48,6 +48,30 @@ Warnings: 0
 ```
 
 Verification proves the guide matches the GuideCheck profile shape. It does not prove that the guide, repository, checker, or any assistant action is safe.
+
+Current historical-profile verification from September 8, 2026:
+
+```text
+Verifier: guidecheck-reference-local 0.3.0
+Achieved level: 3
+Guide SHA-256: 5c199ffb154296ea2418a78c4816995285788a29eaeefe22e79a0bea480035b4
+Blocking findings: 0
+Warnings: 0
+```
+
+Current-engine comparison from September 8, 2026:
+
+```text
+GuideCheck source: 0efe4ee5710276164e15a23124c8cf247fe5c093
+Verifier-reported version: guidecheck-reference-local 0.7.1
+Verifier-reported profile: human-verifiable-assistant-guide 0.7.1
+Achieved level: 2
+Guide SHA-256: 5c199ffb154296ea2418a78c4816995285788a29eaeefe22e79a0bea480035b4
+Blocking findings: 1 (action.exec-unbounded: run-live-checker)
+Warnings: 0
+```
+
+The current-engine result applies a later named-script execution rule even when invoked with `--require-profile-version 0.3.0`. It is modernization evidence, not a failure of the declared historical 0.3.0 contract.
 
 ## ClawHub distribution license
 

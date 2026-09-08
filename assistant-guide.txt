@@ -4,12 +4,12 @@ Assistant Guide: Graceful Boundaries contributor validation
 identifier: assistant-guide
 profile: human-verifiable-assistant-guide
 profile-version: 0.3.0
-guide-version: 1.1.0
-applies-to: graceful-boundaries 1.4.x
+guide-version: 1.1.1
+applies-to: graceful-boundaries 1.5.5
 canonical-url: https://gracefulboundaries.dev/.well-known/assistant-guide.txt
 repository-url: https://github.com/snapsynapse/graceful-boundaries
 source-path: /.well-known/assistant-guide.txt
-last-reviewed: 2026-05-29
+last-reviewed: 2026-09-08
 reviewed-by: PAICE.work PBC
 status: active
 recommended-verifier: https://guidecheck.org/verify
