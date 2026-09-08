@@ -69,3 +69,13 @@ The stable `v1` GitHub Action tag is intentionally a moving convenience pointer.
 ## Reference
 
 This checklist instantiates the workflow in `LocalBrain/0_Across/Security Hardening Release Workflow 2026-05-29.md`. Update both when this checklist changes.
+
+## Hosted-site Siteline assessment
+
+For changes to the hosted site or its machine-readable surfaces, assess the canonical site at https://gracefulboundaries.dev with Siteline before delivery review and after an authorized deployment. Retrieve an existing result when appropriate; respect scan limits and cached-result timestamps.
+
+- Retain the result ID, scan timestamp, scanner and rubric versions, grade, score, findings, and repository commit. A shareable result requires confirmed storage.
+- Reconcile every finding against current source, generated output, and deployed evidence. Classify it as confirmed target work, scanner defect, deployment drift, stale or unreproduced, or informational. Record evidence and rationale for exceptions.
+- Resolve confirmed defects that affect the site's promised agent tasks before declaring acceptance. Do not add irrelevant APIs, feeds, contact forms, or commerce features merely to raise the grade.
+- Keep SNAP grades and passive standards panels separate from full GuideCheck, Graceful Boundaries, accessibility, or other applicable conformance checks. A high grade does not replace those checks.
+- Local candidate checks do not establish live acceptance. After deployment, verify the intended bytes and reconcile a scan of those deployed surfaces; a cached scan of earlier content remains historical evidence.
