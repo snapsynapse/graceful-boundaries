@@ -2,7 +2,12 @@
 
 ## Reporting a vulnerability
 
-If you discover a security issue in the Graceful Boundaries specification or its conformance checker, report it privately to security@paice.work. The same contact is published in [`/.well-known/security.txt`](https://gracefulboundaries.dev/.well-known/security.txt) (RFC 9116).
+If you discover a security issue in the Graceful Boundaries specification or its conformance checker, report it privately:
+
+1. Preferred: open a private advisory at https://github.com/snapsynapse/graceful-boundaries/security/advisories/new (requires a GitHub account).
+2. Otherwise, email security@paice.work.
+
+The same contacts are published, in this order, in [`/.well-known/security.txt`](https://gracefulboundaries.dev/.well-known/security.txt) (RFC 9116).
 
 Do not open a public issue for security vulnerabilities.
 

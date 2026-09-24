@@ -73,7 +73,7 @@ Per `0_Across/Repo Standards.md`, the following deviations are recorded:
 
 ## Changelog
 
-- 2026-09-23 — Resolved the `llms-full.txt` exception by generating it from authoritative sources with a drift test. Added an RFC 9116 `security.txt` naming security@paice.work, matching `SECURITY.md`.
+- 2026-09-23 — Resolved the `llms-full.txt` exception by generating it from authoritative sources with a drift test. Added an RFC 9116 `security.txt` listing GitHub private vulnerability reporting (enabled the same day) and security@paice.work, matching `SECURITY.md`.
 - 2026-08-28 — Migrated durable adoption and outreach gates from temporary handoffs. Added the reproducible benchmark prerequisite and preserved unanswered maintainer threads as the authority for directory follow-up.
 - 2026-08-28 — Reconciled conformance/test counts and closed the root-level skill-layout question against Repo Standards v0.4.
 - 2026-06-03 — Initial INTENT.md per `0_Across/Repo Standards.md` v0.3 layout matrix. Recorded license-split, root-SKILL.md, and llms.txt-comprehensiveness exceptions.
