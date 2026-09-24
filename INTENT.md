@@ -34,7 +34,7 @@ Out of scope: rate-limit enforcement algorithms (token bucket, sliding window, e
 
 The conformance ladder is additive. Each level is testable in isolation against the eval suite. A conformant verifier (`evals/check.js`) is the conformance target; any implementation that passes the eval suite is conformant. No central registry, no oracle, no hosted-only verifier as root of trust.
 
-Siteline is the live Level 4 reference implementation (https://siteline.to/). The spec ships a 270-test suite covering response classes, agentic surfaces, action boundaries, refusals, discovery, proactive headers, HTML refusal, and security cases.
+Siteline is the live Level 4 reference implementation (https://siteline.to/). The spec ships a 274-test suite covering response classes, agentic surfaces, action boundaries, refusals, discovery, proactive headers, HTML refusal, and security cases.
 
 ## Admission criteria for changes
 

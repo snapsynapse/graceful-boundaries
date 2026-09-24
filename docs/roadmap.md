@@ -126,6 +126,7 @@ Security examples for SC-2 through SC-6 and the offline-versus-live eval workflo
 - Graceful Boundaries 1.5.2 documented the offline repository and live deployed-service validation lanes.
 - Graceful Boundaries 1.5.4 added concrete before-and-after security examples for SC-2 through SC-6.
 - Graceful Boundaries 1.5.5 corrected ClawHub upload and licensing metadata, refreshed CI action pins and runtimes, and added citation and trust/adoption evidence.
+- Graceful Boundaries 1.5.6 stopped reporting invalid or unreachable targets as Level 0 and made next-step guide and example links resolve outside a checkout.
 
 ## Non-Goals
 

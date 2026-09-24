@@ -62,7 +62,7 @@ Scaffolded 2026-08-28 from the skill's `assets/` templates, vendored so CI does 
 
 Exit code `0` is pass, `1` is a site or generated-output defect, and `2` is configuration or infrastructure failure. Exit code `2` is unknown. It is neither a passing site nor evidence of a defect, and a monitoring system must preserve that distinction.
 
-`.github/workflows/test.yml` runs `npm test` (270 tests) and then the offline search contract on every push and pull request. The production contract is deliberately not wired into pull-request CI: it asserts against the deployed origin, which lags the branch under test.
+`.github/workflows/test.yml` runs `npm test` (274 tests) and then the offline search contract on every push and pull request. The production contract is deliberately not wired into pull-request CI: it asserts against the deployed origin, which lags the branch under test.
 
 `search-audit.config.json` sets `lastmodAgreementPaths: ["/"]`, so the offline validator fails if sitemap `lastmod`, `article:modified_time`, and JSON-LD `dateModified` for the homepage drift apart again. `requireJsonLd` is `true`, and `expectedNotFoundPaths` includes `/spec` so the intentional 404 is affirmative rather than incidental.
 

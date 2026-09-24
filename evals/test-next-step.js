@@ -78,10 +78,13 @@ test("Next step carries a guide URL, example, and snippet", () => {
     limitsDiscovery: [{ path: "/api/limits", found: false, status: 404 }],
   });
   assert(
-    result.guideUrl.startsWith("https://gracefulboundaries.dev/docs/implementation-guide.md#"),
-    "guide URL should be an anchored canonical implementation-guide link"
+    result.guideUrl.startsWith("https://github.com/snapsynapse/graceful-boundaries/blob/main/docs/implementation-guide.md#level-"),
+    "guide URL should be an anchored link to a rendered implementation guide"
   );
-  assert(result.example.length > 0, "should name an example file");
+  assert(
+    result.example.startsWith("https://github.com/snapsynapse/graceful-boundaries/blob/main/examples/"),
+    "example should be an absolute URL, since npx installs do not include examples/"
+  );
   assert(result.snippet.includes("/api/limits"), "snippet should be pasteable and relevant");
 });
 
