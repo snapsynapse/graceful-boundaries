@@ -60,11 +60,50 @@ function parseArgs(argv) {
     } else if (args[i] === "--check-cloaking") {
       options.checkCloaking = true;
     } else if (!args[i].startsWith("--")) {
-      options.baseUrl = args[i].replace(/\/$/, "");
+      const validation = validateBaseUrl(args[i]);
+      if (validation.ok) {
+        options.baseUrl = validation.url;
+      } else {
+        options.errors.push(validation.error);
+      }
     }
   }
 
   return options;
+}
+
+/**
+ * Validate the target before any network access. A typo must produce an
+ * input error, not a conformance level for a service that was never reached.
+ */
+function validateBaseUrl(raw) {
+  const hint = "Provide a full http:// or https:// URL, for example https://your-service.com";
+  let parsed;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    return { ok: false, error: `Invalid URL "${raw}". ${hint}` };
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    return { ok: false, error: `Unsupported URL scheme "${parsed.protocol}" in "${raw}". ${hint}` };
+  }
+  if (!parsed.hostname) {
+    return { ok: false, error: `URL "${raw}" has no hostname. ${hint}` };
+  }
+  return { ok: true, url: raw.replace(/\/$/, "") };
+}
+
+/**
+ * True when every discovery request failed before any HTTP response arrived
+ * (DNS failure, refused connection, TLS error). Such a service was not
+ * assessed, so it must not be reported as Level 0.
+ */
+function isUnreachable(limitsResults) {
+  return (
+    Array.isArray(limitsResults) &&
+    limitsResults.length > 0 &&
+    limitsResults.every((r) => r.networkError === true)
+  );
 }
 
 async function checkLimitsEndpoint(baseUrl, limitsPath) {
@@ -73,10 +112,12 @@ async function checkLimitsEndpoint(baseUrl, limitsPath) {
 
   for (const path of paths) {
     const url = `${baseUrl}${path}`;
+    let status = 0;
     try {
       const response = await fetch(url, {
         headers: { Accept: "application/json" },
       });
+      status = response.status;
 
       if (!response.ok) {
         results.push({ path, status: response.status, found: false });
@@ -128,7 +169,7 @@ async function checkLimitsEndpoint(baseUrl, limitsPath) {
         warnings: bodyCheck.warnings,
       });
     } catch (error) {
-      results.push({ path, status: 0, found: false, error: error.message });
+      results.push({ path, status, found: false, error: error.message, networkError: status === 0 });
     }
   }
 
@@ -945,7 +986,9 @@ function assessLevel(limitsResults, refusalCheck, proactiveHeaders) {
   return 0;
 }
 
-const GUIDE_BASE = "https://gracefulboundaries.dev/docs/implementation-guide.md";
+// GitHub renders heading anchors; the raw Markdown served by Pages does not.
+const REPO_BLOB_BASE = "https://github.com/snapsynapse/graceful-boundaries/blob/main/";
+const GUIDE_BASE = `${REPO_BLOB_BASE}docs/implementation-guide.md`;
 
 const LEVEL_GUIDANCE = {
   1: {
@@ -1056,13 +1099,13 @@ function deriveNextStep(report) {
     summary: `You are ${levelDisplay}. ${action}`,
     action,
     guideUrl: `${GUIDE_BASE}${guidance.anchor}`,
-    example: guidance.example,
+    example: `${REPO_BLOB_BASE}${guidance.example}`,
     snippet: guidance.snippet,
     verifiable: nextLevel === 2 || nextLevel === 4,
   };
 }
 
-async function main() {
+async function main({ command = "node evals/check.js" } = {}) {
   const options = parseArgs(process.argv);
 
   if (options.errors.length > 0) {
@@ -1071,12 +1114,12 @@ async function main() {
   }
 
   if (!options.baseUrl) {
-    console.error("Usage: node evals/check.js <base-url> [--limits-path /path] [--json] [--check-cloaking] [--min-level N]");
+    console.error(`Usage: ${command} <base-url> [--limits-path /path] [--json] [--check-cloaking] [--min-level N]`);
     console.error("");
     console.error("Examples:");
-    console.error("  node evals/check.js https://siteline.to");
-    console.error("  node evals/check.js https://your-api.com --limits-path /.well-known/limits --json");
-    console.error("  node evals/check.js https://your-api.com --min-level 2");
+    console.error(`  ${command} https://siteline.to`);
+    console.error(`  ${command} https://your-api.com --limits-path /.well-known/limits --json`);
+    console.error(`  ${command} https://your-api.com --min-level 2`);
     process.exit(1);
   }
 
@@ -1094,6 +1137,32 @@ async function main() {
   console.error(`Checking limits discovery at ${options.baseUrl}...`);
   const limitsResults = await checkLimitsEndpoint(options.baseUrl, options.limitsPath);
   report.limitsDiscovery = limitsResults;
+
+  if (isUnreachable(limitsResults)) {
+    const reason = limitsResults[0].error;
+    report.reachable = false;
+    report.conformanceLevel = null;
+    report.nextStep = null;
+    report.notes.push(
+      `Could not reach ${options.baseUrl} (${reason}). No conformance level assigned. ` +
+      "Check the URL and network access, then rerun."
+    );
+    if (options.json) {
+      console.log(JSON.stringify(report, null, 2));
+    } else {
+      console.error(`  Could not reach ${options.baseUrl} (${reason}).`);
+      console.log("");
+      console.log(`Graceful Boundaries conformance check: ${options.baseUrl}`);
+      console.log("=".repeat(60));
+      console.log("");
+      console.log("Service unreachable: no conformance level assigned.");
+      console.log(`  ${reason}`);
+      console.log("");
+      console.log("Check the URL and network access, then rerun.");
+    }
+    process.exit(3);
+  }
+  report.reachable = true;
 
   const foundLimits = limitsResults.find((r) => r.found);
   if (foundLimits) {
@@ -1242,7 +1311,10 @@ async function main() {
       if (r.found) {
         console.log(`  ${r.path}: FOUND (${r.limitCount} endpoints, well-formed: ${r.wellFormed}, cacheable: ${r.isCacheable})`);
       } else {
-        console.log(`  ${r.path}: NOT FOUND (${r.status || r.error})`);
+        const reason = r.error
+          ? `${r.status ? `HTTP ${r.status}, ` : ""}${r.error}`
+          : r.status;
+        console.log(`  ${r.path}: NOT FOUND (${reason})`);
       }
     }
 
@@ -1309,6 +1381,8 @@ module.exports = {
   checkActionBoundariesBody,
   assessLevel,
   deriveNextStep,
+  validateBaseUrl,
+  isUnreachable,
   REQUIRED_REFUSAL_FIELDS,
   REQUIRED_RESPONSE_FIELDS,
   CONSTRUCTIVE_FIELDS,

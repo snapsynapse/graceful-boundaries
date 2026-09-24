@@ -14,7 +14,7 @@ const { spawnSync } = require("node:child_process");
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
-const { parseArgs } = require("./check.js");
+const { parseArgs, validateBaseUrl, isUnreachable } = require("./check.js");
 
 const repoRoot = path.resolve(__dirname, "..");
 
@@ -185,6 +185,63 @@ test("checker CLI exits before network access for invalid --min-level", () => {
   assert.strictEqual(result.status, 1, `expected exit 1, got ${result.status}`);
   assert(result.stderr.includes("--min-level must be an integer from 0 to 4"), result.stderr);
   assert(!result.stderr.includes("Checking limits discovery"), "invalid arguments should fail before network checks");
+});
+
+test("checker CLI rejects invalid target URLs before network access", () => {
+  for (const value of ["not-a-url", "example.com", "ftp://example.com", "https://"]) {
+    const validation = validateBaseUrl(value);
+    assert.strictEqual(validation.ok, false, `expected ${value} to be rejected`);
+    assert(validation.error.includes("https://"), "error should show the expected URL form");
+    const options = parseArgs(["node", "evals/check.js", value]);
+    assert.strictEqual(options.baseUrl, null);
+    assert(options.errors.length === 1, `expected one parse error for ${value}`);
+  }
+  assert.deepStrictEqual(validateBaseUrl("https://example.com/"), { ok: true, url: "https://example.com" });
+
+  const result = spawnSync(process.execPath, ["evals/check.js", "not-a-url"], { cwd: repoRoot, encoding: "utf8" });
+  assert.strictEqual(result.status, 1, `expected exit 1, got ${result.status}`);
+  assert(result.stderr.includes('Invalid URL "not-a-url"'), result.stderr);
+  assert(!result.stderr.includes("Checking limits discovery"), "invalid URLs should fail before network checks");
+  assert(!result.stdout.includes("Confirmed conformance level"), "invalid URLs must not receive a level");
+});
+
+test("unreachable targets are distinguished from Level 0", () => {
+  assert.strictEqual(isUnreachable([
+    { path: "/api/limits", status: 0, found: false, error: "fetch failed", networkError: true },
+    { path: "/.well-known/limits", status: 0, found: false, error: "fetch failed", networkError: true },
+  ]), true);
+  assert.strictEqual(isUnreachable([
+    { path: "/api/limits", status: 0, found: false, error: "fetch failed", networkError: true },
+    { path: "/.well-known/limits", status: 404, found: false },
+  ]), false, "any HTTP response means the service was reached");
+  assert.strictEqual(isUnreachable([
+    { path: "/api/limits", status: 200, found: false, error: "Unexpected token <", networkError: false },
+  ]), false, "a non-JSON 200 body is reachable, not a network failure");
+  assert.strictEqual(isUnreachable([]), false);
+});
+
+test("checker CLI exits 3 with no level when the target is unreachable", () => {
+  // Port 9 (discard) on loopback refuses connections without external network access.
+  const result = spawnSync(
+    process.execPath,
+    ["evals/check.js", "http://127.0.0.1:9", "--json", "--min-level", "2"],
+    { cwd: repoRoot, encoding: "utf8", timeout: 30000 }
+  );
+  assert.strictEqual(result.status, 3, `expected exit 3, got ${result.status}: ${result.stderr}`);
+  const report = JSON.parse(result.stdout);
+  assert.strictEqual(report.reachable, false);
+  assert.strictEqual(report.conformanceLevel, null);
+  assert.strictEqual(report.nextStep, null);
+  assert(report.notes.some((note) => note.includes("No conformance level assigned")), "report should explain the missing level");
+});
+
+test("checker usage shows the invoking command", () => {
+  const direct = spawnSync(process.execPath, ["evals/check.js"], { cwd: repoRoot, encoding: "utf8" });
+  assert.strictEqual(direct.status, 1);
+  assert(direct.stderr.includes("Usage: node evals/check.js <base-url>"), direct.stderr);
+  const viaBin = spawnSync(process.execPath, ["bin/cli.js", "check"], { cwd: repoRoot, encoding: "utf8" });
+  assert.strictEqual(viaBin.status, 1);
+  assert(viaBin.stderr.includes("Usage: npx graceful-boundaries check <base-url>"), viaBin.stderr);
 });
 
 test("GitHub Action passes inputs through environment variables", () => {

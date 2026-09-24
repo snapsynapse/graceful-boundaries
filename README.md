@@ -3,7 +3,7 @@
 APIs that return vague `429`, `403`, and `500` responses make autonomous agents retry blindly. Graceful Boundaries grades those responses and names the smallest fix.
 
 [![License: CC-BY-4.0 spec, MIT code](https://img.shields.io/badge/License-CC--BY--4.0%20spec%20%7C%20MIT%20code-lightgrey.svg)](#license)
-[![Version](https://img.shields.io/badge/version-1.5.5-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.6-blue.svg)](CHANGELOG.md)
 [![Tests](https://img.shields.io/github/actions/workflow/status/snapsynapse/graceful-boundaries/test.yml?label=tests)](https://github.com/snapsynapse/graceful-boundaries/actions)
 [![ClawHub](https://img.shields.io/badge/ClawHub-audit%20skill-blue)](https://clawhub.ai/snapsynapse/skills/graceful-boundaries)
 
@@ -170,9 +170,11 @@ npx graceful-boundaries check https://your-service.com --min-level 2   # nonzero
 npx graceful-boundaries check https://your-service.com --check-cloaking
 ```
 
+Exit codes: `0` check completed, `1` invalid arguments or URL, `2` confirmed level below `--min-level`, `3` service unreachable. An unreachable service gets no conformance level; it is not reported as Level 0.
+
 ![Checker output: Siteline confirms Level 4, Google confirms Level 0](imgs/checker-demo.svg)
 
-Or clone and run from the project root with `node evals/check.js <url>`. Run the unit test suite (270 tests, no dependencies):
+Or clone and run from the project root with `node evals/check.js <url>`. Run the unit test suite (274 tests, no dependencies):
 
 ```bash
 npm test
@@ -189,7 +191,7 @@ The repo doubles as a composite GitHub Action. Add a job that fails when your de
     min-level: "2"
 ```
 
-Levels 2 and 4 are confirmable passively and make reliable CI gates; Levels 1 and 3 require observing a live refusal (see [CONFORMANCE.md](CONFORMANCE.md)).
+Levels 2 and 4 are confirmable passively and make reliable CI gates; Levels 1 and 3 require observing a live refusal (see [CONFORMANCE.md](CONFORMANCE.md)). An unreachable URL also fails the job.
 
 ### Every run ends with the next step
 
@@ -200,8 +202,8 @@ Next step:
   You are Level 0. Add a limits discovery endpoint at /api/limits or /.well-known/limits, listing each public endpoint's limits.
   That reaches Level 2.
 
-  Guide:   https://gracefulboundaries.dev/docs/implementation-guide.md#level-2-discoverable
-  Example: examples/limits/saas-api.json
+  Guide:   https://github.com/snapsynapse/graceful-boundaries/blob/main/docs/implementation-guide.md#level-2-discoverable
+  Example: https://github.com/snapsynapse/graceful-boundaries/blob/main/examples/limits/saas-api.json
 ```
 
 `--json` carries the same content in a `nextStep` object (`currentLevel`, `nextLevel`, `summary`, `action`, `guideUrl`, `example`, `snippet`, `verifiable`) so CI and agents can surface it. `verifiable` is `false` when the next level needs a live refusal and so cannot be confirmed by another passive run.
@@ -218,7 +220,7 @@ python3 /path/to/guidecheck/scripts/guidecheck_verify.py assistant-guide.txt
 
 The committed root copy and the well-known copy must remain byte-identical.
 
-The current GuideCheck implementation and all agent-facing repository surfaces are documented in [docs/agentic-surfaces.md](docs/agentic-surfaces.md). Current historical-profile verification: GuideCheck reference verifier 0.3.0, achieved Level 3, guide SHA-256 `5c199ffb154296ea2418a78c4816995285788a29eaeefe22e79a0bea480035b4`, with 0 blocking findings and 0 warnings.
+The current GuideCheck implementation and all agent-facing repository surfaces are documented in [docs/agentic-surfaces.md](docs/agentic-surfaces.md). Current historical-profile verification: GuideCheck reference verifier 0.3.0, achieved Level 3, guide SHA-256 `917353c76641d5701e5e854ef9dc49ea6e2450d3e2e5b0e83860fb1a62dcc992`, with 0 blocking findings and 0 warnings.
 
 ## Which level should you target?
 

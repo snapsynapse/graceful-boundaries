@@ -6,6 +6,22 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 
 ## Unreleased
 
+## [1.5.6] - 2026-09-23
+
+### Fixed
+- The checker no longer reports an invalid or unreachable target as Level 0. A malformed or non-HTTP URL is rejected before any network access with exit code 1. When every discovery request fails before an HTTP response arrives, the report assigns no level (`conformanceLevel: null`, `reachable: false`, `nextStep: null`) and exits with code 3. `--min-level` gates and the GitHub Action therefore still fail, with an accurate reason.
+- Next-step `guideUrl` and `example` are now absolute GitHub URLs. Heading anchors resolve on the rendered guide, and the example resolves for `npx` users, whose package does not include `examples/`.
+- Discovery results keep the real HTTP status when a response body is not JSON, and the report shows it as `HTTP <status>, <error>`.
+- Usage text shows `npx graceful-boundaries check` when run through the npm entry point.
+- The landing page no longer widens beyond a phone viewport, and its Siteline examples match what Siteline serves.
+
+### Added
+- `validateBaseUrl` and `isUnreachable` are exported from `evals/check.js`, with offline tests, including a loopback refused-connection test.
+- The JSON report includes `reachable`.
+
+### Notes
+- No normative specification changes. Conformance levels, required fields, and response classes are unchanged. JSON consumers that assumed `conformanceLevel` is always a number or `"not-applicable"` should handle `null` for unreachable targets.
+
 ## [1.5.5] - 2026-09-07
 
 ### Fixed
@@ -213,6 +229,11 @@ First stable release.
 - Implementation guide with code samples for each level.
 
 ## Assistant guide revisions
+
+### [assistant-guide 1.1.2] - 2026-09-23
+
+### Changed
+- Updated the contributor guide's reviewed applicability to the exact `graceful-boundaries` 1.5.6 package without changing its GuideCheck 0.3.0 profile or verifier range.
 
 ### [assistant-guide 1.1.1] - 2026-09-08
 

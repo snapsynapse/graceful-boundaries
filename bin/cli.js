@@ -17,7 +17,7 @@ if (process.argv[2] === "check") {
   process.argv.splice(2, 1);
 }
 
-main().catch((error) => {
+main({ command: "npx graceful-boundaries check" }).catch((error) => {
   console.error(error);
   process.exit(1);
 });
