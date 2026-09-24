@@ -48,7 +48,7 @@ A Moonshots presentation-readiness assessment on 2026-09-23 found that the check
 - Assistant guide 1.1.2 changes applicability only; GuideCheck reference verifier 0.3.0 reports Level 3, 0 blocking findings, 0 warnings.
 - npm: 1.5.6 published by the maintainer (2FA) and `latest`; registry integrity equals the signed release tarball. A fresh `npx` install returns exit 0 for Siteline (Level 4) and google.com, 1 for an invalid URL, and 3 for an unreachable host with no level.
 - ClawHub: 1.5.6 public and `latest` under MIT-0 (eight versions), published with CLI 0.23.3, which sends the publisher's standing MIT-0 acceptance with each publish. Uploaded file hashes match the release bundle. The provider security scan reports clean (LLM verdict benign, no warnings); the 1.5.5 warning about internal network targets did not recur. Registry snapshot: ignored `build/clawhub-registry-1.5.6.json`.
-- Hosted assessment: a Siteline scan of https://gracefulboundaries.dev/ (scanner 2.1.1, rubric 2.4.0) scored all SNAP pillars 100 and capped the grade at C on agentic-enablement resources (5/16). Candidate follow-ups are `security.txt` and the open `llms-full.txt` question; do not add unrelated surfaces to raise the grade.
+- Hosted assessment: a Siteline scan of https://gracefulboundaries.dev/ (scanner 2.1.1, rubric 2.4.0) scored all SNAP pillars 100 and capped the grade at C on agentic-enablement resources (5/16). Both candidate follow-ups shipped in `6cf94d3` (RFC 9116 `security.txt` and generated `llms-full.txt`, both live and byte-identical); a same-day rescan returned the cached 02:03Z result, so confirm the enablement change with a scan after 2026-09-25T00:00Z. Do not add unrelated surfaces to raise the grade.
 
 ## Ongoing delivery and validation queue
 
