@@ -6,7 +6,7 @@ A step-by-step guide for adding Graceful Boundaries conformance to an existing H
 
 **Prerequisite:** Your service already enforces rate limits or operational constraints. If it doesn't, you may want to declare `not-applicable` (see [Level N/A](#level-na-not-applicable) below).
 
-**Time estimate per level:**
+**Time estimate per level** (rough estimates, not measured implementation reports):
 
 | Level | Effort | What changes |
 |---|---|---|

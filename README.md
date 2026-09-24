@@ -2,7 +2,7 @@
 
 APIs that return vague `429`, `403`, and `500` responses make autonomous agents retry blindly. Graceful Boundaries grades those responses and names the smallest fix.
 
-[![License: CC-BY-4.0](https://img.shields.io/badge/License-CC--BY--4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+[![License: CC-BY-4.0 spec, MIT code](https://img.shields.io/badge/License-CC--BY--4.0%20spec%20%7C%20MIT%20code-lightgrey.svg)](#license)
 [![Version](https://img.shields.io/badge/version-1.5.5-blue.svg)](CHANGELOG.md)
 [![Tests](https://img.shields.io/github/actions/workflow/status/snapsynapse/graceful-boundaries/test.yml?label=tests)](https://github.com/snapsynapse/graceful-boundaries/actions)
 [![ClawHub](https://img.shields.io/badge/ClawHub-audit%20skill-blue)](https://clawhub.ai/snapsynapse/skills/graceful-boundaries)
@@ -120,14 +120,14 @@ The caller knows the limit, when to retry, *why* the limit exists, and where to 
 ```json
 {
   "error": "invalid_input",
-  "detail": "This URL is outside the scanner's accepted public-target policy.",
-  "why": "Siteline accepts only public scan targets to prevent the scanner from being used as a proxy.",
+  "detail": "Siteline scans public websites only. Provide a URL with a publicly resolvable hostname.",
+  "why": "The scanner needs a public http or https URL with a resolvable hostname.",
   "field": "url",
-  "expected": "A public URL with a resolvable hostname."
+  "expected": "A public URL on standard web ports."
 }
 ```
 
-An agent reading this `400` understands the input-safety policy and can fix the input. Without `why`, it would blindly retry with different URLs.
+An agent reading this `400` knows which field failed, why it was rejected, and what input is accepted, so it can fix the input. Without `why`, it would blindly retry with different URLs.
 
 **Proactive headers on successful responses:**
 
@@ -277,7 +277,7 @@ Graceful Boundaries is complementary to these standards, not a replacement. For 
 
 ## Reference implementation and adopters
 
-[Siteline](https://siteline.to/) is a Level 4 conformant implementation with five API endpoints. Verify it:
+[Siteline](https://siteline.to/) is a Level 4 conformant implementation. Its discovery endpoint documents six limited endpoints. Verify it:
 
 ```bash
 npx graceful-boundaries check https://siteline.to

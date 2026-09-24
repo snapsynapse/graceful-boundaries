@@ -542,7 +542,7 @@
 <section class="alt" id="examples">
   <div class="container">
     <h2>See it in action</h2>
-    <p>These examples are from <a href="https://siteline.to/" target="_blank" rel="noopener">Siteline</a>, a Level 4 conformant reference implementation.</p>
+    <p>These examples are trimmed from <a href="https://siteline.to/" target="_blank" rel="noopener">Siteline</a>, a Level 4 conformant reference implementation. Other endpoints and fields are omitted.</p>
 
     <div class="code-grid">
       <div class="code-block">
@@ -562,16 +562,15 @@
         "type": "resource-dedup",
         "maxRequests": 1,
         "windowSeconds": 86400,
-        "returnsCached": true,
-        "description": "Repeat scans return cached results."
+        "description": "Repeat scans reuse a
+          same-day result for the submitted
+          URL scope when scanner and rubric
+          versions match. ..."
       }]
     }
-  },
-  "extensions": {
-    "actionBoundaries": "/.well-known/action-boundaries"
   }
 }</pre>
-        <p class="annotation">Agents learn every limit before hitting any of them, and can follow optional same-origin extension links.</p>
+        <p class="annotation">Agents learn every limit before hitting any of them.</p>
       </div>
 
       <div class="code-block">
@@ -582,8 +581,9 @@
              Try again in 2400 seconds.",
   "limit": "10 scans per IP per hour",
   "retryAfterSeconds": 2400,
-  "why": "Rate limits keep the service available
-          for everyone and prevent abuse.",
+  "why": "Siteline is a free service. Rate limits
+          keep it available for everyone and
+          prevent abuse.",
   "alternativeEndpoint": "/api/result?id=example.com"
 }</pre>
         <p class="annotation">The caller knows what, when, why, and where to go instead.</p>
@@ -701,7 +701,7 @@
 <section id="adopt">
   <div class="container">
     <h2>Getting started</h2>
-    <p>Each level builds on the previous one. Start at Level 1 and work up. Add optional extension discovery only when your service publishes same-origin boundary documents for agent actions.</p>
+    <p>Each level builds on the previous one. Start at Level 1 and work up. Add optional extension discovery only when your service publishes same-origin boundary documents for agent actions. Times shown are rough estimates, not measured implementation reports.</p>
 
     <div class="steps">
       <div class="step">
@@ -736,7 +736,7 @@
 
     <h3 style="margin-top: 2.5rem; margin-bottom: 0.75rem;">Add to your AI coding workflow</h3>
     <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
-      Drop this into your project's <code>CLAUDE.md</code> or AI context file. Any AI assistant working in your codebase will apply Graceful Boundaries automatically. For this repository, contributor guidance is also published as a GuideCheck <a href="/.well-known/assistant-guide.txt">assistant-guide.txt</a> file.
+      Drop this into your project's <code>CLAUDE.md</code> or AI context file. AI assistants that read that file can then apply Graceful Boundaries when they write error responses. For this repository, contributor guidance is also published as a GuideCheck <a href="/.well-known/assistant-guide.txt">assistant-guide.txt</a> file.
     </p>
 <pre>## Error Responses
 
