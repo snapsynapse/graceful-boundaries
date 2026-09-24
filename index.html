@@ -372,6 +372,8 @@
       margin-top: 1.5rem;
     }
     .code-block { text-align: left; }
+    /* Let grid items shrink below their pre content so code scrolls instead of widening the page */
+    .code-grid > *, .pillars > *, .steps > * { min-width: 0; }
     .code-block h3 { font-size: 0.95rem; margin-bottom: 0.75rem; }
     .code-block .annotation {
       font-size: 0.85rem;
