@@ -37,6 +37,19 @@ Temporary raw package and runtime evidence is under ignored `build/maintenance-*
 
 PR #6 was merged as `371efe658487f6b1b4dbd90ef33d8e445b618c6f`. The maintainer then authorized SemVer propagation, documentation/web/agentic updates, tagging, packages, and release publication on 2026-09-07. Version 1.5.5 is selected as a maintenance patch. Delivery includes signed versioned and stable `v1` tags, GitHub Release, npm, ClawHub, and Pages verification. GitHub settings, DOI publication, and paid benchmark execution remain separate. Provider completion evidence is recorded in the release and `build/release-state-1.5.5.json`; authorization alone does not establish publication.
 
+## Release 1.5.6 delivery
+
+A Moonshots presentation-readiness assessment on 2026-09-23 found that the checker reported invalid or unreachable targets as Level 0 with discovery advice, that next-step example paths did not exist in npm installs, and that the landing page overflowed a 390px viewport and attributed unserved fields to Siteline. The maintainer authorized the site corrections, a 1.5.6 patch release, signed tags, GitHub Release, npm and ClawHub publication, and the `v1` move on 2026-09-23.
+
+- Site corrections: `f6a42ee` (Siteline examples, estimate labels, README drift) and `f4b82b3` (grid overflow), both GitHub-verified and deployed; live width 375px at a 390px viewport.
+- Release: PR #8 merged as `e9664e8ada877bf0e0571fb186a5cf0f5f44e2dc`; 274 tests; Tests and Pages passed on the exact commit with no action-runtime warnings.
+- Tags: signed `v1.5.6` object `05b7d4e0634e2ecca97406cc6f485d0f2e2fda3e`; `v1` moved from object `88104401e9cb26ff8d35d23ac0138ee956c19d8b` (`e2d4f4b`) to `0441b8c2ce9b2b7321f61e8dbb798531600a1d18` (`e9664e8`). GitHub reports both valid.
+- Assets: `SHA256SUMS` and its detached SSH signature cover the npm tarball, the ClawHub ZIP, and `spec.md`; the local signature verified against the registered key `SHA256:e01ClOG6x4+h/LA0nobyQrQpCRrAYmFSIF2DmLR93pM`.
+- Assistant guide 1.1.2 changes applicability only; GuideCheck reference verifier 0.3.0 reports Level 3, 0 blocking findings, 0 warnings.
+- npm: 1.5.6 published by the maintainer (2FA) and `latest`; registry integrity equals the signed release tarball. A fresh `npx` install returns exit 0 for Siteline (Level 4) and google.com, 1 for an invalid URL, and 3 for an unreachable host with no level.
+- ClawHub: 1.5.6 public and `latest` under MIT-0 (eight versions), published with CLI 0.23.3, which sends the publisher's standing MIT-0 acceptance with each publish. Uploaded file hashes match the release bundle. The provider security scan reports clean (LLM verdict benign, no warnings); the 1.5.5 warning about internal network targets did not recur. Registry snapshot: ignored `build/clawhub-registry-1.5.6.json`.
+- Hosted assessment: a Siteline scan of https://gracefulboundaries.dev/ (scanner 2.1.1, rubric 2.4.0) scored all SNAP pillars 100 and capped the grade at C on agentic-enablement resources (5/16). Candidate follow-ups are `security.txt` and the open `llms-full.txt` question; do not add unrelated surfaces to raise the grade.
+
 ## Ongoing delivery and validation queue
 
 1. Deliver the reviewed local diff as an explicitly authorized signed commit and branch PR. Verify its actual signature and exact-commit CI. Preserve unrelated work and stage only approved paths.
