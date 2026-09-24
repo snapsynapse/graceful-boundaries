@@ -20,6 +20,7 @@ Graceful Boundaries defines three requirements that existing standards address s
 ## Links
 
 - Specification: https://gracefulboundaries.dev/
+- Full text for language models (spec, conformance, implementation guide, RFC 9457 profile, schemas): https://gracefulboundaries.dev/llms-full.txt
 - GitHub: https://github.com/snapsynapse/graceful-boundaries
 - Full spec: https://github.com/snapsynapse/graceful-boundaries/blob/main/spec.md
 - Implementation guide: https://github.com/snapsynapse/graceful-boundaries/blob/main/docs/implementation-guide.md
@@ -42,6 +43,8 @@ Graceful Boundaries defines three requirements that existing standards address s
 ## Agent-facing surfaces
 
 - `llms.txt`: compact project summary for language-model readers
+- `llms-full.txt`: generated full text of the specification and adoption documents
+- `/.well-known/security.txt`: RFC 9116 security contact
 - `/.well-known/assistant-guide.txt`: GuideCheck assistant guide for bounded contributor work
 - `assistant-guide.txt`: repository-local copy of the assistant guide
 - `AGENTS.md` and `CLAUDE.md`: repository-local assistant instructions

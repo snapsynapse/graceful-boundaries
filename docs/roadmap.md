@@ -117,7 +117,7 @@ When an agent processing a batch gets a 429, it does not know by how much the re
 
 ## Documentation
 
-Security examples for SC-2 through SC-6 and the offline-versus-live eval workflow are part of the maintained documentation set. Citation delivery and adoption evidence remain open as sequenced above. The `llms-full.txt` question remains in `INTENT.md`; it is not a dependency of the maintenance patch or adoption sprint.
+Security examples for SC-2 through SC-6 and the offline-versus-live eval workflow are part of the maintained documentation set. Citation delivery and adoption evidence remain open as sequenced above. `llms-full.txt` is generated from the specification sources; see `INTENT.md`.
 
 ## Completed
 

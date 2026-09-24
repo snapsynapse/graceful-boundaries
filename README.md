@@ -174,7 +174,7 @@ Exit codes: `0` check completed, `1` invalid arguments or URL, `2` confirmed lev
 
 ![Checker output: Siteline confirms Level 4, Google confirms Level 0](imgs/checker-demo.svg)
 
-Or clone and run from the project root with `node evals/check.js <url>`. Run the unit test suite (274 tests, no dependencies):
+Or clone and run from the project root with `node evals/check.js <url>`. Run the unit test suite (276 tests, no dependencies):
 
 ```bash
 npm test

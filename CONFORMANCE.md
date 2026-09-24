@@ -29,7 +29,7 @@ A passing run reports the highest level the service satisfies. The verifier is t
 
 ## Test suite
 
-`evals/` ships 274 tests across 13 files:
+`evals/` ships 276 tests across 13 files:
 
 | File | Coverage |
 |---|---|

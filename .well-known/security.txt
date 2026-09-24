@@ -1,0 +1,8 @@
+# Graceful Boundaries security contact (RFC 9116)
+# Scope and reporting guidance: see Policy.
+
+Contact: mailto:security@paice.work
+Expires: 2027-09-22T23:59:59Z
+Preferred-Languages: en
+Canonical: https://gracefulboundaries.dev/.well-known/security.txt
+Policy: https://github.com/snapsynapse/graceful-boundaries/blob/main/SECURITY.md

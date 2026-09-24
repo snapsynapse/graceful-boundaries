@@ -34,7 +34,7 @@ Out of scope: rate-limit enforcement algorithms (token bucket, sliding window, e
 
 The conformance ladder is additive. Each level is testable in isolation against the eval suite. A conformant verifier (`evals/check.js`) is the conformance target; any implementation that passes the eval suite is conformant. No central registry, no oracle, no hosted-only verifier as root of trust.
 
-Siteline is the live Level 4 reference implementation (https://siteline.to/). The spec ships a 274-test suite covering response classes, agentic surfaces, action boundaries, refusals, discovery, proactive headers, HTML refusal, and security cases.
+Siteline is the live Level 4 reference implementation (https://siteline.to/). The spec ships a 276-test suite covering response classes, agentic surfaces, action boundaries, refusals, discovery, proactive headers, HTML refusal, and security cases.
 
 ## Admission criteria for changes
 
@@ -68,11 +68,12 @@ Adoption work must remain evidence-led and must not turn unanswered directory pr
 Per `0_Across/Repo Standards.md`, the following deviations are recorded:
 
 - **Root SKILL.md instead of `skills/<bundle>/SKILL.md`**. Graceful Boundaries is the canonical home for the `graceful-boundaries-audit` skill and `graceful-boundaries-builder` via `SKILL-builder.md`. Repo Standards v0.4 codifies this root-level "skill IS the repo" pattern as valid. The entry remains here as a recorded layout declaration, not an open exception.
-- **llms.txt is link-heavy, not fully comprehensive standalone**. By the v0.3 criterion ("inlines all referenced content, not just links"), `llms.txt` here is link-summary, not comprehensive. `llms-full.txt` is not yet generated. Status: open — either inline spec.md into llms-full.txt or accept that llms.txt is intentionally a navigation index and the spec itself is the comprehensive artifact.
+- **llms.txt is link-heavy, not fully comprehensive standalone**. Resolved 2026-09-23: no exception. `llms.txt` stays a navigation index, and `llms-full.txt` is generated from `spec.md`, `CONFORMANCE.md`, the implementation guide, the RFC 9457 profile, and the JSON Schemas by `scripts/build-llms-full.js`. The source files remain authoritative; the test suite fails when the generated copy drifts. An exception was rejected because the Repo Standards criterion requires a standalone comprehensive `llms.txt`, and "the spec is served separately" doesn't meet it for readers that can't follow links.
 - **Single CC-BY-4.0 LICENSE was used for all content historically**. As of 2026-06-03, split into `LICENSE` (MIT, for code) and `LICENSE-SPEC` (CC BY 4.0, for spec text) to match the hardguard25 pattern. Re-licensing applies prospectively; prior commits remain under CC-BY-4.0 per their git history.
 
 ## Changelog
 
+- 2026-09-23 — Resolved the `llms-full.txt` exception by generating it from authoritative sources with a drift test. Added an RFC 9116 `security.txt` naming security@paice.work, matching `SECURITY.md`.
 - 2026-08-28 — Migrated durable adoption and outreach gates from temporary handoffs. Added the reproducible benchmark prerequisite and preserved unanswered maintainer threads as the authority for directory follow-up.
 - 2026-08-28 — Reconciled conformance/test counts and closed the root-level skill-layout question against Repo Standards v0.4.
 - 2026-06-03 — Initial INTENT.md per `0_Across/Repo Standards.md` v0.3 layout matrix. Recorded license-split, root-SKILL.md, and llms.txt-comprehensiveness exceptions.

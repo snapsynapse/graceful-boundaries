@@ -36,7 +36,8 @@
     "check": "node evals/check.js",
     "search": "node scripts/check-search.mjs",
     "search:production": "node scripts/check-production-search.mjs",
-    "build:clawhub": "node scripts/build-clawhub-package.mjs"
+    "build:clawhub": "node scripts/build-clawhub-package.mjs",
+    "build:llms-full": "node scripts/build-llms-full.js"
   },
   "type": "commonjs",
   "author": "PAICE.work PBC <https://paice.work/>",

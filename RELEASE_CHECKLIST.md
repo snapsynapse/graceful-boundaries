@@ -4,7 +4,7 @@ Run this checklist for every tagged release. The release is incomplete until eve
 
 ## Pre-release
 
-- [ ] All tests pass: `npm test` (274 tests expected)
+- [ ] All tests pass: `npm test` (276 tests expected)
 - [ ] `node evals/check.js https://siteline.to` reports the expected level (currently Level 4)
 - [ ] `spec.md` version, status, and any normative changes are accurate
 - [ ] `CHANGELOG.md` has an entry for this release with date and SemVer-correct version
@@ -20,6 +20,8 @@ Run this checklist for every tagged release. The release is incomplete until eve
 - [ ] Tests and adopter revalidation use reviewed immutable action SHAs; verify the pushed candidate's exact-commit runs and annotations for runtime warnings
 - [ ] Validate `CITATION.cff` against the CFF schema and align its released version/date and immutable specification reference; see [citation scope](docs/citation.md)
 - [ ] `llms.txt` reflects current conformance levels and links
+- [ ] `npm run build:llms-full` leaves `llms-full.txt` unchanged (the test suite also fails on drift)
+- [ ] `.well-known/security.txt` `Expires` is at least 90 days out; refresh it and its contact if not
 - [ ] `assistant-guide.txt` SHA-256 matches `.well-known/assistant-guide.txt` (byte-identical pair)
 - [ ] If `assistant-guide.txt` changed: run `python3 /path/to/guidecheck/scripts/guidecheck_verify.py assistant-guide.txt` and confirm Level 3+ pass
 - [ ] `docs/agentic-surfaces.md` lists every agent-facing surface in this release

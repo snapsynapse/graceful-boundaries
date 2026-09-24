@@ -15,6 +15,7 @@ const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
 const { parseArgs, validateBaseUrl, isUnreachable } = require("./check.js");
+const { renderLlmsFull, SOURCES: LLMS_FULL_SOURCES } = require("../scripts/build-llms-full.js");
 
 const repoRoot = path.resolve(__dirname, "..");
 
@@ -242,6 +243,36 @@ test("checker usage shows the invoking command", () => {
   const viaBin = spawnSync(process.execPath, ["bin/cli.js", "check"], { cwd: repoRoot, encoding: "utf8" });
   assert.strictEqual(viaBin.status, 1);
   assert(viaBin.stderr.includes("Usage: npx graceful-boundaries check <base-url>"), viaBin.stderr);
+});
+
+test("llms-full.txt matches its generated sources", () => {
+  const committed = readRepoFile("llms-full.txt");
+  assert.strictEqual(committed, renderLlmsFull(repoRoot), "llms-full.txt is stale; run npm run build:llms-full");
+  for (const source of LLMS_FULL_SOURCES) {
+    assert(committed.includes(`Source: ${source.path} `), `llms-full.txt must include ${source.path}`);
+  }
+  assert(readRepoFile("llms.txt").includes("https://gracefulboundaries.dev/llms-full.txt"), "llms.txt must link llms-full.txt");
+});
+
+test("security.txt is RFC 9116 shaped, unexpired, and matches SECURITY.md", () => {
+  const text = readRepoFile(".well-known/security.txt");
+  const fields = {};
+  for (const line of text.split("\n")) {
+    const match = line.match(/^([A-Za-z-]+): (.+)$/);
+    if (match) (fields[match[1]] ||= []).push(match[2]);
+  }
+  assert(fields.Contact && fields.Contact.length > 0, "Contact is required");
+  assert(fields.Expires && fields.Expires.length === 1, "exactly one Expires is required");
+  const expires = Date.parse(fields.Expires[0]);
+  assert(!Number.isNaN(expires), "Expires must be an RFC 3339 timestamp");
+  assert(expires > Date.now(), `security.txt expired on ${fields.Expires[0]}; refresh Expires`);
+  assert(expires - Date.now() <= 366 * 24 * 3600 * 1000, "Expires should be at most a year ahead (RFC 9116 section 2.5.5)");
+  assert.deepStrictEqual(fields.Canonical, ["https://gracefulboundaries.dev/.well-known/security.txt"]);
+  const policy = readRepoFile("SECURITY.md");
+  for (const contact of fields.Contact) {
+    assert(/^(mailto:|https:\/\/)/.test(contact), `Contact must be a mailto: or https: URI: ${contact}`);
+    assert(policy.includes(contact.replace(/^mailto:/, "")), `SECURITY.md must name ${contact}`);
+  }
 });
 
 test("GitHub Action passes inputs through environment variables", () => {
