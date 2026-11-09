@@ -87,6 +87,8 @@ jobs:
           while read -r f; do
             cmp "$f" "unpacked/package/$f"
           done < expected-files.txt
-          echo "TARBALL=release-assets/$TARBALL" >> "$GITHUB_ENV"
+          echo "TARBALL=./release-assets/$TARBALL" >> "$GITHUB_ENV"
+      # The ./ prefix matters: without it npm reads "dir/file.tgz" as GitHub
+      # owner/repo shorthand and tries a git fetch.
       - name: Publish with provenance
         run: npm publish "$TARBALL" --provenance --access public
