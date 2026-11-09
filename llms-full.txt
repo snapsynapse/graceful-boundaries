@@ -2,8 +2,8 @@
 
 > A specification for how services communicate their operational limits to humans and autonomous agents.
 
-Version: 1.5.6
-Specification date: 2026-09-23
+Version: 1.5.7
+Specification date: 2026-11-08
 Canonical: https://gracefulboundaries.dev/
 Compact index: https://gracefulboundaries.dev/llms.txt
 Repository: https://github.com/snapsynapse/graceful-boundaries
@@ -28,8 +28,8 @@ Source: spec.md (Normative specification)
 
 # Graceful Boundaries
 
-**Version:** 1.5.6
-**Date:** 2026-09-23
+**Version:** 1.5.7
+**Date:** 2026-11-08
 **Status:** Released
 **License:** CC-BY-4.0 (spec.md, docs/) + MIT (code in evals/)
 **URL:** https://gracefulboundaries.dev

@@ -6,6 +6,8 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 
 ## Unreleased
 
+## [1.5.7] - 2026-11-08
+
 ### Added
 - `.github/dependabot.yml` for weekly GitHub Actions version updates, a CodeQL JavaScript/TypeScript workflow, and an OpenSSF Scorecard workflow that uploads SARIF to code scanning without publishing results or showing a badge. All actions are pinned to full commit SHAs.
 - A test that fails when the assistant guide's `exec-sha256` pins no longer match `package.json` or `evals/check.js` (277 tests).
@@ -27,6 +29,10 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 - GitHub Actions updated to CodeQL `v4.39.3`, setup-node `v7.1.0`, and upload-artifact `v7.0.2`, all pinned to full SHAs. Dependabot now groups CodeQL action updates into one PR and other action updates into another.
 - `docs/agentic-surfaces.md` records the guide 2.0.0 verification, what the execution pins cover, and the guide 1.1.2 history under both verifiers.
 - `docs/roadmap.md` and `ops/maintenance.md` mark the 1.5.5 and 1.5.6 maintenance tranche delivered, add the assistant-guide modernization decision to the queue, and record the Siteline enablement rescan (7/16, up from 5/16).
+
+### Notes
+- No normative specification changes. Conformance levels, required fields, and response classes are unchanged. Checker results are unchanged except that `--check-cloaking` now ignores script and style text that the previous version kept (end tags with whitespace or attributes, and unterminated elements).
+- The assistant guide's `exec-sha256` pins bind `package.json` and `evals/check.js`; contributors changing either must update the guide.
 
 ## [1.5.6] - 2026-09-23
 

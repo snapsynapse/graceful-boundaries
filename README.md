@@ -3,7 +3,7 @@
 APIs that return vague `429`, `403`, and `500` responses make autonomous agents retry blindly. Graceful Boundaries grades those responses and names the smallest fix.
 
 [![License: CC-BY-4.0 spec, MIT code](https://img.shields.io/badge/License-CC--BY--4.0%20spec%20%7C%20MIT%20code-lightgrey.svg)](#license)
-[![Version](https://img.shields.io/badge/version-1.5.6-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.7-blue.svg)](CHANGELOG.md)
 [![Tests](https://img.shields.io/github/actions/workflow/status/snapsynapse/graceful-boundaries/test.yml?label=tests)](https://github.com/snapsynapse/graceful-boundaries/actions)
 [![ClawHub](https://img.shields.io/badge/ClawHub-audit%20skill-blue)](https://clawhub.ai/snapsynapse/skills/graceful-boundaries)
 
@@ -222,7 +222,7 @@ The guide pins `package.json` and `evals/check.js` with `exec-sha256`; see [docs
 
 The committed root copy and the well-known copy must remain byte-identical.
 
-The current GuideCheck implementation and all agent-facing repository surfaces are documented in [docs/agentic-surfaces.md](docs/agentic-surfaces.md). Current verification: GuideCheck reference verifier 2.0.0 (profile 2.0.0), achieved Level 3, guide SHA-256 `78ca9499a2de90b0287c0aa6e7579ed6a653e04230232b6d2b750eb944ad0655`, with 0 blocking findings and 0 warnings.
+The current GuideCheck implementation and all agent-facing repository surfaces are documented in [docs/agentic-surfaces.md](docs/agentic-surfaces.md). Current verification: GuideCheck reference verifier 2.0.0 (profile 2.0.0), achieved Level 3, guide SHA-256 `e086800d70312876c39fc612925fa6b85d5c9e68029c9eae219882be9a6ef1d0`, with 0 blocking findings and 0 warnings.
 
 ## Which level should you target?
 

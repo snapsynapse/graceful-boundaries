@@ -2,7 +2,7 @@
 
 Graceful Boundaries is an open specification for communicating operational limits, structured refusals, and constructive guidance to humans and autonomous agents. The preferred citation is the versioned specification:
 
-PAICE.work PBC. (2026). *Graceful Boundaries: Specification for communicating operational limits, structured refusals, and constructive guidance* (Version 1.5.6). https://gracefulboundaries.dev/
+PAICE.work PBC. (2026). *Graceful Boundaries: Specification for communicating operational limits, structured refusals, and constructive guidance* (Version 1.5.7). https://gracefulboundaries.dev/
 
 The machine-readable metadata for this citation is in the repository root at [CITATION.cff](../CITATION.cff). GitHub's “Cite this repository” action reads that file and uses its `preferred-citation` entry when generating citation formats. The preferred citation points to the immutable [version 1.5.6 specification source](https://github.com/snapsynapse/graceful-boundaries/blob/44368dfc38165fa8bf7cebcb8c0057ea3d3d5e2c/spec.md); the canonical project landing page remains https://gracefulboundaries.dev/.
 
