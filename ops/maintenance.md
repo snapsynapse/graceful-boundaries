@@ -58,9 +58,10 @@ The maintainer authorized release preparation, then merged PR #17 and asked for 
 
 - Release commit: `4c02aa8b383371fa18cfe0ecf593315fc0824233`, the GitHub-verified merge of PR #17 (prep commit `904ac40`, citation pin `05ccb46`). Tests, CodeQL, Scorecard, and Pages passed on it; adopter revalidation of the release branch confirmed Siteline at Level 4 with the release checker.
 - Tag: signed annotated `v1.5.7`, tag object `6f1c94865637d28c8617ce489e4f50aaa6b1aeed`; GitHub reports it valid.
+- `v1`: the maintainer moved the stable Action pointer from tag object `0441b8c2ce9b2b7321f61e8dbb798531600a1d18` (`e9664e8`, v1.5.6) to signed tag object `ff5e90c5bdafd1845b02011ae6dae75fe6b19fc0`, targeting `4c02aa8`; GitHub reports it valid and `v1^{}` resolves to the release commit.
 - GitHub Release: [v1.5.7](https://github.com/snapsynapse/graceful-boundaries/releases/tag/v1.5.7), Latest. Assets built from a clean worktree of the release commit: npm tarball (`220413d7ecb851b15f6a126eec6c5d5d062c86d0de59bd5cd4352d68b05da18a`), ClawHub ZIP with `source_state: commit` (`ec37941adf95ac5efbd42e6124cb59236fb27e5491e4dc791006152ff8c85202`), and `spec.md` (`b1f3cf1371f64b8af3f45a8458b82c95d84e7a94bfb5d9e7d8e005bd8ad98fe8`). `SHA256SUMS.sig` verifies against `SHA256:e01ClOG6x4+h/LA0nobyQrQpCRrAYmFSIF2DmLR93pM`; downloaded assets re-verified.
 - Pages: the live guide, `llms.txt`, `llms-full.txt`, `index.html`, `spec.md`, and `sitemap.xml` match the release commit.
-- Not completed at this record: moving `v1` (the session's tool policy blocked the tag force-push), npm publication (maintainer 2FA), and ClawHub publication (the session could not reach the registry; publish with CLI 0.23.3 or later for the MIT-0 acknowledgment). Release state: ignored `build/release-state-1.5.7.json`.
+- Not completed at this record: npm publication (maintainer 2FA), and ClawHub publication (the session could not reach the registry; publish with CLI 0.23.3 or later for the MIT-0 acknowledgment). Release state: ignored `build/release-state-1.5.7.json`.
 
 ## Ongoing delivery and validation queue
 
