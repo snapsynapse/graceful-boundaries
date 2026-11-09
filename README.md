@@ -174,7 +174,7 @@ Exit codes: `0` check completed, `1` invalid arguments or URL, `2` confirmed lev
 
 ![Checker output: Siteline confirms Level 4, Google confirms Level 0](imgs/checker-demo.svg)
 
-Or clone and run from the project root with `node evals/check.js <url>`. Run the unit test suite (276 tests, no dependencies):
+Or clone and run from the project root with `node evals/check.js <url>`. Run the unit test suite (277 tests, no dependencies):
 
 ```bash
 npm test
@@ -212,19 +212,17 @@ Next step:
 
 Graceful Boundaries adopts the [GuideCheck](https://guidecheck.org/) Human-Verifiable Assistant Guide profile. The assistant-facing guide is committed at [assistant-guide.txt](assistant-guide.txt) and published from `https://gracefulboundaries.dev/.well-known/assistant-guide.txt`.
 
-Verify the guide before asking an assistant to follow it. Use the hosted verifier at [guidecheck.org/verify](https://guidecheck.org/verify) or a conformant local verifier. The guide declares `verifier-conformance: human-verifiable-assistant-guide-verifier >=0.3.0, <0.4.0`, so verify locally with the GuideCheck `v0.3.0` tag rather than a current checkout:
+Verify the guide before asking an assistant to follow it. Use the hosted verifier at [guidecheck.org/verify](https://guidecheck.org/verify) or a conformant local verifier. The guide declares GuideCheck profile 2.0.0 and `verifier-conformance: human-verifiable-assistant-guide-verifier >=2.0.0, <3.0.0`:
 
 ```bash
-mkdir -p /tmp/guidecheck-0.3.0
-git -C /path/to/guidecheck archive v0.3.0 scripts | tar -x -C /tmp/guidecheck-0.3.0
-python3 /tmp/guidecheck-0.3.0/scripts/guidecheck_verify.py assistant-guide.txt
+python3 /path/to/guidecheck/scripts/guidecheck_cli.py verify assistant-guide.txt
 ```
 
-A current GuideCheck checkout applies a later named-script execution rule and reports Level 2 for this guide; see [docs/agentic-surfaces.md](docs/agentic-surfaces.md).
+The guide pins `package.json` and `evals/check.js` with `exec-sha256`; see [docs/agentic-surfaces.md](docs/agentic-surfaces.md) for what the pins cover.
 
 The committed root copy and the well-known copy must remain byte-identical.
 
-The current GuideCheck implementation and all agent-facing repository surfaces are documented in [docs/agentic-surfaces.md](docs/agentic-surfaces.md). Current historical-profile verification: GuideCheck reference verifier 0.3.0, achieved Level 3, guide SHA-256 `917353c76641d5701e5e854ef9dc49ea6e2450d3e2e5b0e83860fb1a62dcc992`, with 0 blocking findings and 0 warnings.
+The current GuideCheck implementation and all agent-facing repository surfaces are documented in [docs/agentic-surfaces.md](docs/agentic-surfaces.md). Current verification: GuideCheck reference verifier 2.0.0 (profile 2.0.0), achieved Level 3, guide SHA-256 `199b3e98d8020cb99ae438cb4098973a52ab734cad89c692983e62f758298f2f`, with 0 blocking findings and 0 warnings.
 
 ## Which level should you target?
 

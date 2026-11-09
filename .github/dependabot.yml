@@ -1,0 +1,11 @@
+version: 2
+updates:
+  # The repository has no npm dependencies; only workflow actions need updates.
+  # Dependabot keeps the full-SHA pins and their version comments current.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci

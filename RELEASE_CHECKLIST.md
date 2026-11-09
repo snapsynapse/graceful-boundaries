@@ -4,7 +4,7 @@ Run this checklist for every tagged release. The release is incomplete until eve
 
 ## Pre-release
 
-- [ ] All tests pass: `npm test` (276 tests expected)
+- [ ] All tests pass: `npm test` (277 tests expected)
 - [ ] `node evals/check.js https://siteline.to` reports the expected level (currently Level 4)
 - [ ] `spec.md` version, status, and any normative changes are accurate
 - [ ] `CHANGELOG.md` has an entry for this release with date and SemVer-correct version
@@ -22,8 +22,9 @@ Run this checklist for every tagged release. The release is incomplete until eve
 - [ ] `llms.txt` reflects current conformance levels and links
 - [ ] `npm run build:llms-full` leaves `llms-full.txt` unchanged (the test suite also fails on drift)
 - [ ] `.well-known/security.txt` `Expires` is at least 90 days out; refresh it and its contact if not
+- [ ] A version bump changes `package.json`, so update the guide's `run-unit-tests` `exec-sha256`, `applies-to`, and `guide-version` together, then propagate the new guide SHA-256
 - [ ] `assistant-guide.txt` SHA-256 matches `.well-known/assistant-guide.txt` (byte-identical pair)
-- [ ] If `assistant-guide.txt` changed: verify it with a verifier inside its declared `verifier-conformance` range (currently GuideCheck tag `v0.3.0`, extracted with `git -C /path/to/guidecheck archive v0.3.0 scripts`) and confirm Level 3+ pass; record the current-engine comparison in `docs/agentic-surfaces.md`
+- [ ] If `assistant-guide.txt` changed: verify it with a verifier inside its declared `verifier-conformance` range (currently GuideCheck 2.0.x, `guidecheck_cli.py verify assistant-guide.txt`) and confirm Level 3+ pass; record the result in `docs/agentic-surfaces.md`
 - [ ] `docs/agentic-surfaces.md` lists every agent-facing surface in this release
 - [ ] `SECURITY-AUDIT.md` reflects any new security considerations introduced
 

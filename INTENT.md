@@ -34,7 +34,7 @@ Out of scope: rate-limit enforcement algorithms (token bucket, sliding window, e
 
 The conformance ladder is additive. Each level is testable in isolation against the eval suite. A conformant verifier (`evals/check.js`) is the conformance target; any implementation that passes the eval suite is conformant. No central registry, no oracle, no hosted-only verifier as root of trust.
 
-Siteline is the live Level 4 reference implementation (https://siteline.to/). The spec ships a 276-test suite covering response classes, agentic surfaces, action boundaries, refusals, discovery, proactive headers, HTML refusal, and security cases.
+Siteline is the live Level 4 reference implementation (https://siteline.to/). The spec ships a 277-test suite covering response classes, agentic surfaces, action boundaries, refusals, discovery, proactive headers, HTML refusal, and security cases.
 
 ## Admission criteria for changes
 
@@ -58,7 +58,7 @@ Adoption work must remain evidence-led and must not turn unanswered directory pr
 ## Relationship to other PAICE standards
 
 - **HardGuard25**: Limit identifiers in GB-formatted responses MAY use HardGuard25 for the human-facing portion when an ID will be read aloud or transcribed.
-- **GuideCheck**: GB ships a GuideCheck-conformant `assistant-guide.txt` for bounded contributor work. Assistant-facing contributor guidance follows GuideCheck 0.3.0.
+- **GuideCheck**: GB ships a GuideCheck-conformant `assistant-guide.txt` for bounded contributor work. Assistant-facing contributor guidance follows GuideCheck profile 2.0.0, with `exec-sha256` pins on `package.json` and `evals/check.js`.
 - **Skill Provenance**: The `graceful-boundaries-audit` skill (SKILL.md at repo root) is governed by Skill Provenance. See "Exceptions to Repo Standards" below for the layout exception.
 - **Siteline**: Siteline is the canonical Level 4 reference implementation. Coordinated releases when normative changes affect Level 4 behavior.
 - **Turnfile**: Out of scope; GB is transport-level limit communication, Turnfile is peer collaboration.
@@ -73,6 +73,7 @@ Per `0_Across/Repo Standards.md`, the following deviations are recorded:
 
 ## Changelog
 
+- 2026-11-08: Migrated the assistant guide to GuideCheck profile 2.0.0 with two execution pins, the unpinned test files disclosed (maintainer decision). Applied the reviewed GitHub settings proposal and added Dependabot, CodeQL, and non-publishing Scorecard workflows.
 - 2026-09-23 — Resolved the `llms-full.txt` exception by generating it from authoritative sources with a drift test. Added an RFC 9116 `security.txt` listing GitHub private vulnerability reporting (enabled the same day) and security@paice.work, matching `SECURITY.md`.
 - 2026-08-28 — Migrated durable adoption and outreach gates from temporary handoffs. Added the reproducible benchmark prerequisite and preserved unanswered maintainer threads as the authority for directory follow-up.
 - 2026-08-28 — Reconciled conformance/test counts and closed the root-level skill-layout question against Repo Standards v0.4.

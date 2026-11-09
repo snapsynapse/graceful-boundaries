@@ -44,7 +44,7 @@ jobs:
             adopter-result.json
             adopter-check.log
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 90
       - name: Enforce result
         if: steps.check.outcome != 'success'
         env:

@@ -8,7 +8,7 @@ Guidelines for AI agents working on the Graceful Boundaries repository.
 |------|------|
 | `spec.md` | Source of truth. All normative requirements live here. |
 | `evals/check.js` | Live conformance checker and shared validation library. |
-| `evals/test-*.js` | Unit tests (276 tests across 13 files). |
+| `evals/test-*.js` | Unit tests (277 tests across 13 files). |
 | `schema/` | Published JSON Schemas; must stay in sync with spec.md and check.js (enforced by test-schemas.js). |
 | `examples/` | Drop-in middleware and worked limits.json examples; covered by tests. |
 | `bin/cli.js` | npx entry point wrapping check.js. |
@@ -34,12 +34,13 @@ Guidelines for AI agents working on the Graceful Boundaries repository.
 
 ## After making changes
 
-1. Run `npm test` — all 200+ tests must pass.
+1. Run `npm test` — all 277 tests must pass.
 2. If you changed `spec.md`: update `CHANGELOG.md` with the change.
 3. If you added new spec requirements: add corresponding tests in `evals/`.
 4. If you changed the checker (`evals/check.js`): verify against a live service with `node evals/check.js https://siteline.to`.
-5. If you changed `assistant-guide.txt`: verify it with a GuideCheck verifier inside the guide's declared `verifier-conformance` range (currently tag `v0.3.0`) and keep the root and `/.well-known/assistant-guide.txt` copies byte-identical.
-6. If you changed `index.html`: verify the page renders correctly.
+5. If you changed `package.json` or `evals/check.js`: update the matching `exec-sha256` pin in `assistant-guide.txt` (`npm test` fails until you do), then follow step 6.
+6. If you changed `assistant-guide.txt`: verify it with a GuideCheck verifier inside the guide's declared `verifier-conformance` range (currently 2.0.x) and keep the root and `/.well-known/assistant-guide.txt` copies byte-identical.
+7. If you changed `index.html`: verify the page renders correctly.
 
 ## Key rules
 
