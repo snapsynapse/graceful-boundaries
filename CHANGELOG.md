@@ -6,8 +6,15 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 
 ## Unreleased
 
+### Fixed
+- Checker parsers no longer throw on malformed service responses found by fuzzing. `checkRefusalBody` threw on bodies that parse to a non-object (for example `1e309`, which becomes `Infinity`) and on non-string `why`, `error`, or `detail`. `checkLimitsBody` and discovery threw on `null` or non-object limit entries, so the CLI reported a present but malformed discovery endpoint as not found. These inputs are now reported as malformed.
+
 ### Added
 - `.github/workflows/publish.yml` publishes to npm through trusted publishing (OIDC, with provenance) instead of a maintainer token. It runs when a GitHub Release is published, or on demand for an existing release tag, behind a maintainer-approved `npm` environment limited to `v*` tags. It publishes the release's own tarball only after the tarball matches the release `SHA256SUMS` and every file in it matches the tagged source.
+- A dependency-free, seeded fuzz harness in `evals/test-security.js` covering every checker function that parses untrusted input, with a per-case time budget and 50 KB repetition cases. `GB_FUZZ_SEED` and `GB_FUZZ_ITERATIONS` reproduce or extend a run. Three regression tests pin the crashes it found (290 tests).
+
+### Changed
+- Assistant guide 2.0.3 updates only the `run-live-checker` pin for the new `evals/check.js` bytes.
 
 ## [1.5.7] - 2026-11-08
 

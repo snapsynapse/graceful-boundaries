@@ -4,7 +4,7 @@ Assistant Guide: Graceful Boundaries contributor validation
 identifier: assistant-guide
 profile: human-verifiable-assistant-guide
 profile-version: 2.0.0
-guide-version: 2.0.2
+guide-version: 2.0.3
 applies-to: graceful-boundaries 1.5.7
 canonical-url: https://gracefulboundaries.dev/.well-known/assistant-guide.txt
 repository-url: https://github.com/snapsynapse/graceful-boundaries
@@ -126,7 +126,7 @@ command: node evals/check.js https://siteline.to
 runner: argv
 cwd: .
 egress: siteline.to
-exec-sha256: 136b2a44a3dcc802190c08defe36a2e1c321742fea286888acaad9f7b273c6b6
+exec-sha256: 87584db6a6fceb23b269ef692d9b3bed34526a091d73e300991f28a0a200e815
 notes: Verifies checker behavior against the Level 4 reference implementation.
 [/action]
 

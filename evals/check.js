@@ -133,6 +133,8 @@ async function checkLimitsEndpoint(baseUrl, limitsPath) {
 
       const wellFormed = limitEntries.every((entry) => {
         if (
+          !entry ||
+          typeof entry !== "object" ||
           typeof entry.endpoint !== "string" ||
           entry.endpoint.length === 0 ||
           typeof entry.method !== "string" ||
@@ -141,6 +143,8 @@ async function checkLimitsEndpoint(baseUrl, limitsPath) {
         ) return false;
         return entry.limits.every(
           (l) =>
+            l &&
+            typeof l === "object" &&
             typeof l.type === "string" &&
             typeof l.maxRequests === "number" &&
             typeof l.windowSeconds === "number" &&
@@ -385,7 +389,9 @@ function containsInstructionLikeText(value) {
 function checkRefusalBody(body, origin) {
   const parsed = typeof body === "string" ? tryParseJson(body) : body;
 
-  if (!parsed) {
+  // A refusal body must be a JSON object. Numbers, strings, arrays, and null
+  // parse as JSON but cannot carry the required fields.
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
     return {
       isJson: false,
       hasRequiredFields: false,
@@ -455,12 +461,14 @@ function checkRefusalBody(body, origin) {
 
   // Quality checks
   const whyIsNotRestated =
-    parsed.why &&
-    parsed.error &&
+    typeof parsed.why === "string" &&
+    typeof parsed.error === "string" &&
+    parsed.why.length > 0 &&
+    parsed.error.length > 0 &&
     !parsed.why.toLowerCase().includes(parsed.error.toLowerCase().replace(/_/g, " "));
 
   const detailIncludesTime =
-    parsed.detail && /(?<!\d)\d+\s*(?:second|minute|hour)/i.test(parsed.detail);
+    typeof parsed.detail === "string" && /(?<!\d)\d+\s*(?:second|minute|hour)/i.test(parsed.detail);
 
   const retryIsNumber =
     typeof parsed.retryAfterSeconds === "number" && parsed.retryAfterSeconds >= 0;
@@ -755,6 +763,10 @@ function checkLimitsBody(body, origin) {
   const entryErrors = [];
 
   for (const [key, entry] of limitEntries) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      entryErrors.push(`${key}: limit entry must be an object`);
+      continue;
+    }
     if (!entry.endpoint || typeof entry.endpoint !== "string") {
       entryErrors.push(`${key}: missing or invalid 'endpoint'`);
     }
@@ -767,6 +779,10 @@ function checkLimitsBody(body, origin) {
     }
     for (let i = 0; i < entry.limits.length; i++) {
       const limit = entry.limits[i];
+      if (!limit || typeof limit !== "object" || Array.isArray(limit)) {
+        entryErrors.push(`${key}.limits[${i}]: limit must be an object`);
+        continue;
+      }
       const missing = REQUIRED_LIMIT_ENTRY_FIELDS.filter((f) => {
         if (f === "maxRequests" || f === "windowSeconds") return typeof limit[f] !== "number";
         return typeof limit[f] !== "string" || limit[f].length === 0;
@@ -1272,8 +1288,10 @@ async function main({ command = "node evals/check.js" } = {}) {
       try {
         const limitsResponse = await fetch(limitsUrl, { headers: { Accept: "application/json" } });
         const limitsBody = await limitsResponse.json();
-        const endpoints = limitsBody.limits ? Object.values(limitsBody.limits) : [];
-        const safeEndpoints = endpoints.filter((e) => e.endpoint && e.method !== "POST" && e.method !== "DELETE");
+        const endpoints = limitsBody && limitsBody.limits && typeof limitsBody.limits === "object" ? Object.values(limitsBody.limits) : [];
+        const safeEndpoints = endpoints.filter(
+          (e) => e && typeof e === "object" && typeof e.endpoint === "string" && e.endpoint && e.method !== "POST" && e.method !== "DELETE"
+        );
 
         // Try to get a successful response from documented endpoints to check proactive headers.
         // Many endpoints need parameters, so try common safe probe values if bare requests fail.
