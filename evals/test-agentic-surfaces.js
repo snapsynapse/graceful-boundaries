@@ -48,6 +48,10 @@ function readRepoFile(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), "utf8");
 }
 
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
 }
@@ -346,11 +350,11 @@ test("release version is consistent across published surfaces", () => {
   assert(specDate, "spec.md must disclose an ISO release date");
   const citation = readRepoFile("CITATION.cff");
   const preferredCitation = citation.split(/^preferred-citation:\n/m)[1] || "";
-  assert(new RegExp(`^  version: ${packageVersion.replace(/\./g, "\\.")}$`, "m").test(preferredCitation), "preferred specification citation must match the released version");
+  assert(new RegExp(`^  version: ${escapeRegExp(packageVersion)}$`, "m").test(preferredCitation), "preferred specification citation must match the released version");
   assert(new RegExp(`^date-released: "${specDate[1]}"$`, "m").test(citation), "root citation must match the released date");
   assert(new RegExp(`^  date-released: "${specDate[1]}"$`, "m").test(preferredCitation), "preferred citation must match the released date");
   const dateChecks = {
-    "CHANGELOG.md": new RegExp(`^## \\[${packageVersion.replace(/\./g, "\\.")}\\] - (${specDate[1]})$`, "m"),
+    "CHANGELOG.md": new RegExp(`^## \\[${escapeRegExp(packageVersion)}\\] - (${specDate[1]})$`, "m"),
     "index.html": new RegExp(`<time datetime="(${specDate[1]})">`),
     "llms.txt": new RegExp(`^- Updated: (${specDate[1]})$`, "m"),
     "MANIFEST.yaml": new RegExp(`^date: (${specDate[1]})$`, "m"),

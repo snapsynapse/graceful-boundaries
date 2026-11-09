@@ -58,8 +58,9 @@ const sitemapUrls = new Set();
 const entries = [];
 
 function decode(value) {
-    return String(value || '').replace(/&amp;/g, '&').replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+    // Decode &amp; last so an escaped entity such as &amp;lt; stays &lt;.
+    return String(value || '').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
 }
 
 function routeFile(pathname) {
