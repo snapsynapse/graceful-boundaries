@@ -42,7 +42,7 @@ assistant_guide:
   served_at:
     - https://gracefulboundaries.dev/assistant-guide.txt
     - https://gracefulboundaries.dev/.well-known/assistant-guide.txt
-  guidecheck_version: "0.3.0"
+  guidecheck_version: "2.0.0"
 
 related_standards:
   - hardguard25

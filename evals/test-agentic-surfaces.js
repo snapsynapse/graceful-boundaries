@@ -101,6 +101,37 @@ test("GuideCheck verification SHA is disclosed consistently", () => {
   }
 });
 
+test("assistant guide exec-sha256 pins match the files they bind", () => {
+  const guide = readRepoFile("assistant-guide.txt");
+  const expected = {
+    "run-unit-tests": { command: "npm test", file: "package.json" },
+    "run-live-checker": { command: "node evals/check.js https://siteline.to", file: "evals/check.js" },
+  };
+  const blocks = [...guide.matchAll(/\[action\]\n([\s\S]*?)\n\[\/action\]/g)].map((m) => {
+    const fields = {};
+    for (const line of m[1].split("\n")) {
+      const idx = line.indexOf(": ");
+      if (idx > 0) fields[line.slice(0, idx)] = line.slice(idx + 2);
+    }
+    return fields;
+  });
+  for (const [id, { command, file }] of Object.entries(expected)) {
+    const block = blocks.find((b) => b.id === id);
+    assert(block, `assistant guide must define action ${id}`);
+    assert.strictEqual(block.command, command, `${id} command changed; review its exec-sha256 binding`);
+    assert.strictEqual(
+      block["exec-sha256"],
+      sha256(readRepoFile(file)),
+      `${id} exec-sha256 must equal the SHA-256 of ${file}; update the pin, bump guide-version, and propagate the guide SHA-256`
+    );
+  }
+  for (const block of blocks) {
+    if (/code-executing/.test(block.class || "")) {
+      assert(block.id in expected, `code-executing action ${block.id} needs an exec-sha256 binding and a pin test`);
+    }
+  }
+});
+
 test("agentic surfaces disclosure names the GuideCheck implementation", () => {
   const guide = readRepoFile("assistant-guide.txt");
   const surfaces = readRepoFile("docs/agentic-surfaces.md");
@@ -108,7 +139,9 @@ test("agentic surfaces disclosure names the GuideCheck implementation", () => {
   const guideVersion = guide.match(/^guide-version: (\S+)$/m);
 
   assert(surfaces.includes("human-verifiable-assistant-guide"), "profile must be disclosed");
-  assert(surfaces.includes("0.3.0"), "profile version must be disclosed");
+  const profileVersion = guide.match(/^profile-version: (\S+)$/m);
+  assert(profileVersion && profileVersion[1] === "2.0.0", "guide must declare GuideCheck profile 2.0.0");
+  assert(surfaces.includes(`- Profile version: \`${profileVersion[1]}\``), "profile version must be disclosed");
   assert(guideVersion, "guide version metadata must be present");
   assert(
     surfaces.includes(`- Guide version: \`${guideVersion[1]}\``),
@@ -122,7 +155,7 @@ test("agentic surfaces disclosure names the GuideCheck implementation", () => {
     surfaces.includes("https://gracefulboundaries.dev/.well-known/assistant-guide.txt"),
     "canonical guide URL must be disclosed"
   );
-  assert(guide.includes("verifier-conformance: human-verifiable-assistant-guide-verifier >=0.3.0, <0.4.0"));
+  assert(guide.includes("verifier-conformance: human-verifiable-assistant-guide-verifier >=2.0.0, <3.0.0"));
 
   const canonical = "https://clawhub.ai/snapsynapse/skills/graceful-boundaries";
   for (const file of ["README.md", "index.html", "PROJECT_CONTEXT.md"]) {

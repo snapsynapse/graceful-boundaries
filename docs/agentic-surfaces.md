@@ -32,72 +32,46 @@ This repository intentionally publishes several machine-readable or assistant-fa
 Graceful Boundaries uses the GuideCheck Human-Verifiable Assistant Guide profile for contributor guidance.
 
 - Profile: `human-verifiable-assistant-guide`
-- Profile version: `0.3.0`
-- Guide version: `1.1.2`
+- Profile version: `2.0.0`
+- Guide version: `2.0.0`
 - Canonical guide URL: `https://gracefulboundaries.dev/.well-known/assistant-guide.txt`
 - Repository copy: `assistant-guide.txt`
 - Recommended verifier: `https://guidecheck.org/verify`
-- Local verifier conformance: `human-verifiable-assistant-guide-verifier >=0.3.0, <0.4.0`
+- Local verifier conformance: `human-verifiable-assistant-guide-verifier >=2.0.0, <3.0.0`
 
-Historical local verification from May 29, 2026:
+Current local verification from November 8, 2026 (guide 2.0.0):
 
 ```text
-Verifier: guidecheck-reference-local 0.3.2
+GuideCheck source: 0d749a3 (main after v2.0.0)
+Invocation: guidecheck_cli.py verify assistant-guide.txt
+Verifier: guidecheck-reference-local 2.0.0
+Evaluated policy: 2.0.0 (content corrected-content-1, anchors 1.0.0-strict)
 Achieved level: 3
-Guide SHA-256: 7dbf6472d5a49905054b0d541c27a4246bdc1f10e5d7bb9c16c028fa04b8bfdd
+Guide SHA-256: 199b3e98d8020cb99ae438cb4098973a52ab734cad89c692983e62f758298f2f
 Blocking findings: 0
 Warnings: 0
+Infos: 3 (metadata.last-reviewed.age; exec-sha256.unverified for run-unit-tests and run-live-checker)
 ```
+
+Local-file verification caps at Level 3 and cannot read pinned artifacts, so it reports each `exec-sha256` as declared but unverified. The repository test suite recomputes both pins.
+
+### Execution pins
+
+Profile 2.0.0 requires every action that runs repository code to pin or inline it. The guide pins two files:
+
+- `run-unit-tests` (`npm test`) pins `package.json`.
+- `run-live-checker` (`node evals/check.js https://siteline.to`) pins `evals/check.js`, which loads no other repository file.
+
+The `evals/test-*.js` files that `npm test` runs are not pinned. The 2.0.0 profile asks for files run by pinned bytes to be pinned in turn, and current verifiers don't enforce that yet. The maintainer chose two pins with this gap disclosed over about fifteen per-file pins that would force a guide release for every test edit. The guide states the gap in its `run-unit-tests` notes and threat model.
+
+Any change to `package.json` or `evals/check.js` therefore requires updating the matching `exec-sha256`, bumping `guide-version`, keeping both guide copies byte-identical, and propagating the new guide SHA-256 to README, `llms.txt`, and this document. `evals/test-agentic-surfaces.js` fails when a pin is stale.
 
 Verification proves the guide matches the GuideCheck profile shape. It does not prove that the guide, repository, checker, or any assistant action is safe.
 
-Historical-profile verification from September 8, 2026 (guide 1.1.1):
+### History
 
-```text
-Verifier: guidecheck-reference-local 0.3.0
-Achieved level: 3
-Guide SHA-256: 5c199ffb154296ea2418a78c4816995285788a29eaeefe22e79a0bea480035b4
-Blocking findings: 0
-Warnings: 0
-```
-
-Current-engine comparison from September 8, 2026:
-
-```text
-GuideCheck source: 0efe4ee5710276164e15a23124c8cf247fe5c093
-Verifier-reported version: guidecheck-reference-local 0.7.1
-Verifier-reported profile: human-verifiable-assistant-guide 0.7.1
-Achieved level: 2
-Guide SHA-256: 5c199ffb154296ea2418a78c4816995285788a29eaeefe22e79a0bea480035b4
-Blocking findings: 1 (action.exec-unbounded: run-live-checker)
-Warnings: 0
-```
-
-Current historical-profile verification from September 23, 2026 (guide 1.1.2, applicability only):
-
-```text
-Verifier: guidecheck-reference-local 0.3.0
-Achieved level: 3
-Guide SHA-256: 917353c76641d5701e5e854ef9dc49ea6e2450d3e2e5b0e83860fb1a62dcc992
-Blocking findings: 0
-Warnings: 0
-```
-
-Reconfirmed on November 8, 2026 with the scripts exported from GuideCheck tag `v0.3.0` (`d9910ff0611070d7d38532c1e1f054c1f60cc6ee`): Level 3, the same SHA-256, 0 blocking findings, 0 warnings, and one informational `metadata.last-reviewed.age` finding.
-
-Current-engine comparison from November 8, 2026 (guide 1.1.2):
-
-```text
-GuideCheck source: 96c648e487e4e7c7bc5254611f659dd7d40cbb15 (v2.0.0-12-g96c648e)
-Invocation: guidecheck_cli.py verify --require-profile-version 0.3.0
-Verifier-reported version: guidecheck-reference-local 0.7.1
-Achieved level: 2
-Guide SHA-256: 917353c76641d5701e5e854ef9dc49ea6e2450d3e2e5b0e83860fb1a62dcc992
-Blocking findings: 1 (action.exec-unbounded: run-live-checker)
-Warnings: 0
-```
-
-The current engine applies a later named-script execution rule even when invoked with `--require-profile-version 0.3.0`. It is modernization evidence, not a failure of the declared historical 0.3.0 contract. Clearing it requires an `exec-sha256` pin for `evals/check.js` on the `run-live-checker` action, or replacing that action, followed by a guide version bump and SHA propagation. That modernization is an open maintainer decision in the [maintenance queue](../ops/maintenance.md).
+- Guide 1.1.x declared profile 0.3.0. GuideCheck reference verifier 0.3.0 reported Level 3 for guide 1.1.2 (SHA-256 `917353c76641d5701e5e854ef9dc49ea6e2450d3e2e5b0e83860fb1a62dcc992`) on September 23 and again on November 8, 2026. The current engine reported Level 2 for the same bytes because `run-live-checker` invoked `evals/check.js` without a pin (`action.exec-unbounded`).
+- Guide 2.0.0 (November 8, 2026) migrated to profile 2.0.0, added the two execution pins, and added official-sources and public-information-safety sections.
 
 ## ClawHub distribution license
 
