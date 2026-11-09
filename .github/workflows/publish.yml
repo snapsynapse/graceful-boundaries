@@ -1,0 +1,92 @@
+name: Publish to npm
+# npm trusted publishing (OIDC): no npm token is stored in this repository.
+# The npm package's trusted publisher must name this repository, this
+# workflow filename (publish.yml), and the "npm" environment. The "npm"
+# environment requires maintainer approval and accepts only v* tags.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to publish, for example v1.5.7"
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    name: Publish signed release tarball
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - name: Validate release tag
+        run: |
+          case "$RELEASE_TAG" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "Refusing to publish non-release tag: $RELEASE_TAG"; exit 1 ;;
+          esac
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+      - name: Require npm with trusted publishing support
+        run: |
+          node -e '
+            const [a, b, c] = process.argv[1].split(".").map(Number);
+            const ok = a > 11 || (a === 11 && (b > 5 || (b === 5 && c >= 1)));
+            if (!ok) { console.error(`npm ${process.argv[1]} lacks trusted publishing; need >= 11.5.1`); process.exit(1); }
+          ' "$(npm --version)"
+      - name: Check tag matches package version
+        run: |
+          VERSION=$(node -p 'require("./package.json").version')
+          if [ "v$VERSION" != "$RELEASE_TAG" ]; then
+            echo "package.json version $VERSION does not match tag $RELEASE_TAG"; exit 1
+          fi
+      - run: npm test
+      # Publish the exact tarball attached to the signed GitHub Release, not a
+      # rebuild: gzip bytes can differ across npm and Node versions. The
+      # tarball must match the release SHA256SUMS, and every file in it must
+      # be byte-identical to the tagged source checked out above.
+      - name: Verify the release tarball against SHA256SUMS and the tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(node -p 'require("./package.json").version')
+          TARBALL="graceful-boundaries-$VERSION.tgz"
+          mkdir release-assets
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+            --pattern "$TARBALL" --pattern SHA256SUMS --dir release-assets
+          EXPECTED=$(awk -v f="$TARBALL" '$2 == f {print $1}' release-assets/SHA256SUMS)
+          ACTUAL=$(sha256sum "release-assets/$TARBALL" | awk '{print $1}')
+          if [ -z "$EXPECTED" ] || [ "$EXPECTED" != "$ACTUAL" ]; then
+            echo "$TARBALL ($ACTUAL) does not match release SHA256SUMS ($EXPECTED)"; exit 1
+          fi
+          mkdir unpacked
+          tar -xzf "release-assets/$TARBALL" -C unpacked
+          npm pack --dry-run --json | node -e '
+            const files = JSON.parse(require("fs").readFileSync(0, "utf8"))[0].files.map((f) => f.path).sort();
+            require("fs").writeFileSync("expected-files.txt", files.join("\n") + "\n");
+          '
+          (cd unpacked/package && find . -type f | sed "s#^\./##" | sort) > tarball-files.txt
+          diff -u expected-files.txt tarball-files.txt
+          while read -r f; do
+            cmp "$f" "unpacked/package/$f"
+          done < expected-files.txt
+          echo "TARBALL=release-assets/$TARBALL" >> "$GITHUB_ENV"
+      - name: Publish with provenance
+        run: npm publish "$TARBALL" --provenance --access public
