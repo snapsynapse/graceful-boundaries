@@ -9,3 +9,14 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: ci
+    groups:
+      # init, analyze, and upload-sarif must move together; one PR per release.
+      codeql-action:
+        patterns:
+          - github/codeql-action*
+      # Remaining action updates arrive as one weekly PR.
+      actions:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - github/codeql-action*
