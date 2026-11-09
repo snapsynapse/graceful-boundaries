@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 // skill_bundle: portfolio-search-indexing-audit
 // file_role: asset
-// version: 5
-// version_date: 2026-08-18
-// previous_version: 4
-// change_summary: Revalidated unchanged for the v5 bundle; the portable repository contract remains v4.
+// version: 7
+// version_date: 2026-11-08
+// previous_version: 6
+// change_summary: decode() also handles &apos; and numeric references and trims; repository contract remains v4.
 // Upstream: portfolio-search-indexing-audit contract v4.
 // Release-triggered HTTP validation. Exit 2 means infrastructure is unavailable.
 'use strict';
@@ -23,6 +23,18 @@ function report(kind, message) {
     if (kind === 'defect') defects++;
     else infrastructure++;
     console.error(`${kind === 'defect' ? 'LIVE' : 'NETWORK'}  ${message}`);
+}
+
+const XML_ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
+// One pass over the five XML entities and numeric references, so decoded text is never
+// decoded again (&amp;lt; stays &lt;). Invalid code points stay encoded. Surrounding
+// whitespace is trimmed so a pretty-printed <loc> compares equal to its URL.
+function decode(value) {
+    return String(value || '').replace(/&(?:(amp|lt|gt|quot|apos)|#(\d+)|#[xX]([0-9a-fA-F]+));/g, (entity, name, decimal, hex) => {
+        if (name) return XML_ENTITIES[name];
+        const code = decimal ? Number(decimal) : parseInt(hex, 16);
+        return code > 0 && code <= 0x10ffff && (code < 0xd800 || code > 0xdfff) ? String.fromCodePoint(code) : entity;
+    }).trim();
 }
 
 function loadConfig() {
@@ -108,7 +120,7 @@ async function fetchSitemap(canonical, seen = new Set()) {
     if (/<sitemapindex\b/i.test(result.body)) {
         for (const match of result.body.matchAll(/<sitemap>[\s\S]*?<loc>([^<]+)<\/loc>[\s\S]*?<\/sitemap>/gi)) {
             let child;
-            try { child = new URL(match[1].replace(/&amp;/g, '&')); }
+            try { child = new URL(decode(match[1])); }
             catch { report('defect', `${canonical}: invalid child sitemap URL ${match[1]}`); continue; }
             if (child.origin !== canonicalOrigin.origin) {
                 report('defect', `${canonical}: child sitemap uses noncanonical origin ${child.href}`);
@@ -143,7 +155,7 @@ const canonicals = [];
 const sitemapLastmods = new Map();
 for (const [sitemap, body] of sitemapBodies) {
     for (const match of body.matchAll(/<url>([\s\S]*?)<\/url>/gi)) {
-        const canonical = match[1].match(/<loc>([^<]+)<\/loc>/i)?.[1]?.replace(/&amp;/g, '&');
+        const canonical = decode(match[1].match(/<loc>([^<]+)<\/loc>/i)?.[1]);
         const lastmod = match[1].match(/<lastmod>([^<]+)<\/lastmod>/i)?.[1]?.trim();
         if (!canonical) {
             report('defect', `${sitemap}: URL entry is missing loc`);
@@ -160,12 +172,6 @@ for (const [sitemap, body] of sitemapBodies) {
     }
 }
 if (!canonicals.length) report('infrastructure', 'live sitemaps contain no page locations');
-
-function decode(value) {
-    // Decode &amp; last so an escaped entity such as &amp;lt; stays &lt;.
-    return String(value || '').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
-}
 
 function repositoryCanonicals() {
     const output = path.resolve(ROOT, config.outputDir || '');
@@ -267,8 +273,8 @@ async function checkPage(canonical) {
     if (!result) return;
     if (result.response.url !== target) report('defect', `${target}: final URL is ${result.response.url}`);
     const html = result.body;
-    const pageCanonical = html.match(/<link\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["']/i)?.[1]
-        || html.match(/<link\b[^>]*href=["']([^"']+)["'][^>]*rel=["']canonical["']/i)?.[1];
+    const pageCanonical = decode(html.match(/<link\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["']/i)?.[1]
+        || html.match(/<link\b[^>]*href=["']([^"']+)["'][^>]*rel=["']canonical["']/i)?.[1]);
     if (pageCanonical !== canonical) report('defect', `${target}: canonical ${pageCanonical || '(missing)'} does not equal ${canonical}`);
     if (/<meta\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html)) {
         report('defect', `${target}: sitemap page is noindex`);

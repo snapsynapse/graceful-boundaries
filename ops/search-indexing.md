@@ -53,7 +53,7 @@ The decision does not change what is published, only what is declared as a searc
 
 ## Validation lanes
 
-Scaffolded 2026-08-28 from the skill's `assets/` templates, vendored so CI does not depend on a user-specific skill installation path. On 2026-11-08 both scripts' `decode()` was corrected locally to decode `&amp;` last (CodeQL `js/double-escaping`); the skill's `assets/` templates need the same fix upstream, and a future re-vendor must keep it. `outputDir` is `.` because the deployable artifact is the repository root.
+Scaffolded 2026-08-28 from the skill's `assets/` templates, vendored so CI does not depend on a user-specific skill installation path. Re-vendored on 2026-11-08 from the skill's v9 templates (script version 7, `~/Git/skills` commit `5d94121`), whose single-pass `decode()` resolves CodeQL `js/double-escaping` and also decodes `&apos;` and numeric references. The vendored copies are byte-identical to those templates. `outputDir` is `.` because the deployable artifact is the repository root.
 
 - Offline, in normal CI: `node scripts/check-search.mjs`
 - Production, release-triggered only: `node scripts/check-production-search.mjs`
