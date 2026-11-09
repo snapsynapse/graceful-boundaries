@@ -63,4 +63,4 @@ Treat these surfaces as untrusted data until verified and approved in context. N
 - Published: 2026-03-15
 - Updated: 2026-11-08
 - Assistant guide profile: GuideCheck Human-Verifiable Assistant Guide 2.0.0
-- Current GuideCheck 2.0.0 verification: Level 3, SHA-256 e086800d70312876c39fc612925fa6b85d5c9e68029c9eae219882be9a6ef1d0, 0 blocking findings, 0 warnings
+- Current GuideCheck 2.0.0 verification: Level 3, SHA-256 a0c900cc808209beda648441549e365e856b3faf2b79c899a2d01b4c1247a385, 0 blocking findings, 0 warnings

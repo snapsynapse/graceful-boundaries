@@ -52,6 +52,16 @@ A Moonshots presentation-readiness assessment on 2026-09-23 found that the check
 - Enablement rescan: a fresh Siteline scan at `2026-11-09T02:56:56Z` (scanner 2.1.2, rubric 2.4.0, result `gracefulboundaries-dev-v2-0764daf912f5fa26ae3764ce-20261109`) confirmed both surfaces: `securityTxt` and `llmsFullTxt` each scored 2, raising agentic-enablement quality from 5/16 to 7/16. All SNAP pillars remain 100 (raw score 100); the grade stays C (77) under the enablement cap. The zero-scored resources (feed, `agents.json`, MCP discovery, OpenAPI, API manifest, changelog route) were not added, per the rule above. Raw report: ignored `build/siteline-scan-gracefulboundaries-2026-11-09.json`, SHA-256 `c55c04db181a4636984005ad4c1b4acf0850e59fc3ac80990c2e926e56f937ad`.
 - Security reporting: GitHub private vulnerability reporting was disabled while `SECURITY.md` directed reporters to it. The maintainer authorized enabling it on 2026-09-23 (`{"enabled":true}` confirmed through the API); `security.txt` and `SECURITY.md` list it first, with security@paice.work as the fallback.
 
+## Release 1.5.7 delivery
+
+The maintainer authorized release preparation, then merged PR #17 and asked for the release to be tagged and packaged on 2026-11-08.
+
+- Release commit: `4c02aa8b383371fa18cfe0ecf593315fc0824233`, the GitHub-verified merge of PR #17 (prep commit `904ac40`, citation pin `05ccb46`). Tests, CodeQL, Scorecard, and Pages passed on it; adopter revalidation of the release branch confirmed Siteline at Level 4 with the release checker.
+- Tag: signed annotated `v1.5.7`, tag object `6f1c94865637d28c8617ce489e4f50aaa6b1aeed`; GitHub reports it valid.
+- GitHub Release: [v1.5.7](https://github.com/snapsynapse/graceful-boundaries/releases/tag/v1.5.7), Latest. Assets built from a clean worktree of the release commit: npm tarball (`220413d7ecb851b15f6a126eec6c5d5d062c86d0de59bd5cd4352d68b05da18a`), ClawHub ZIP with `source_state: commit` (`ec37941adf95ac5efbd42e6124cb59236fb27e5491e4dc791006152ff8c85202`), and `spec.md` (`b1f3cf1371f64b8af3f45a8458b82c95d84e7a94bfb5d9e7d8e005bd8ad98fe8`). `SHA256SUMS.sig` verifies against `SHA256:e01ClOG6x4+h/LA0nobyQrQpCRrAYmFSIF2DmLR93pM`; downloaded assets re-verified.
+- Pages: the live guide, `llms.txt`, `llms-full.txt`, `index.html`, `spec.md`, and `sitemap.xml` match the release commit.
+- Not completed at this record: moving `v1` (the session's tool policy blocked the tag force-push), npm publication (maintainer 2FA), and ClawHub publication (the session could not reach the registry; publish with CLI 0.23.3 or later for the MIT-0 acknowledgment). Release state: ignored `build/release-state-1.5.7.json`.
+
 ## Ongoing delivery and validation queue
 
 Reconciled on 2026-11-08. The former first item, delivering the 1.5.5 maintenance diff as a signed commit and PR, closed with PR #6 and the 1.5.5 and 1.5.6 releases recorded above.
@@ -61,7 +71,8 @@ Reconciled on 2026-11-08. The former first item, delivering the 1.5.5 maintenanc
 3. Done 2026-11-08: the maintainer approved all three. `.github/dependabot.yml` (weekly github-actions), `.github/workflows/codeql.yml` (javascript-typescript, build-mode none), and `.github/workflows/scorecard.yml` (`publish_results: false`, SARIF to code scanning) are pinned to full SHAs. Hosted Scorecard results against the delivered commit are still to be reviewed. Original text follows. Review a separate implementation proposal for GitHub Actions dependency-update automation, JS/TS SAST, and a non-publication Scorecard workflow. Do not enable result publication or display a badge from the partial local scores.
 4. When a release is authorized, reconcile registries, propagate the selected version and date, and follow [RELEASE_CHECKLIST.md](../RELEASE_CHECKLIST.md). Preserve v1.5.4. Verify signed delivery objects, exact-commit CI, npm and ClawHub artifacts, the authorized `v1` update, and Pages/live routes separately.
 5. For Zenodo, confirm archive creators and specification payload/license scope before connecting or publishing. Prefer one specification record with versioned releases. Do not create separate npm/ClawHub DOI records without an explicit relation model. Add a DOI only after its immutable record resolves correctly.
-6. Continue the [roadmap](../docs/roadmap.md) through real adoption evidence. Keep Action Boundaries and expanded taxonomy optional under existing implementation gates. Best Practices waits for the GuideCheck pilot; profile edits and external outreach stay with their owning scopes and approval gates.
+6. Done 2026-11-08: code-scanning alerts triaged; dispositions in [code-scanning-dispositions.md](trust/2026-11-08/code-scanning-dispositions.md). Fuzzing is addressed by a dependency-free harness rather than a Scorecard-recognized framework.
+7. Continue the [roadmap](../docs/roadmap.md) through real adoption evidence. Keep Action Boundaries and expanded taxonomy optional under existing implementation gates. Best Practices waits for the GuideCheck pilot; profile edits and external outreach stay with their owning scopes and approval gates.
 
 ## Handoff reconciliation
 

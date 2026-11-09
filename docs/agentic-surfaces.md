@@ -33,13 +33,13 @@ Graceful Boundaries uses the GuideCheck Human-Verifiable Assistant Guide profile
 
 - Profile: `human-verifiable-assistant-guide`
 - Profile version: `2.0.0`
-- Guide version: `2.0.2`
+- Guide version: `2.0.3`
 - Canonical guide URL: `https://gracefulboundaries.dev/.well-known/assistant-guide.txt`
 - Repository copy: `assistant-guide.txt`
 - Recommended verifier: `https://guidecheck.org/verify`
 - Local verifier conformance: `human-verifiable-assistant-guide-verifier >=2.0.0, <3.0.0`
 
-Current local verification from November 8, 2026 (guide 2.0.2):
+Current local verification from November 8, 2026 (guide 2.0.3):
 
 ```text
 GuideCheck source: 0d749a3 (main after v2.0.0)
@@ -47,7 +47,7 @@ Invocation: guidecheck_cli.py verify assistant-guide.txt
 Verifier: guidecheck-reference-local 2.0.0
 Evaluated policy: 2.0.0 (content corrected-content-1, anchors 1.0.0-strict)
 Achieved level: 3
-Guide SHA-256: e086800d70312876c39fc612925fa6b85d5c9e68029c9eae219882be9a6ef1d0
+Guide SHA-256: a0c900cc808209beda648441549e365e856b3faf2b79c899a2d01b4c1247a385
 Blocking findings: 0
 Warnings: 0
 Infos: 3 (metadata.last-reviewed.age; exec-sha256.unverified for run-unit-tests and run-live-checker)
@@ -74,6 +74,7 @@ Verification proves the guide matches the GuideCheck profile shape. It does not 
 - Guide 2.0.0 (November 8, 2026, SHA-256 `199b3e98d8020cb99ae438cb4098973a52ab734cad89c692983e62f758298f2f`) migrated to profile 2.0.0, added the two execution pins, and added official-sources and public-information-safety sections. The hosted GuideCheck 2.0.0 verifier reported Level 3, 0 blocking findings, for the deployed copy, with warnings for the `X-Content-Type-Options` and HSTS headers that GitHub Pages does not let a repository set.
 - Guide 2.0.1 (November 8, 2026) updated only the `run-live-checker` pin after the `evals/check.js` CodeQL fixes.
 - Guide 2.0.2 (November 8, 2026) applies to graceful-boundaries 1.5.7 and updates the `run-unit-tests` pin for the release's `package.json`.
+- Guide 2.0.3 (November 8, 2026) updates only the `run-live-checker` pin after the fuzzing-driven type guards in `evals/check.js`.
 
 ## ClawHub distribution license
 

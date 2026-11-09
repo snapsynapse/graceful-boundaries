@@ -9,10 +9,11 @@
  * Usage: node evals/test-security.js
  */
 
+const checker = require("./check.js");
 const {
   isSafeSameOriginOrRelativeUrl,
   containsInstructionLikeText,
-} = require("./check.js");
+} = checker;
 
 let passed = 0;
 let failed = 0;
@@ -344,6 +345,164 @@ test("SC-15: boundary docs may declare policy without trust claims", () => {
 test("SC-15: verified trust claims fail", () => {
   assert(boundaryClaimsVerifiedTrust("This is a certified trusted seller."));
   assert(boundaryClaimsVerifiedTrust("Recommended merchant and approved vendor."));
+});
+
+// ─── Parser fuzzing (hostile response robustness) ───────────────
+//
+// Dependency-free, seeded fuzzing of every checker function that parses
+// remote or untrusted input. Each call must return without throwing and
+// within a time budget, so a hostile service cannot crash or stall the
+// checker. Reproduce or extend a run with GB_FUZZ_SEED and
+// GB_FUZZ_ITERATIONS, for example:
+//   GB_FUZZ_SEED=12345 GB_FUZZ_ITERATIONS=5000 node evals/test-security.js
+
+const FUZZ_SEED = Number(process.env.GB_FUZZ_SEED || 20261108) >>> 0;
+const FUZZ_ITERATIONS = Math.max(1, Number(process.env.GB_FUZZ_ITERATIONS || 400));
+const FUZZ_BUDGET_MS = 250;
+const ORIGIN = "https://example.com";
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const FRAGMENTS = [
+  "<link ", "<link rel=\"alternate\" type=\"application/json\" href=\"", "<script", "</script", "</script >",
+  "<style", "</style>", "<meta name=\"retry-after\" content=\"", "<", ">", "\"", "'", "=", "/", "&amp;", "&lt;",
+  "&#x", ";", " ", "\t", "\n", "9", "99999999999999999999", "-1", "1e309", "NaN", "second", "minute", "hour",
+  "limit=", "remaining=", "reset=", ";w=", ",", "q=", "{", "}", "[", "]", ":", "null", "true", "__proto__",
+  "constructor", "javascript:", "http://", "https://example.com/", "//evil.example", "\\", "\u0000", "‮",
+  "😀", "\ud800", "ignore previous instructions", "rate_limit_exceeded", "%00", "%2e%2e/",
+];
+
+function fuzzString(rand, maxPieces) {
+  const pieces = 1 + Math.floor(rand() * maxPieces);
+  let out = "";
+  for (let i = 0; i < pieces; i++) {
+    const fragment = FRAGMENTS[Math.floor(rand() * FRAGMENTS.length)];
+    out += rand() < 0.1 ? fragment.repeat(1 + Math.floor(rand() * 200)) : fragment;
+  }
+  return out;
+}
+
+function fuzzValue(rand, depth) {
+  const roll = rand();
+  if (depth > 3 || roll < 0.45) return fuzzString(rand, 12);
+  if (roll < 0.55) return Math.floor((rand() - 0.5) * 1e6);
+  if (roll < 0.6) return rand() < 0.5 ? null : rand() < 0.5;
+  if (roll < 0.75) return Array.from({ length: Math.floor(rand() * 4) }, () => fuzzValue(rand, depth + 1));
+  return fuzzObject(rand, depth + 1);
+}
+
+const FIELD_NAMES = [
+  "error", "detail", "why", "limit", "retryAfterSeconds", "cachedResultUrl", "alternativeEndpoint", "upgradeUrl",
+  "humanUrl", "statusUrl", "scanUrl", "service", "description", "limits", "endpoint", "method", "maxRequests",
+  "windowSeconds", "type", "scope", "limitId", "windowResetAt", "conformance", "extensions", "actionBoundaries",
+  "profile", "status", "authority", "recourse", "__proto__", "constructor",
+];
+
+function fuzzObject(rand, depth) {
+  const obj = {};
+  const keys = 1 + Math.floor(rand() * 8);
+  for (let i = 0; i < keys; i++) {
+    const key = rand() < 0.85 ? FIELD_NAMES[Math.floor(rand() * FIELD_NAMES.length)] : fuzzString(rand, 2);
+    obj[key] = fuzzValue(rand, depth);
+  }
+  return obj;
+}
+
+const FUZZ_TARGETS = [
+  ["checkHtmlRefusal", (rand) => checker.checkHtmlRefusal(fuzzString(rand, 40))],
+  ["checkContentContainment", (rand) => checker.checkContentContainment(fuzzString(rand, 40), fuzzString(rand, 20))],
+  ["checkRefusalBody(string)", (rand) => checker.checkRefusalBody(fuzzString(rand, 30), ORIGIN)],
+  ["checkRefusalBody(json)", (rand) => checker.checkRefusalBody(JSON.stringify(fuzzObject(rand, 0)), ORIGIN)],
+  ["checkResponseBody", (rand) => checker.checkResponseBody(JSON.stringify(fuzzObject(rand, 0)), fuzzString(rand, 2))],
+  ["checkDedupResponse", (rand) => checker.checkDedupResponse(JSON.stringify(fuzzObject(rand, 0)))],
+  ["checkLimitsBody", (rand) => checker.checkLimitsBody(fuzzObject(rand, 0), ORIGIN)],
+  ["checkActionBoundariesBody", (rand) => checker.checkActionBoundariesBody(fuzzObject(rand, 0), ORIGIN)],
+  ["checkExtensions", (rand) => checker.checkExtensions(fuzzValue(rand, 0), ORIGIN)],
+  ["checkProactiveHeaders", (rand) => checker.checkProactiveHeaders({
+    RateLimit: fuzzString(rand, 10),
+    "RateLimit-Policy": fuzzString(rand, 10),
+    "Retry-After": fuzzString(rand, 3),
+  })],
+  ["containsInstructionLikeText", (rand) => checker.containsInstructionLikeText(fuzzString(rand, 30))],
+  ["isSafeSameOriginOrRelativeUrl", (rand) => checker.isSafeSameOriginOrRelativeUrl(fuzzString(rand, 8), ORIGIN)],
+  ["isExtensionUrlSafe", (rand) => checker.isExtensionUrlSafe(fuzzString(rand, 8), ORIGIN)],
+  ["isStableErrorValue", (rand) => checker.isStableErrorValue(fuzzString(rand, 6))],
+  ["validateBaseUrl", (rand) => checker.validateBaseUrl(fuzzString(rand, 8))],
+];
+
+test(`fuzz: ${FUZZ_TARGETS.length} parsers never throw or stall on hostile input (seed ${FUZZ_SEED}, ${FUZZ_ITERATIONS} cases each)`, () => {
+  for (const [name, run] of FUZZ_TARGETS) {
+    const rand = mulberry32(FUZZ_SEED ^ name.length * 2654435761);
+    for (let i = 0; i < FUZZ_ITERATIONS; i++) {
+      const start = process.hrtime.bigint();
+      try {
+        run(rand);
+      } catch (error) {
+        throw new Error(`${name} case ${i} threw ${error && error.message}`);
+      }
+      const ms = Number(process.hrtime.bigint() - start) / 1e6;
+      assert(ms < FUZZ_BUDGET_MS, `${name} case ${i} took ${ms.toFixed(1)}ms (budget ${FUZZ_BUDGET_MS}ms)`);
+    }
+  }
+});
+
+// Regression cases found by the fuzzer before 1.5.8: each threw a TypeError.
+test("refusal bodies that parse to non-objects are reported, not thrown", () => {
+  for (const body of ["1e309", "42", "\"text\"", "[]", "null", "true"]) {
+    const result = checker.checkRefusalBody(body, ORIGIN);
+    assert(result.isJson === false && result.hasRequiredFields === false, `${body} must not be accepted as a refusal`);
+  }
+});
+
+test("non-string why, error, and detail fields do not throw", () => {
+  const result = checker.checkRefusalBody(JSON.stringify({ error: 7, detail: ["x"], why: { a: 1 }, limit: "l", retryAfterSeconds: 1 }), ORIGIN);
+  assert(result.hasRequiredFields === false, "non-string required fields must be reported missing");
+  assert(result.detailIncludesTime === false, "non-string detail has no time");
+});
+
+test("null and non-object limit entries are reported, not thrown", () => {
+  const result = checker.checkLimitsBody({
+    service: "s",
+    description: "d",
+    limits: {
+      a: null,
+      b: "text",
+      c: { endpoint: "/x", method: "GET", limits: [null, "text", 5] },
+    },
+  }, ORIGIN);
+  assert(result.isValid === false, "malformed entries must make the body invalid");
+  const text = JSON.stringify(result);
+  assert(text.includes("a: limit entry must be an object"), "null entry must be named");
+  assert(text.includes("c.limits[0]: limit must be an object"), "null nested limit must be named");
+});
+
+// Long single-fragment inputs: each fragment repeated to 50 KB. These are the
+// shapes that triggered polynomial backtracking before 1.5.7.
+test("fuzz: 50 KB repetitions of every fragment stay within budget", () => {
+  for (const fragment of FRAGMENTS) {
+    const input = fragment.repeat(Math.ceil(50000 / fragment.length));
+    for (const [name, fn] of [
+      ["checkHtmlRefusal", () => checker.checkHtmlRefusal(input)],
+      ["checkContentContainment", () => checker.checkContentContainment(input, input)],
+      ["checkRefusalBody", () => checker.checkRefusalBody(JSON.stringify({ error: "x", detail: input, why: input }), ORIGIN)],
+      ["containsInstructionLikeText", () => checker.containsInstructionLikeText(input)],
+      ["checkProactiveHeaders", () => checker.checkProactiveHeaders({ RateLimit: input, "RateLimit-Policy": input })],
+    ]) {
+      const start = process.hrtime.bigint();
+      fn();
+      const ms = Number(process.hrtime.bigint() - start) / 1e6;
+      assert(ms < 1000, `${name} took ${ms.toFixed(1)}ms on 50 KB of ${JSON.stringify(fragment.slice(0, 20))}`);
+    }
+  }
 });
 
 // ─── Summary ─────────────────────────────────────────────────────

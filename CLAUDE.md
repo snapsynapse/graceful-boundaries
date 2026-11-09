@@ -6,7 +6,7 @@ A specification for how services communicate their operational limits to humans 
 
 - `spec.md` — the full specification (conformance levels, response classes, security considerations)
 - `evals/check.js` — live conformance checker and shared validation library
-- `evals/test-*.js` — unit tests (285 tests across 13 files)
+- `evals/test-*.js` — unit tests (290 tests across 13 files)
 - `evals/test-agent-behavior.js` — agent compliance suite (exports fixtures + runner for agent developers)
 - `schema/` — published JSON Schemas (refusal, 429 refusal, limits discovery), served at gracefulboundaries.dev/schema/
 - `examples/middleware/` — drop-in middleware (Express, FastAPI, Workers, Hono)
@@ -28,7 +28,7 @@ A specification for how services communicate their operational limits to humans 
 ## Commands
 
 ```bash
-npm test                                          # run all 285 unit tests (13 files, no deps)
+npm test                                          # run all 290 unit tests (13 files, no deps)
 node evals/check.js <url>                         # check a live service
 node evals/check.js <url> --json                  # machine-readable output
 node evals/check.js <url> --limits-path /custom   # custom limits endpoint path
