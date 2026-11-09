@@ -38,7 +38,7 @@ Guidelines for AI agents working on the Graceful Boundaries repository.
 2. If you changed `spec.md`: update `CHANGELOG.md` with the change.
 3. If you added new spec requirements: add corresponding tests in `evals/`.
 4. If you changed the checker (`evals/check.js`): verify against a live service with `node evals/check.js https://siteline.to`.
-5. If you changed `assistant-guide.txt`: verify it with GuideCheck and keep the root and `/.well-known/assistant-guide.txt` copies byte-identical.
+5. If you changed `assistant-guide.txt`: verify it with a GuideCheck verifier inside the guide's declared `verifier-conformance` range (currently tag `v0.3.0`) and keep the root and `/.well-known/assistant-guide.txt` copies byte-identical.
 6. If you changed `index.html`: verify the page renders correctly.
 
 ## Key rules

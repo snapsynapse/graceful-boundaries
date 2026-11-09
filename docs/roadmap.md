@@ -6,14 +6,14 @@ The current evidence plan is documented in [adoption-validation.md](adoption-val
 
 ## Next: Maintenance and Adoption Evidence
 
-Release 1.5.5 contains the packaging, CI, and citation maintenance tranche. Its remaining delivery checks and ongoing adoption work are tracked in [the maintenance queue](../ops/maintenance.md). Work is sequenced as follows:
+Releases 1.5.5 and 1.5.6 delivered the packaging, CI, signing, and citation maintenance tranche. Remaining delivery decisions and ongoing adoption work are tracked in [the maintenance queue](../ops/maintenance.md). Status as reconciled on 2026-11-08:
 
-| Priority | Work | Completion evidence |
+| Priority | Work | Status and evidence |
 |---|---|---|
-| 1 | Correct ClawHub upload inventory and MIT-0 consumer licensing, normalize npm metadata, and refresh CI runtimes and action pins | Two-file build, stale-file regression, package consumer smoke, and exact-commit CI without the observed Node 20 action-runtime warnings |
-| 2 | Verify future signed delivery objects and the moving `v1` pointer | Signed commit and annotated tag verification, recorded immutable object IDs, and the [release checklist](../RELEASE_CHECKLIST.md) |
-| 3 | Review Scorecard findings and publish specification-first citation metadata | [Trust review](../ops/trust/scorecard-review.md), validated [citation metadata](citation.md), and GitHub citation UI after delivery |
-| 4 | Collect real adoption and caller-behavior evidence | [Adoption ledger](adoption-evidence.md) and [benchmark design](benchmark.md), with results kept distinct from planned work |
+| 1 | Correct ClawHub upload inventory and MIT-0 consumer licensing, normalize npm metadata, and refresh CI runtimes and action pins | Delivered in 1.5.5; exact-commit CI for 1.5.6 ran without action-runtime warnings |
+| 2 | Verify signed delivery objects and the moving `v1` pointer | Delivered in 1.5.6: GitHub reports the signed `v1.5.6` and moved `v1` tags valid; object IDs are in the [maintenance queue](../ops/maintenance.md) |
+| 3 | Review Scorecard findings and publish specification-first citation metadata | Trust review done; `CITATION.cff` is on the default branch and GitHub's "Cite this repository" control renders. The settings proposal and hosted Scorecard workflow await maintainer approval |
+| 4 | Collect real adoption and caller-behavior evidence | Open: one registered service. See the [adoption ledger](adoption-evidence.md) and [benchmark design](benchmark.md), with results kept distinct from planned work |
 
 Zenodo connection and DOI publication remain pending creator and archive-scope decisions in [citation guidance](citation.md). OpenSSF Best Practices remains deferred until the GuideCheck pilot supplies a reusable evidence pattern. Neither is a prerequisite for collecting implementation evidence. External outreach follows `INTENT.md` approval and maintainer-fit gates; directory indexing does not count as an independent implementation.
 

@@ -212,11 +212,15 @@ Next step:
 
 Graceful Boundaries adopts the [GuideCheck](https://guidecheck.org/) Human-Verifiable Assistant Guide profile. The assistant-facing guide is committed at [assistant-guide.txt](assistant-guide.txt) and published from `https://gracefulboundaries.dev/.well-known/assistant-guide.txt`.
 
-Verify the guide before asking an assistant to follow it. Use the hosted verifier at [guidecheck.org/verify](https://guidecheck.org/verify) or a conformant local verifier:
+Verify the guide before asking an assistant to follow it. Use the hosted verifier at [guidecheck.org/verify](https://guidecheck.org/verify) or a conformant local verifier. The guide declares `verifier-conformance: human-verifiable-assistant-guide-verifier >=0.3.0, <0.4.0`, so verify locally with the GuideCheck `v0.3.0` tag rather than a current checkout:
 
 ```bash
-python3 /path/to/guidecheck/scripts/guidecheck_verify.py assistant-guide.txt
+mkdir -p /tmp/guidecheck-0.3.0
+git -C /path/to/guidecheck archive v0.3.0 scripts | tar -x -C /tmp/guidecheck-0.3.0
+python3 /tmp/guidecheck-0.3.0/scripts/guidecheck_verify.py assistant-guide.txt
 ```
+
+A current GuideCheck checkout applies a later named-script execution rule and reports Level 2 for this guide; see [docs/agentic-surfaces.md](docs/agentic-surfaces.md).
 
 The committed root copy and the well-known copy must remain byte-identical.
 

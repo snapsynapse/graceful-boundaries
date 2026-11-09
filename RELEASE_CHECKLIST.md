@@ -23,7 +23,7 @@ Run this checklist for every tagged release. The release is incomplete until eve
 - [ ] `npm run build:llms-full` leaves `llms-full.txt` unchanged (the test suite also fails on drift)
 - [ ] `.well-known/security.txt` `Expires` is at least 90 days out; refresh it and its contact if not
 - [ ] `assistant-guide.txt` SHA-256 matches `.well-known/assistant-guide.txt` (byte-identical pair)
-- [ ] If `assistant-guide.txt` changed: run `python3 /path/to/guidecheck/scripts/guidecheck_verify.py assistant-guide.txt` and confirm Level 3+ pass
+- [ ] If `assistant-guide.txt` changed: verify it with a verifier inside its declared `verifier-conformance` range (currently GuideCheck tag `v0.3.0`, extracted with `git -C /path/to/guidecheck archive v0.3.0 scripts`) and confirm Level 3+ pass; record the current-engine comparison in `docs/agentic-surfaces.md`
 - [ ] `docs/agentic-surfaces.md` lists every agent-facing surface in this release
 - [ ] `SECURITY-AUDIT.md` reflects any new security considerations introduced
 

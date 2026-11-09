@@ -83,7 +83,21 @@ Blocking findings: 0
 Warnings: 0
 ```
 
-The current-engine comparison was not rerun for guide 1.1.2; the September 8 result above remains the latest modernization evidence. The current-engine result applies a later named-script execution rule even when invoked with `--require-profile-version 0.3.0`. It is modernization evidence, not a failure of the declared historical 0.3.0 contract.
+Reconfirmed on November 8, 2026 with the scripts exported from GuideCheck tag `v0.3.0` (`d9910ff0611070d7d38532c1e1f054c1f60cc6ee`): Level 3, the same SHA-256, 0 blocking findings, 0 warnings, and one informational `metadata.last-reviewed.age` finding.
+
+Current-engine comparison from November 8, 2026 (guide 1.1.2):
+
+```text
+GuideCheck source: 96c648e487e4e7c7bc5254611f659dd7d40cbb15 (v2.0.0-12-g96c648e)
+Invocation: guidecheck_cli.py verify --require-profile-version 0.3.0
+Verifier-reported version: guidecheck-reference-local 0.7.1
+Achieved level: 2
+Guide SHA-256: 917353c76641d5701e5e854ef9dc49ea6e2450d3e2e5b0e83860fb1a62dcc992
+Blocking findings: 1 (action.exec-unbounded: run-live-checker)
+Warnings: 0
+```
+
+The current engine applies a later named-script execution rule even when invoked with `--require-profile-version 0.3.0`. It is modernization evidence, not a failure of the declared historical 0.3.0 contract. Clearing it requires an `exec-sha256` pin for `evals/check.js` on the `run-live-checker` action, or replacing that action, followed by a guide version bump and SHA propagation. That modernization is an open maintainer decision in the [maintenance queue](../ops/maintenance.md).
 
 ## ClawHub distribution license
 

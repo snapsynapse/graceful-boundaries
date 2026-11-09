@@ -12,6 +12,11 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 
 ### Fixed
 - `SECURITY.md` pointed reporters to GitHub private vulnerability reporting while it was disabled for this repository. Reporting is now enabled, and `SECURITY.md` also names security@paice.work as a fallback.
+- The README, release checklist, `AGENTS.md`, and `CLAUDE.md` told contributors to verify the assistant guide with a current GuideCheck checkout, which reports Level 2 under a later named-script rule. They now point to GuideCheck tag `v0.3.0`, inside the guide's declared verifier range, which reports Level 3. The guide itself is unchanged.
+
+### Changed
+- `docs/agentic-surfaces.md` records a November 8, 2026 reconfirmation of the declared-range result and a current-engine comparison for guide 1.1.2.
+- `docs/roadmap.md` and `ops/maintenance.md` mark the 1.5.5 and 1.5.6 maintenance tranche delivered, add the assistant-guide modernization decision to the queue, and record the Siteline enablement rescan (7/16, up from 5/16).
 
 ## [1.5.6] - 2026-09-23
 
