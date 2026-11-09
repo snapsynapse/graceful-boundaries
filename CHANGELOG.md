@@ -6,6 +6,9 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 
 ## Unreleased
 
+### Added
+- `.github/workflows/publish.yml` publishes to npm through trusted publishing (OIDC, with provenance) instead of a maintainer token. It runs when a GitHub Release is published, or on demand for an existing release tag, behind a maintainer-approved `npm` environment limited to `v*` tags. It publishes the release's own tarball only after the tarball matches the release `SHA256SUMS` and every file in it matches the tagged source.
+
 ## [1.5.7] - 2026-11-08
 
 ### Added
