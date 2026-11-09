@@ -1,0 +1,52 @@
+{
+  "target": "https://siteline.to",
+  "checkedAt": "2026-11-02T22:21:23.712Z",
+  "limitsDiscovery": [
+    {
+      "path": "/api/limits",
+      "status": 200,
+      "found": true,
+      "hasService": true,
+      "hasDescription": true,
+      "hasLimits": true,
+      "conformance": "level-4",
+      "limitCount": 7,
+      "wellFormed": true,
+      "extensions": {
+        "present": false,
+        "keys": [],
+        "errors": [],
+        "warnings": []
+      },
+      "isCacheable": true,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "path": "/.well-known/limits",
+      "status": 404,
+      "found": false
+    }
+  ],
+  "refusalFormat": null,
+  "conformanceLevel": 4,
+  "contentCloaking": null,
+  "notes": [
+    "Discovery endpoint verified. At least Level 2 (Discoverable).",
+    "Level 1 (structured refusal) and Level 3 (constructive guidance) require a 429 response to verify. Trigger a rate limit and check the response shape, or use --json for machine-readable output.",
+    "Level 4 (Proactive) confirmed: /api/scan?url=https://example.com returns RateLimit headers (limit=10, remaining=9, reset=3600)."
+  ],
+  "reachable": true,
+  "proactiveHeaders": {
+    "hasProactiveHeaders": "reset=3600",
+    "ratelimit": "limit=10, remaining=9, reset=3600",
+    "policy": "10;w=3600",
+    "limitValue": 10,
+    "remainingValue": 9,
+    "resetValue": 3600,
+    "policyValid": true,
+    "errors": [],
+    "warnings": []
+  },
+  "nextStep": null
+}

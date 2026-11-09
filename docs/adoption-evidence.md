@@ -16,6 +16,19 @@ Reconciled 2026-09-07 against repository commit `fc2d2e20cd04056fa1cb18ec3941557
 
 Siteline evidence: [registered Level 4 service](../ADOPTERS.md), [discovery endpoint](https://siteline.to/api/limits), and [successful scheduled revalidation](https://github.com/snapsynapse/graceful-boundaries/actions/runs/33397245919) at the baseline commit. A passive Level 4 result reflects observable discovery and proactive headers; it does not independently exercise all refusal paths or certify safety. A fresh packed-consumer check on 2026-09-07 also confirmed passive Level 4; see [maintenance validation evidence](../ops/maintenance.md). Workflow artifacts expire after 30 days, so preserve reviewed reports with durable implementation evidence before expiry.
 
+## Retained revalidation reports
+
+The weekly [adopter revalidation](../.github/workflows/adopter-revalidation.yml) workflow keeps its artifacts for 30 days. Reviewed reports are copied unmodified into `ops/adoption/<service>/<UTC date>/adopter-result.json`. The companion `adopter-check.log` holds only checker progress lines, duplicates what the JSON records, and is excluded by the repository's `*.log` ignore rule. The runs on 2026-09-28 and 2026-10-05 expired before retention began and are not recoverable; both workflow runs succeeded.
+
+| UTC check time | Service | Workflow run | Checker commit | Observed level | Refusal observed | Report SHA-256 |
+|---|---|---|---|---|---|---|
+| 2026-10-12T21:46:02.924Z | Siteline | [38312654176](https://github.com/snapsynapse/graceful-boundaries/actions/runs/38312654176) | `2ae50a7` | 4 (passive) | No | `e5e734d7d2435fff8f38b8aa471f26735ec05da6a7bb939d3b0c36a13eddf36f` |
+| 2026-10-19T19:21:41.891Z | Siteline | [39310311066](https://github.com/snapsynapse/graceful-boundaries/actions/runs/39310311066) | `2ae50a7` | 4 (passive) | No | `653451b939bd6e2f0f50d910cd2ecc635101147f9391f2ed0baa0e8ff635843d` |
+| 2026-10-26T19:23:06.502Z | Siteline | [40386230350](https://github.com/snapsynapse/graceful-boundaries/actions/runs/40386230350) | `2ae50a7` | 4 (passive) | No | `655aac92447b1cfdc4492811e20632b0e0ccb9855eddc6b4e63bff6406f9faf6` |
+| 2026-11-02T22:21:23.712Z | Siteline | [41536539812](https://github.com/snapsynapse/graceful-boundaries/actions/runs/41536539812) | `2ae50a7` | 4 (passive) | No | `dba8eb4939a9269049916fafaccf126a51f0bcfae1abe8247c5c51eb2931b9bf` |
+
+Each report confirms discovery at `/api/limits` (seven endpoints, well formed) and proactive `RateLimit` headers on `/api/scan`. None observes a refusal, so Level 1 and Level 3 requirements remain unexercised by these checks. These are repeated observations of one registered service; they do not raise any target count.
+
 ## Next assessments
 
 1. Obtain a structured implementation report for Siteline using the existing issue-form fields. Record unavailable historical implementation time as unknown.
