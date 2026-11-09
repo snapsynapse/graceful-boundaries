@@ -54,8 +54,10 @@ The stable `v1` GitHub Action tag is intentionally a moving convenience pointer.
 - [ ] Release notes attached (not just the commit message)
 - [ ] Latest-release flag set when appropriate
 - [ ] `gh release list --limit 5` shows the new release
-- [ ] `npm view graceful-boundaries version` shows the new release
-- [ ] ClawHub shows the audit-only package at the new release version
+- [ ] Publishing the GitHub Release starts `.github/workflows/publish.yml`; approve its `npm` environment deployment. It publishes the release's own tarball through npm trusted publishing (OIDC, provenance) only after the tarball matches `SHA256SUMS` and every file matches the tag. Never publish npm from a local token
+- [ ] `npm view graceful-boundaries version` shows the new release, and `npm view graceful-boundaries dist.attestations` shows provenance
+- [ ] Publish the release's ClawHub ZIP with CLI 0.23.3 or later, which sends the standing MIT-0 acknowledgment, and always pass `--name graceful-boundaries-audit`; without it the CLI names the skill after the upload folder (1.5.7 was listed as "Clawhub"): `npx --yes clawhub@0.23.3 publish <unzipped-dir> --slug graceful-boundaries --name graceful-boundaries-audit --version X.Y.Z --changelog "<summary>"`
+- [ ] ClawHub shows the audit-only package at the new release version, display name `graceful-boundaries-audit`, uploaded file hashes equal to the release ZIP, and the provider security scan result recorded
 - [ ] Stable GitHub Action tag `v1` is updated only with explicit authority and passes the signing and target checks above
 
 ## Post-release verification
