@@ -33,13 +33,13 @@ Graceful Boundaries uses the GuideCheck Human-Verifiable Assistant Guide profile
 
 - Profile: `human-verifiable-assistant-guide`
 - Profile version: `2.0.0`
-- Guide version: `2.0.1`
+- Guide version: `2.0.2`
 - Canonical guide URL: `https://gracefulboundaries.dev/.well-known/assistant-guide.txt`
 - Repository copy: `assistant-guide.txt`
 - Recommended verifier: `https://guidecheck.org/verify`
 - Local verifier conformance: `human-verifiable-assistant-guide-verifier >=2.0.0, <3.0.0`
 
-Current local verification from November 8, 2026 (guide 2.0.1):
+Current local verification from November 8, 2026 (guide 2.0.2):
 
 ```text
 GuideCheck source: 0d749a3 (main after v2.0.0)
@@ -47,7 +47,7 @@ Invocation: guidecheck_cli.py verify assistant-guide.txt
 Verifier: guidecheck-reference-local 2.0.0
 Evaluated policy: 2.0.0 (content corrected-content-1, anchors 1.0.0-strict)
 Achieved level: 3
-Guide SHA-256: 78ca9499a2de90b0287c0aa6e7579ed6a653e04230232b6d2b750eb944ad0655
+Guide SHA-256: e086800d70312876c39fc612925fa6b85d5c9e68029c9eae219882be9a6ef1d0
 Blocking findings: 0
 Warnings: 0
 Infos: 3 (metadata.last-reviewed.age; exec-sha256.unverified for run-unit-tests and run-live-checker)
@@ -73,6 +73,7 @@ Verification proves the guide matches the GuideCheck profile shape. It does not 
 - Guide 1.1.x declared profile 0.3.0. GuideCheck reference verifier 0.3.0 reported Level 3 for guide 1.1.2 (SHA-256 `917353c76641d5701e5e854ef9dc49ea6e2450d3e2e5b0e83860fb1a62dcc992`) on September 23 and again on November 8, 2026. The current engine reported Level 2 for the same bytes because `run-live-checker` invoked `evals/check.js` without a pin (`action.exec-unbounded`).
 - Guide 2.0.0 (November 8, 2026, SHA-256 `199b3e98d8020cb99ae438cb4098973a52ab734cad89c692983e62f758298f2f`) migrated to profile 2.0.0, added the two execution pins, and added official-sources and public-information-safety sections. The hosted GuideCheck 2.0.0 verifier reported Level 3, 0 blocking findings, for the deployed copy, with warnings for the `X-Content-Type-Options` and HSTS headers that GitHub Pages does not let a repository set.
 - Guide 2.0.1 (November 8, 2026) updated only the `run-live-checker` pin after the `evals/check.js` CodeQL fixes.
+- Guide 2.0.2 (November 8, 2026) applies to graceful-boundaries 1.5.7 and updates the `run-unit-tests` pin for the release's `package.json`.
 
 ## ClawHub distribution license
 

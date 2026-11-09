@@ -127,6 +127,7 @@ Security examples for SC-2 through SC-6 and the offline-versus-live eval workflo
 - Graceful Boundaries 1.5.4 added concrete before-and-after security examples for SC-2 through SC-6.
 - Graceful Boundaries 1.5.5 corrected ClawHub upload and licensing metadata, refreshed CI action pins and runtimes, and added citation and trust/adoption evidence.
 - Graceful Boundaries 1.5.6 stopped reporting invalid or unreachable targets as Level 0 and made next-step guide and example links resolve outside a checkout.
+- Graceful Boundaries 1.5.7 removed polynomial regular expressions from the checker, migrated the assistant guide to GuideCheck 2.0.0, and added CodeQL, Scorecard, and Dependabot.
 
 ## Non-Goals
 

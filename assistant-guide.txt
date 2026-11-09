@@ -4,8 +4,8 @@ Assistant Guide: Graceful Boundaries contributor validation
 identifier: assistant-guide
 profile: human-verifiable-assistant-guide
 profile-version: 2.0.0
-guide-version: 2.0.1
-applies-to: graceful-boundaries 1.5.6
+guide-version: 2.0.2
+applies-to: graceful-boundaries 1.5.7
 canonical-url: https://gracefulboundaries.dev/.well-known/assistant-guide.txt
 repository-url: https://github.com/snapsynapse/graceful-boundaries
 source-path: /.well-known/assistant-guide.txt
@@ -114,7 +114,7 @@ approval: required
 command: npm test
 runner: shell
 cwd: .
-exec-sha256: f331e1fc905f2282c0f754850993b5dcb76131c8cdb00195dbad6e21560e9242
+exec-sha256: 486acef14e14ab7ac242d56c8f41da8f249e2bce4dada228d8f6af41a94899d2
 notes: Pins package.json only; the evals/test-*.js files its test script runs are not pinned.
 [/action]
 
