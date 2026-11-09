@@ -53,7 +53,7 @@ The decision does not change what is published, only what is declared as a searc
 
 ## Validation lanes
 
-Scaffolded 2026-08-28 from the skill's `assets/` templates, vendored so CI does not depend on a user-specific skill installation path. `outputDir` is `.` because the deployable artifact is the repository root.
+Scaffolded 2026-08-28 from the skill's `assets/` templates, vendored so CI does not depend on a user-specific skill installation path. On 2026-11-08 both scripts' `decode()` was corrected locally to decode `&amp;` last (CodeQL `js/double-escaping`); the skill's `assets/` templates need the same fix upstream, and a future re-vendor must keep it. `outputDir` is `.` because the deployable artifact is the repository root.
 
 - Offline, in normal CI: `node scripts/check-search.mjs`
 - Production, release-triggered only: `node scripts/check-production-search.mjs`
@@ -62,7 +62,7 @@ Scaffolded 2026-08-28 from the skill's `assets/` templates, vendored so CI does 
 
 Exit code `0` is pass, `1` is a site or generated-output defect, and `2` is configuration or infrastructure failure. Exit code `2` is unknown. It is neither a passing site nor evidence of a defect, and a monitoring system must preserve that distinction.
 
-`.github/workflows/test.yml` runs `npm test` (277 tests) and then the offline search contract on every push and pull request. The production contract is deliberately not wired into pull-request CI: it asserts against the deployed origin, which lags the branch under test.
+`.github/workflows/test.yml` runs `npm test` (285 tests) and then the offline search contract on every push and pull request. The production contract is deliberately not wired into pull-request CI: it asserts against the deployed origin, which lags the branch under test.
 
 `search-audit.config.json` sets `lastmodAgreementPaths: ["/"]`, so the offline validator fails if sitemap `lastmod`, `article:modified_time`, and JSON-LD `dateModified` for the homepage drift apart again. `requireJsonLd` is `true`, and `expectedNotFoundPaths` includes `/spec` so the intentional 404 is affirmative rather than incidental.
 

@@ -413,6 +413,34 @@ test("Assessment: cross-origin machine-actionable guidance does not reach Level 
   assert(level === 2, `expected 2, got ${level}`);
 });
 
+// ─── Hostile detail text stays linear (CodeQL js/polynomial-redos) ──
+
+test("long digit runs in detail do not backtrack polynomially", () => {
+  const body = JSON.stringify({
+    error: "rate_limit_exceeded",
+    detail: "9".repeat(50000),
+    why: "Fair use protects the service.",
+    limit: "10 per hour",
+    retryAfterSeconds: 60,
+  });
+  const start = process.hrtime.bigint();
+  const result = checkRefusalBody(body);
+  const ms = Number(process.hrtime.bigint() - start) / 1e6;
+  assert(ms < 500, `checkRefusalBody took ${ms.toFixed(1)}ms on 50 KB of digits`);
+  assert(!result.detailIncludesTime, "digits without a time unit are not a time");
+});
+
+test("detail time detection still accepts digits after letters", () => {
+  const body = JSON.stringify({
+    error: "rate_limit_exceeded",
+    detail: "Retry in ~30 seconds (limit10minutes resets later).",
+    why: "Fair use protects the service.",
+    limit: "10 per hour",
+    retryAfterSeconds: 30,
+  });
+  assert(checkRefusalBody(body).detailIncludesTime, "30 seconds should be detected");
+});
+
 // ─── Summary ─────────────────────────────────────────────────────
 
 console.log("");

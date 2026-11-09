@@ -174,7 +174,7 @@ Exit codes: `0` check completed, `1` invalid arguments or URL, `2` confirmed lev
 
 ![Checker output: Siteline confirms Level 4, Google confirms Level 0](imgs/checker-demo.svg)
 
-Or clone and run from the project root with `node evals/check.js <url>`. Run the unit test suite (277 tests, no dependencies):
+Or clone and run from the project root with `node evals/check.js <url>`. Run the unit test suite (285 tests, no dependencies):
 
 ```bash
 npm test
@@ -222,7 +222,7 @@ The guide pins `package.json` and `evals/check.js` with `exec-sha256`; see [docs
 
 The committed root copy and the well-known copy must remain byte-identical.
 
-The current GuideCheck implementation and all agent-facing repository surfaces are documented in [docs/agentic-surfaces.md](docs/agentic-surfaces.md). Current verification: GuideCheck reference verifier 2.0.0 (profile 2.0.0), achieved Level 3, guide SHA-256 `199b3e98d8020cb99ae438cb4098973a52ab734cad89c692983e62f758298f2f`, with 0 blocking findings and 0 warnings.
+The current GuideCheck implementation and all agent-facing repository surfaces are documented in [docs/agentic-surfaces.md](docs/agentic-surfaces.md). Current verification: GuideCheck reference verifier 2.0.0 (profile 2.0.0), achieved Level 3, guide SHA-256 `78ca9499a2de90b0287c0aa6e7579ed6a653e04230232b6d2b750eb944ad0655`, with 0 blocking findings and 0 warnings.
 
 ## Which level should you target?
 
