@@ -174,6 +174,57 @@ test("Content containment warns for materially divergent agent-signaled content"
   assert(result.warnings.length > 0, "should include warning");
 });
 
+// ─── Hostile input stays linear (CodeQL js/polynomial-redos, js/bad-tag-filter) ──
+
+function elapsedMs(fn) {
+  const start = process.hrtime.bigint();
+  fn();
+  return Number(process.hrtime.bigint() - start) / 1e6;
+}
+
+test("long whitespace after <link does not backtrack polynomially", () => {
+  const html = "<link " + " ".repeat(50000);
+  let result;
+  const ms = elapsedMs(() => { result = checkHtmlRefusal(html); });
+  assert(ms < 500, `checkHtmlRefusal took ${ms.toFixed(1)}ms on 50 KB of spaces`);
+  assert(!result.hasJsonAlternate, "an unclosed <link must not count as a JSON alternate");
+});
+
+test("JSON alternate is found among several link tags", () => {
+  const html = `<link rel="stylesheet" href="/a.css"><link rel="alternate" type="application/json" href="/x.json"><meta name="retry-after" content="5">`;
+  const result = checkHtmlRefusal(html);
+  assert(result.hasJsonAlternate, "the second link tag should be recognized as the JSON alternate");
+});
+
+test("repeated unclosed <script tags stay linear", () => {
+  const html = "<script".repeat(45000);
+  const ms = elapsedMs(() => checkContentContainment(html, "anything"));
+  assert(ms < 500, `checkContentContainment took ${ms.toFixed(1)}ms on repeated <script`);
+});
+
+test("script end tags with whitespace or attributes are stripped", () => {
+  const visible = "<p>alpha bravo charlie delta</p>";
+  const hidden = "zulu yankee xray whiskey victor uniform tango sierra";
+  for (const html of [
+    `${visible}<script>${hidden}</script >`,
+    `${visible}<SCRIPT type="x">${hidden}</SCRIPT foo="bar">`,
+    `${visible}<style>${hidden}</style\n>`,
+  ]) {
+    const result = checkContentContainment(html, "alpha bravo charlie delta");
+    assert(result.containment === 1, `script/style text should be ignored: ${JSON.stringify(html)}`);
+  }
+});
+
+test("an unterminated script element consumes the rest of the document", () => {
+  const result = checkContentContainment("<p>alpha bravo</p><script>zulu yankee xray", "alpha bravo");
+  assert(result.containment === 1, "text after an unterminated <script> is script content");
+});
+
+test("tag-like prefixes are not treated as script elements", () => {
+  const result = checkContentContainment("<scripted>alpha bravo</scripted>", "alpha bravo");
+  assert(result.containment === 1, "<scripted> is an ordinary tag whose text stays comparable");
+});
+
 // ─── Summary ─────────────────────────────────────────────────────
 
 console.log("");

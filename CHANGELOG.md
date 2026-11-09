@@ -14,12 +14,17 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 - RFC 9116 `/.well-known/security.txt` listing GitHub private vulnerability reporting (now enabled) and security@paice.work, with a test for required fields, expiry, and agreement with `SECURITY.md`.
 
 ### Fixed
+- The checker no longer slows to seconds or minutes on hostile HTML or refusal text. Three regular expressions in `evals/check.js` backtracked polynomially (CodeQL `js/polynomial-redos`): the `<link rel="alternate">` match in `checkHtmlRefusal`, the time-unit check on refusal `detail`, and script removal in the `--check-cloaking` text comparison. On 50 KB inputs they took 3.6 s, 8.8 s, and 26 s; they now take a few milliseconds. Script and style removal now runs in one linear pass, also recognizes end tags with whitespace or attributes such as `</script >` (CodeQL `js/bad-tag-filter`), and treats an unterminated script as running to the end of the document.
+- The vendored search validators decoded `&amp;` before other entities, so `&amp;lt;` became `<` instead of `&lt;` (CodeQL `js/double-escaping`). They are re-vendored from the search-audit skill's v9 templates, which decode in a single pass and also handle `&apos;` and numeric references.
+- Release-consistency tests escape the package version fully when building regular expressions (CodeQL `js/incomplete-sanitization`).
 - `SECURITY.md` pointed reporters to GitHub private vulnerability reporting while it was disabled for this repository. Reporting is now enabled, and `SECURITY.md` also names security@paice.work as a fallback.
 - The README, release checklist, `AGENTS.md`, and `CLAUDE.md` told contributors to verify the profile 0.3.0 assistant guide with a current GuideCheck checkout, which reported Level 2 under a later named-script rule. They now match the guide's declared profile and verifier range (2.0.0 after the migration below).
 
 ### Changed
+- Assistant guide 2.0.1 updates the `run-live-checker` pin for the new `evals/check.js` bytes. Eight regression tests cover the fixes above (285 tests).
 - The assistant guide moves to GuideCheck profile 2.0.0 (guide 2.0.0). It reaches Level 3 with GuideCheck reference verifier 2.0.0 by pinning `package.json` (for `npm test`) and `evals/check.js` (for the live check) with `exec-sha256`, and adds official-sources and public-information-safety sections. The `evals/test-*.js` files that `npm test` runs are not pinned; the guide and `docs/agentic-surfaces.md` disclose this. Any change to `package.json` or `evals/check.js` now requires a guide update.
 - Adopter revalidation artifacts are retained for 90 days instead of 30.
+- GitHub Actions updated to CodeQL `v4.39.3`, setup-node `v7.1.0`, and upload-artifact `v7.0.2`, all pinned to full SHAs. Dependabot now groups CodeQL action updates into one PR and other action updates into another.
 - `docs/agentic-surfaces.md` records the guide 2.0.0 verification, what the execution pins cover, and the guide 1.1.2 history under both verifiers.
 - `docs/roadmap.md` and `ops/maintenance.md` mark the 1.5.5 and 1.5.6 maintenance tranche delivered, add the assistant-guide modernization decision to the queue, and record the Siteline enablement rescan (7/16, up from 5/16).
 

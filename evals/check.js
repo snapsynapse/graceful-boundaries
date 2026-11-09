@@ -289,12 +289,13 @@ function checkHtmlRefusal(html) {
   }
 
   // Check for <link rel="alternate" type="application/json" href="...">
-  const linkMatch = html.match(/<link\s+[^>]*rel=["']alternate["'][^>]*>/i);
+  // Match each <link> tag once, then test its attributes. A single regex with
+  // overlapping whitespace quantifiers backtracks polynomially on hostile HTML.
+  const linkTag = (html.match(/<link\b[^>]*>/gi) || []).find((tag) => /\srel=["']alternate["']/i.test(tag));
   let hasJsonAlternate = false;
   let jsonAlternateUrl = null;
 
-  if (linkMatch) {
-    const linkTag = linkMatch[0];
+  if (linkTag) {
     const typeMatch = linkTag.match(/type=["']([^"']+)["']/i);
     const hrefMatch = linkTag.match(/href=["']([^"']+)["']/i);
 
@@ -459,7 +460,7 @@ function checkRefusalBody(body, origin) {
     !parsed.why.toLowerCase().includes(parsed.error.toLowerCase().replace(/_/g, " "));
 
   const detailIncludesTime =
-    parsed.detail && /\d+\s*(second|minute|hour)/i.test(parsed.detail);
+    parsed.detail && /(?<!\d)\d+\s*(?:second|minute|hour)/i.test(parsed.detail);
 
   const retryIsNumber =
     typeof parsed.retryAfterSeconds === "number" && parsed.retryAfterSeconds >= 0;
@@ -906,14 +907,74 @@ function checkProactiveHeaders(headers) {
   };
 }
 
+function isTagNameEnd(char) {
+  return char === "" || char === ">" || char === "/" || /\s/.test(char);
+}
+
+// Remove <tag ...>...</tag ...> elements in one linear pass over lowercased
+// text. An element with no closing tag consumes the rest of the input, as an
+// HTML parser treats an unterminated script or style element.
+function stripElements(lowered, tag) {
+  const open = `<${tag}`;
+  const close = `</${tag}`;
+  let out = "";
+  let pos = 0;
+  while (pos < lowered.length) {
+    const start = lowered.indexOf(open, pos);
+    if (start === -1) {
+      out += lowered.slice(pos);
+      break;
+    }
+    if (!isTagNameEnd(lowered.charAt(start + open.length))) {
+      out += lowered.slice(pos, start + open.length);
+      pos = start + open.length;
+      continue;
+    }
+    out += lowered.slice(pos, start) + " ";
+    let search = start + open.length;
+    let end = lowered.length;
+    for (;;) {
+      const closeStart = lowered.indexOf(close, search);
+      if (closeStart === -1) break;
+      if (isTagNameEnd(lowered.charAt(closeStart + close.length))) {
+        const gt = lowered.indexOf(">", closeStart + close.length);
+        end = gt === -1 ? lowered.length : gt + 1;
+        break;
+      }
+      search = closeStart + close.length;
+    }
+    pos = end;
+  }
+  return out;
+}
+
+// Replace every <...> tag with a space in one linear pass. Text after an
+// unclosed "<" is kept, matching the previous /<[^>]+>/ behavior.
+function stripTags(text) {
+  let out = "";
+  let pos = 0;
+  while (pos < text.length) {
+    const lt = text.indexOf("<", pos);
+    if (lt === -1) {
+      out += text.slice(pos);
+      break;
+    }
+    const gt = text.indexOf(">", lt + 1);
+    if (gt === -1) {
+      out += text.slice(lt);
+      break;
+    }
+    out += text.slice(pos, lt) + " ";
+    pos = gt + 1;
+  }
+  return out;
+}
+
 function normalizeCoreText(text) {
   if (typeof text !== "string") return "";
-  return text
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&[a-z0-9#]+;/gi, " ")
-    .toLowerCase()
+  const lowered = text.toLowerCase();
+  return stripTags(stripElements(stripElements(lowered, "script"), "style"))
+    .replace(/&[a-z0-9#]+;/g, " ")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 }

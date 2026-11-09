@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 // skill_bundle: portfolio-search-indexing-audit
 // file_role: asset
-// version: 5
-// version_date: 2026-08-18
-// previous_version: 4
-// change_summary: Revalidated unchanged for the v5 bundle; the portable repository contract remains v4.
+// version: 7
+// version_date: 2026-11-08
+// previous_version: 6
+// change_summary: decode() also handles &apos; and numeric references and trims; repository contract remains v4.
 // Upstream: portfolio-search-indexing-audit contract v4.
 // Vendored repository script. Adapt locally and retain contractVersion.
 'use strict';
@@ -22,6 +22,18 @@ function report(kind, message) {
     if (kind === 'defect') defects++;
     else infrastructure++;
     console.error(`${kind === 'defect' ? 'SEARCH' : 'SETUP'}  ${message}`);
+}
+
+const XML_ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
+// One pass over the five XML entities and numeric references, so decoded text is never
+// decoded again (&amp;lt; stays &lt;). Invalid code points stay encoded. Surrounding
+// whitespace is trimmed so a pretty-printed <loc> compares equal to its URL.
+function decode(value) {
+    return String(value || '').replace(/&(?:(amp|lt|gt|quot|apos)|#(\d+)|#[xX]([0-9a-fA-F]+));/g, (entity, name, decimal, hex) => {
+        if (name) return XML_ENTITIES[name];
+        const code = decimal ? Number(decimal) : parseInt(hex, 16);
+        return code > 0 && code <= 0x10ffff && (code < 0xd800 || code > 0xdfff) ? String.fromCodePoint(code) : entity;
+    }).trim();
 }
 
 function loadConfig() {
@@ -56,11 +68,6 @@ const origin = new URL(config.canonicalOrigin);
 const today = new Date().toISOString().slice(0, 10);
 const sitemapUrls = new Set();
 const entries = [];
-
-function decode(value) {
-    return String(value || '').replace(/&amp;/g, '&').replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
-}
 
 function routeFile(pathname) {
     if (pathname === '/') return path.join(OUTPUT, 'index.html');
