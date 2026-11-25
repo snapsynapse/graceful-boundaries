@@ -8,6 +8,7 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 
 ### Fixed
 - Checker parsers no longer throw on malformed service responses found by fuzzing. `checkRefusalBody` threw on bodies that parse to a non-object (for example `1e309`, which becomes `Infinity`) and on non-string `why`, `error`, or `detail`. `checkLimitsBody` and discovery threw on `null` or non-object limit entries, so the CLI reported a present but malformed discovery endpoint as not found. These inputs are now reported as malformed.
+- `checkHtmlRefusal` no longer takes quadratic time on hostile HTML. Its `/<link\b[^>]*>/gi` scan rescanned to the end of the input from every unclosed `<link` start: 50 KB took about 600 ms, 100 KB about 2.4 s, and 200 KB about 10 s. A hostile service could stall the checker with one large 429 page. A linear scan (`findLinkTags`, exported) selects exactly the tags the regex did and handles 10 MB in a few milliseconds. The existing 50 KB fuzz budget had been running at about 60% of its limit and failed once in local testing. Two regression tests cover it (295 tests): a 200 KB scaling test, and a differential test against the former regex.
 
 ### Added
 - `.github/workflows/publish.yml` publishes to npm through trusted publishing (OIDC, with provenance) instead of a maintainer token. It runs when a GitHub Release is published, or on demand for an existing release tag, behind a maintainer-approved `npm` environment limited to `v*` tags. It publishes the release's own tarball only after the tarball matches the release `SHA256SUMS` and every file in it matches the tagged source.
@@ -16,6 +17,7 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 
 ### Changed
 - Assistant guide 2.0.3 updates only the `run-live-checker` pin for the new `evals/check.js` bytes.
+- Assistant guide 2.0.4 updates only the `run-live-checker` pin for the linear `checkHtmlRefusal` scan. GuideCheck reference verifier 2.0.0 reports Level 3, 0 blocking findings, 0 warnings.
 - The audit skill (`SKILL.md` version 6) no longer references files outside its audit-only ClawHub bundle. The optional checker runs as `npx graceful-boundaries check <url> --json` instead of `node evals/check.js`, and spec references link the hosted specification. ClawHub's 1.5.7 scan warned about the missing files. `MANIFEST.yaml` carries the new hash.
 
 ## [1.5.7] - 2026-11-08

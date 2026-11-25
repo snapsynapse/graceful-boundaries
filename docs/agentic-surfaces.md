@@ -33,21 +33,21 @@ Graceful Boundaries uses the GuideCheck Human-Verifiable Assistant Guide profile
 
 - Profile: `human-verifiable-assistant-guide`
 - Profile version: `2.0.0`
-- Guide version: `2.0.3`
+- Guide version: `2.0.4`
 - Canonical guide URL: `https://gracefulboundaries.dev/.well-known/assistant-guide.txt`
 - Repository copy: `assistant-guide.txt`
 - Recommended verifier: `https://guidecheck.org/verify`
 - Local verifier conformance: `human-verifiable-assistant-guide-verifier >=2.0.0, <3.0.0`
 
-Current local verification from November 8, 2026 (guide 2.0.3):
+Current local verification from November 24, 2026 (guide 2.0.4):
 
 ```text
-GuideCheck source: 0d749a3 (main after v2.0.0)
+GuideCheck source: 9d814d0 (main after v2.0.0)
 Invocation: guidecheck_cli.py verify assistant-guide.txt
 Verifier: guidecheck-reference-local 2.0.0
 Evaluated policy: 2.0.0 (content corrected-content-1, anchors 1.0.0-strict)
 Achieved level: 3
-Guide SHA-256: a0c900cc808209beda648441549e365e856b3faf2b79c899a2d01b4c1247a385
+Guide SHA-256: 98a5a66cebeba56b7c2fcdb92aa981bec3975472746687d8c68073fc33d21264
 Blocking findings: 0
 Warnings: 0
 Infos: 3 (metadata.last-reviewed.age; exec-sha256.unverified for run-unit-tests and run-live-checker)
@@ -75,6 +75,7 @@ Verification proves the guide matches the GuideCheck profile shape. It does not 
 - Guide 2.0.1 (November 8, 2026) updated only the `run-live-checker` pin after the `evals/check.js` CodeQL fixes.
 - Guide 2.0.2 (November 8, 2026) applies to graceful-boundaries 1.5.7 and updates the `run-unit-tests` pin for the release's `package.json`.
 - Guide 2.0.3 (November 8, 2026) updates only the `run-live-checker` pin after the fuzzing-driven type guards in `evals/check.js`.
+- Guide 2.0.4 (November 24, 2026) updates only the `run-live-checker` pin after `checkHtmlRefusal` replaced its quadratic `<link>` scan with a linear one in `evals/check.js`.
 
 ## ClawHub distribution license
 
