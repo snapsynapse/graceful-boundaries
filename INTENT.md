@@ -73,6 +73,7 @@ Per `0_Across/Repo Standards.md`, the following deviations are recorded:
 
 ## Changelog
 
+- 2026-11-17: Maintainer direction (recorded 2026-11-24 from a temporary handoff): maintenance-only for the existing specification and checker; expansion is need-gated. No normative expansion, registry push, outreach, or feature program follows from maintenance status. Each release, publication, settings change, or outreach step keeps its own approval.
 - 2026-11-08: Migrated the assistant guide to GuideCheck profile 2.0.0 with two execution pins, the unpinned test files disclosed (maintainer decision). Applied the reviewed GitHub settings proposal and added Dependabot, CodeQL, and non-publishing Scorecard workflows.
 - 2026-09-23 — Resolved the `llms-full.txt` exception by generating it from authoritative sources with a drift test. Added an RFC 9116 `security.txt` listing GitHub private vulnerability reporting (enabled the same day) and security@paice.work, matching `SECURITY.md`.
 - 2026-08-28 — Migrated durable adoption and outreach gates from temporary handoffs. Added the reproducible benchmark prerequisite and preserved unanswered maintainer threads as the authority for directory follow-up.
