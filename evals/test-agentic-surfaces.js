@@ -481,6 +481,119 @@ test("Skill Provenance manifest hashes match both skill files", () => {
   assert(!consumerManifest.includes("prepared-not-published"), "consumer manifest must not embed transient publication status");
 });
 
+// The ClawHub upload ships only these files, so the audit skill must not
+// direct an agent to anything else in this repository.
+const CLAWHUB_BUNDLE_FILES = new Set(["SKILL.md", "MANIFEST.yaml"]);
+const UNTRACKED_ROOT_ENTRIES = new Set([".git", ".DS_Store", "build", "handoffs", "node_modules"]);
+
+function repoReferencesOutsideBundle(text) {
+  // Hosted URLs and service-relative paths (for example `/api/limits` or
+  // `<url>/.well-known/limits`) describe the audited service or the hosted
+  // spec, not repository files.
+  const stripped = text.replace(/https?:\/\/\S+/g, " ");
+  const found = [];
+  for (const entry of fs.readdirSync(repoRoot, { withFileTypes: true })) {
+    if (UNTRACKED_ROOT_ENTRIES.has(entry.name) || CLAWHUB_BUNDLE_FILES.has(entry.name)) continue;
+    const name = escapeRegExp(entry.name);
+    const pattern = entry.isDirectory()
+      ? new RegExp(`(?<![\\w./-])${name}/`)
+      : new RegExp(`(?<![\\w./-])${name}(?![\\w-])`);
+    if (pattern.test(stripped)) found.push(entry.isDirectory() ? `${entry.name}/` : entry.name);
+  }
+  return found.sort();
+}
+
+test("audit skill references nothing outside its ClawHub bundle", () => {
+  // Guard against a vacuous pass: the pre-1.5.8 wording must be detected.
+  const legacy = "Run `node evals/check.js <url> --json`. Map findings to the levels in spec.md. See https://gracefulboundaries.dev/spec.md and GET <url>/.well-known/limits.";
+  assert.deepStrictEqual(repoReferencesOutsideBundle(legacy), ["evals/", "spec.md"], "detector must flag repo-relative script and spec references");
+
+  const offending = repoReferencesOutsideBundle(readRepoFile("SKILL.md"));
+  assert.deepStrictEqual(offending, [], `SKILL.md ships in the audit-only ClawHub bundle but references repository paths: ${offending.join(", ")}`);
+});
+
+// Job-level write scopes each workflow legitimately needs. Anything else,
+// and any top-level write, fails.
+const WORKFLOW_WRITE_SCOPES = {
+  "codeql.yml": ["security-events"],
+  "publish.yml": ["id-token"],
+  "scorecard.yml": ["security-events"],
+};
+
+test("every workflow pins actions to immutable SHAs and scopes write permissions", () => {
+  const dir = path.join(repoRoot, ".github", "workflows");
+  const files = fs.readdirSync(dir).filter((name) => /\.ya?ml$/.test(name)).sort();
+  assert(files.length >= 5, "expected the repository's workflows to be present");
+
+  for (const file of files) {
+    const label = `.github/workflows/${file}`;
+    const content = readRepoFile(label);
+
+    const uses = [...content.matchAll(/uses: (\S+)/g)].map((match) => match[1]);
+    assert(uses.length > 0, `${label} must declare its actions`);
+    for (const ref of uses) {
+      assert(/^[\w.-]+\/[\w.-]+(\/[\w.-]+)*@[a-f0-9]{40}$/.test(ref), `${label} action ${ref} must use an immutable commit SHA`);
+    }
+
+    const checkouts = uses.filter((ref) => ref.startsWith("actions/checkout@")).length;
+    const persistOff = (content.match(/persist-credentials: false/g) || []).length;
+    assert.strictEqual(persistOff, checkouts, `${label} must set persist-credentials: false on every checkout`);
+
+    const topLevel = content.match(/^permissions:(.*)\n((?: {2}\S.*\n)*)/m);
+    assert(topLevel, `${label} must declare top-level permissions`);
+    const inline = topLevel[1].trim();
+    if (inline) {
+      assert.strictEqual(inline, "read-all", `${label} top-level permissions must be read-only`);
+    } else {
+      for (const line of topLevel[2].trim().split("\n")) {
+        assert(/^\s*[\w-]+: (read|none)$/.test(line), `${label} top-level permission "${line.trim()}" must be read or none`);
+      }
+    }
+
+    assert(!/write-all/.test(content), `${label} must not grant write-all`);
+    const writes = [...content.matchAll(/^\s+([\w-]+): write\s*$/gm)].map((match) => match[1]).sort();
+    assert.deepStrictEqual(writes, (WORKFLOW_WRITE_SCOPES[file] || []).slice().sort(), `${label} write scopes must match the reviewed allowlist`);
+  }
+});
+
+function expandPackageFiles(entries) {
+  const out = [];
+  const walk = (relative) => {
+    const absolute = path.join(repoRoot, relative);
+    if (fs.statSync(absolute).isDirectory()) {
+      for (const child of fs.readdirSync(absolute)) walk(path.posix.join(relative, child));
+    } else {
+      out.push(relative);
+    }
+  };
+  for (const entry of entries) walk(entry.replace(/\/$/, ""));
+  return out;
+}
+
+test("npm package contains exactly the declared checker, schemas, spec, and licenses", () => {
+  const pkg = JSON.parse(readRepoFile("package.json"));
+  assert.strictEqual(pkg.repository.url, "git+https://github.com/snapsynapse/graceful-boundaries.git", "repository.url must use npm's normalized form");
+
+  // An isolated cache keeps this offline and independent of the user's npm state.
+  const cache = fs.mkdtempSync(path.join(require("node:os").tmpdir(), "gb-npm-cache-"));
+  try {
+    const npm = process.platform === "win32" ? "npm.cmd" : "npm";
+    const pack = spawnSync(npm, ["pack", "--dry-run", "--json", "--ignore-scripts", "--cache", cache], {
+      cwd: repoRoot,
+      encoding: "utf8",
+    });
+    assert.strictEqual(pack.status, 0, pack.stderr || pack.stdout || String(pack.error));
+    const packed = JSON.parse(pack.stdout)[0].files.map((file) => file.path).sort();
+
+    // npm always adds package.json and README.md to the declared `files`.
+    const expected = [...expandPackageFiles(pkg.files), "package.json", "README.md"].sort();
+    assert.deepStrictEqual(packed, expected, "npm tarball must contain only package.json `files` plus package.json and README.md");
+    assert(packed.includes(pkg.bin["graceful-boundaries"]), "npm tarball must include the CLI entry point");
+  } finally {
+    fs.rmSync(cache, { recursive: true, force: true });
+  }
+});
+
 test("adopter revalidation workflow covers every registered service", () => {
   const adopters = readRepoFile("ADOPTERS.md");
   const workflow = readRepoFile(".github/workflows/adopter-revalidation.yml");
@@ -495,14 +608,8 @@ test("adopter revalidation workflow covers every registered service", () => {
   assert(workflow.includes("workflow_dispatch:"), "adopter revalidation must support manual runs");
   assert(/uses: actions\/upload-artifact@[a-f0-9]{40}\b/.test(workflow), "adopter revalidation must retain JSON evidence through a pinned action");
   assert(workflow.includes("timeout-minutes:"), "live adopter checks must have a bounded job timeout");
-  for (const file of [".github/workflows/test.yml", ".github/workflows/adopter-revalidation.yml"]) {
-    const content = readRepoFile(file);
-    const uses = [...content.matchAll(/uses: (\S+)/g)].map((match) => match[1]);
-    assert(uses.length > 0, `${file} must declare its actions`);
-    assert(uses.every((ref) => /^[\w-]+\/[\w-]+@[a-f0-9]{40}$/.test(ref)), `${file} actions must use immutable SHAs`);
-    assert(/^permissions:\n  contents: read\n/m.test(content), `${file} must default to read-only contents permission`);
-    assert(content.includes("persist-credentials: false"), `${file} must not persist checkout credentials`);
-  }
+  // Action pinning, permissions, and checkout credentials for every workflow,
+  // including this one, are enforced by the all-workflows test above.
 });
 
 test("public docs disclose the current unit test count", () => {

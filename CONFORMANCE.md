@@ -29,7 +29,7 @@ A passing run reports the highest level the service satisfies. The verifier is t
 
 ## Test suite
 
-`evals/` ships 290 tests across 13 files:
+`evals/` ships 293 tests across 13 files:
 
 | File | Coverage |
 |---|---|
@@ -38,7 +38,7 @@ A passing run reports the highest level the service satisfies. The verifier is t
 | `test-refusal.js` | Refusal body shape (`error`, `detail`, `why`, `limit`, `retryAfterSeconds`) |
 | `test-discovery.js` | Limits discovery endpoint |
 | `test-action-boundaries.js` | Action boundary fields |
-| `test-agentic-surfaces.js` | Agent-facing surface inventory |
+| `test-agentic-surfaces.js` | Agent-facing surface inventory, ClawHub and npm package contents, workflow action pinning and permissions |
 | `test-proactive-headers.js` | Level 4 proactive headers |
 | `test-html-refusal.js` | HTML refusal binding |
 | `test-security.js` | Security-case responses (SC-1 through SC-16) |
