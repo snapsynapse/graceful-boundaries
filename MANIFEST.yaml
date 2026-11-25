@@ -17,7 +17,7 @@ date: 2026-11-08
 skills:
   - name: graceful-boundaries-audit
     file: SKILL.md
-    sha256: 5092d2ab4ba0546854104b5503d5f6c064782296e65657961a164ce38060fab4
+    sha256: da1b62b6b9db460f4937d8fa6f79dcfb42ecd8d069a0c1c6de1c0c670ed04650
     role: audit
     description: |
       Assess any API or website's Graceful Boundaries conformance level
