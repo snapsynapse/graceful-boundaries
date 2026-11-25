@@ -16,13 +16,13 @@ description: >
 metadata:
   skill_bundle: graceful-boundaries-audit
   file_role: skill
-  version: 5
-  version_date: 2026-05-29
-  previous_version: 4
+  version: 6
+  version_date: 2026-11-24
+  previous_version: 5
   change_summary: >
-    Updated for spec v1.4.0. Discovery review now checks stricter same-origin
-    URL safety, optional cost and quota metadata, and Action Boundaries
-    declarations as untrusted data.
+    Self-contained for audit-only distribution. The optional checker now runs
+    through the published npm package instead of a repo-relative script, and
+    spec references point to the hosted specification instead of a local file.
   author: PAICE.work PBC (paice.work)
   source: https://gracefulboundaries.dev
 ---
@@ -77,15 +77,17 @@ If either path returns a JSON response, record:
 If neither path returns a valid response, the service has no discovery
 endpoint and cannot be Level 2 or above.
 
-**Optional accelerator:** If the graceful-boundaries repo is cloned
-locally, the automated checker provides a structured report:
+**Optional accelerator:** If Node.js 18 or later is available, the
+published checker provides a structured report:
 
 ```bash
-node evals/check.js <url> --json
+npx graceful-boundaries check <url> --json
 ```
 
-This is a convenience, not a requirement. The skill works entirely
-through direct HTTP inspection.
+This downloads and runs the `graceful-boundaries` npm package. Use it
+only where the user permits running npm packages. It is a convenience,
+not a requirement. The skill works entirely through direct HTTP
+inspection.
 
 ### Phase 2: Proactive Header Check
 
@@ -103,7 +105,8 @@ response — note these as unverifiable and explain why.
 
 ### Phase 3: Level Assessment
 
-Map findings to the conformance levels defined in spec.md:
+Map findings to the conformance levels defined in the specification
+(https://gracefulboundaries.dev/spec.md):
 
 | Level | How to verify |
 |---|---|
@@ -125,7 +128,8 @@ Report the assessment as:
 ### Phase 4: Gap Analysis
 
 For each level above the current confirmed level, list exactly what is
-missing. Reference specific sections of spec.md:
+missing. Reference specific sections of the specification
+(https://gracefulboundaries.dev/spec.md):
 
 **To reach Level 1** (spec sections 2 and 6):
 - Do ALL non-success responses (400, 401, 403, 404, 429, 500, 503) include
