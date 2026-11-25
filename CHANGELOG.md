@@ -15,6 +15,7 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 
 ### Changed
 - Assistant guide 2.0.3 updates only the `run-live-checker` pin for the new `evals/check.js` bytes.
+- The audit skill (`SKILL.md` version 6) no longer references files outside its audit-only ClawHub bundle. The optional checker runs as `npx graceful-boundaries check <url> --json` instead of `node evals/check.js`, and spec references link the hosted specification. ClawHub's 1.5.7 scan warned about the missing files. `MANIFEST.yaml` carries the new hash.
 
 ## [1.5.7] - 2026-11-08
 
