@@ -4,12 +4,12 @@ Assistant Guide: Graceful Boundaries contributor validation
 identifier: assistant-guide
 profile: human-verifiable-assistant-guide
 profile-version: 2.0.0
-guide-version: 2.0.3
+guide-version: 2.0.4
 applies-to: graceful-boundaries 1.5.7
 canonical-url: https://gracefulboundaries.dev/.well-known/assistant-guide.txt
 repository-url: https://github.com/snapsynapse/graceful-boundaries
 source-path: /.well-known/assistant-guide.txt
-last-reviewed: 2026-11-08
+last-reviewed: 2026-11-24
 reviewed-by: PAICE.work PBC
 status: active
 recommended-verifier: https://guidecheck.org/verify
@@ -126,7 +126,7 @@ command: node evals/check.js https://siteline.to
 runner: argv
 cwd: .
 egress: siteline.to
-exec-sha256: 87584db6a6fceb23b269ef692d9b3bed34526a091d73e300991f28a0a200e815
+exec-sha256: 9f6c379de4e0fd04a68886328a1af6c10edee599257351c6b13efdd130bf541d
 notes: Verifies checker behavior against the Level 4 reference implementation.
 [/action]
 

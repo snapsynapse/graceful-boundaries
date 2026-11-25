@@ -9,6 +9,7 @@
  * Usage: node evals/test-security.js
  */
 
+const nodeAssert = require("node:assert");
 const checker = require("./check.js");
 const {
   isSafeSameOriginOrRelativeUrl,
@@ -502,6 +503,39 @@ test("fuzz: 50 KB repetitions of every fragment stay within budget", () => {
       const ms = Number(process.hrtime.bigint() - start) / 1e6;
       assert(ms < 1000, `${name} took ${ms.toFixed(1)}ms on 50 KB of ${JSON.stringify(fragment.slice(0, 20))}`);
     }
+  }
+});
+
+// checkHtmlRefusal's former `/<link\b[^>]*>/gi` scan was quadratic on
+// unclosed `<link` tags: 50 KB took about 600 ms, using most of the budget
+// above, and 100 KB took about 2.4 s. At 200 KB that regex needs roughly 10 s,
+// while the linear scan finishes in well under a millisecond.
+test("checkHtmlRefusal scans 200 KB of unclosed <link tags in linear time", () => {
+  for (const fragment of ["<link ", "<link rel=\"alternate\" type=\"application/json\" href=\"", "<LINK\t"]) {
+    const input = fragment.repeat(Math.ceil(200000 / fragment.length));
+    const start = process.hrtime.bigint();
+    const result = checker.checkHtmlRefusal(input);
+    const ms = Number(process.hrtime.bigint() - start) / 1e6;
+    assert(ms < FUZZ_BUDGET_MS, `checkHtmlRefusal took ${ms.toFixed(1)}ms on 200 KB of ${JSON.stringify(fragment.slice(0, 20))}`);
+    nodeAssert.strictEqual(result.hasJsonAlternate, false, "unclosed tags must not yield a JSON alternate");
+  }
+});
+
+// The linear scan must select exactly the tags the former regex selected, so
+// the fix changes cost, not behavior. Small inputs keep the oracle fast.
+test(`findLinkTags matches the former <link> regex on hostile HTML (seed ${FUZZ_SEED})`, () => {
+  const oracle = (html) => html.match(/<link\b[^>]*>/gi) || [];
+  const fixed = [
+    "", "<link>", "<LINK rel=alternate>", "<linked>", "<link-x>", "<link", "<link <link >", "<link a=\">\" b>",
+    "x<link a><link b>y<link c", "<link\n rel='alternate' type='application/json' href='/a.json'>",
+  ];
+  for (const html of fixed) {
+    nodeAssert.deepStrictEqual(checker.findLinkTags(html), oracle(html), `mismatch on ${JSON.stringify(html)}`);
+  }
+  const rand = mulberry32(FUZZ_SEED ^ 0x6c696e6b);
+  for (let i = 0; i < FUZZ_ITERATIONS * 5; i++) {
+    const html = fuzzString(rand, 40).slice(0, 4000);
+    nodeAssert.deepStrictEqual(checker.findLinkTags(html), oracle(html), `case ${i} mismatch on ${JSON.stringify(html.slice(0, 80))}`);
   }
 });
 

@@ -268,6 +268,29 @@ function checkDedupResponse(body) {
   };
 }
 
+/**
+ * Return every `<link ...>` tag in document order, each spanning from `<link`
+ * to the first following `>`, exactly as `html.match(/<link\b[^>]*>/gi)` would.
+ *
+ * That regex is quadratic on hostile input: on `"<link "` repeated with no
+ * closing `>`, every `<link` start scans to the end of the string before
+ * failing (about 2.4 s for 100 KB). Here each tag start is found once, and the
+ * scan stops at the first start with no `>` after it, since no later tag can
+ * close either. Total work is linear in the input length.
+ */
+function findLinkTags(html) {
+  const tags = [];
+  const start = /<link\b/gi;
+  let match;
+  while ((match = start.exec(html)) !== null) {
+    const end = html.indexOf(">", match.index + match[0].length);
+    if (end === -1) break;
+    tags.push(html.slice(match.index, end + 1));
+    start.lastIndex = end + 1;
+  }
+  return tags;
+}
+
 function checkHtmlRefusal(html) {
   if (!html || typeof html !== "string") {
     return {
@@ -295,7 +318,7 @@ function checkHtmlRefusal(html) {
   // Check for <link rel="alternate" type="application/json" href="...">
   // Match each <link> tag once, then test its attributes. A single regex with
   // overlapping whitespace quantifiers backtracks polynomially on hostile HTML.
-  const linkTag = (html.match(/<link\b[^>]*>/gi) || []).find((tag) => /\srel=["']alternate["']/i.test(tag));
+  const linkTag = findLinkTags(html).find((tag) => /\srel=["']alternate["']/i.test(tag));
   let hasJsonAlternate = false;
   let jsonAlternateUrl = null;
 
@@ -1450,6 +1473,7 @@ module.exports = {
   checkLimitsBody,
   checkProactiveHeaders,
   checkHtmlRefusal,
+  findLinkTags,
   checkDedupResponse,
   checkContentContainment,
   containsInstructionLikeText,
