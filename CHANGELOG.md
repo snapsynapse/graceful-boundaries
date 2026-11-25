@@ -12,6 +12,7 @@ This project follows [Semantic Versioning](https://semver.org/). The version num
 ### Added
 - `.github/workflows/publish.yml` publishes to npm through trusted publishing (OIDC, with provenance) instead of a maintainer token. It runs when a GitHub Release is published, or on demand for an existing release tag, behind a maintainer-approved `npm` environment limited to `v*` tags. It publishes the release's own tarball only after the tarball matches the release `SHA256SUMS` and every file in it matches the tagged source.
 - A dependency-free, seeded fuzz harness in `evals/test-security.js` covering every checker function that parses untrusted input, with a per-case time budget and 50 KB repetition cases. `GB_FUZZ_SEED` and `GB_FUZZ_ITERATIONS` reproduce or extend a run. Three regression tests pin the crashes it found (290 tests).
+- Three release-surface tests (293 tests). The audit skill must not reference repository paths outside its ClawHub bundle, which would have caught the 1.5.7 scan warning. Every workflow, not only `test.yml` and adopter revalidation, must pin actions to commit SHAs, disable persisted checkout credentials, keep top-level permissions read-only, and request only its reviewed write scopes. `npm pack --dry-run` must produce exactly the declared package files, with npm's normalized `repository.url`.
 
 ### Changed
 - Assistant guide 2.0.3 updates only the `run-live-checker` pin for the new `evals/check.js` bytes.
